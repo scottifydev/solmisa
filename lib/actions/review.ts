@@ -36,10 +36,18 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
   };
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function submitReview(req: ReviewAnswerRequest): Promise<ReviewAnswerResponse> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  if (!UUID_RE.test(req.cardId)) throw new Error("Invalid card ID");
+  if (!["correct", "incorrect", "skip"].includes(req.result)) throw new Error("Invalid result");
+  if (req.responseTimeMs != null && (!Number.isFinite(req.responseTimeMs) || req.responseTimeMs < 0)) {
+    throw new Error("Invalid response time");
+  }
 
   // Get current card state
   const { data: card } = await supabase

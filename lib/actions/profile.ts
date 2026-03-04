@@ -58,14 +58,19 @@ export async function updateProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const displayName = formData.get("display_name") as string;
+  const displayName = (formData.get("display_name") as string)?.trim().slice(0, 100);
   const instrument = formData.get("instrument") as string;
   const experienceLevel = formData.get("experience_level") as string;
+
+  const validLevels = ["beginner", "intermediate", "advanced"];
+  if (experienceLevel && !validLevels.includes(experienceLevel)) {
+    throw new Error("Invalid experience level");
+  }
 
   await supabase.from("profiles")
     .update({
       display_name: displayName || null,
-      instrument: instrument || null,
+      instrument: instrument?.trim().slice(0, 100) || null,
       experience_level: experienceLevel || null,
     })
     .eq("id", user.id);

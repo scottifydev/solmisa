@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Module, Lesson, LessonSummary } from "@/types/lesson";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getModulesWithLessons(): Promise<Module[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -59,6 +61,8 @@ export async function getModulesWithLessons(): Promise<Module[]> {
 }
 
 export async function getLesson(lessonId: string): Promise<Lesson | null> {
+  if (!UUID_RE.test(lessonId)) return null;
+
   const supabase = await createClient();
 
   const { data: lesson } = await supabase
@@ -97,6 +101,7 @@ export async function completeLesson(lessonId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  if (!UUID_RE.test(lessonId)) throw new Error("Invalid lesson ID");
 
   // Upsert to avoid duplicates
   await supabase
