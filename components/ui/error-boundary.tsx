@@ -6,6 +6,7 @@ import { Button } from "./button";
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  onReset?: () => void;
 }
 
 interface ErrorBoundaryState {
@@ -23,6 +24,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
+  private handleReset = () => {
+    this.setState({ hasError: false, error: undefined });
+    if (this.props.onReset) {
+      this.props.onReset();
+    } else {
+      window.location.reload();
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -30,20 +40,31 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="font-display text-xl font-bold text-ivory mb-2">
+        <div className="bg-obsidian border border-steel rounded-lg p-8 max-w-sm mx-auto text-center">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-incorrect mx-auto mb-4"
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+          <h2 className="font-display text-lg font-bold text-ivory mb-2">
             Something went wrong
           </h2>
-          <p className="text-silver text-sm mb-4 max-w-md">
-            {process.env.NODE_ENV === "development"
-              ? this.state.error?.message || "An unexpected error occurred."
-              : "An unexpected error occurred. Please try again."}
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => this.setState({ hasError: false, error: undefined })}
-          >
+          {this.state.error?.message && (
+            <p className="text-sm text-silver mb-4">
+              {this.state.error.message}
+            </p>
+          )}
+          <Button variant="secondary" onClick={this.handleReset}>
             Try again
           </Button>
         </div>

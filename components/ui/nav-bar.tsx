@@ -102,7 +102,7 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
       {/* Desktop header */}
       <header className="hidden sm:flex fixed top-0 left-0 right-0 z-40 h-14 items-center justify-between px-6 border-b border-steel bg-night/80 backdrop-blur-xl">
         <Link href="/dashboard" className="shrink-0">
-          <Logo size={28} withWordmark wordmarkSize={18} />
+          <Logo size={28} withWordmark wordmarkSize="md" />
         </Link>
 
         <nav className="inline-flex items-center bg-obsidian rounded-full p-1">

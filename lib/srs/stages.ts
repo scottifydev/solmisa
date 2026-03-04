@@ -76,12 +76,12 @@ const TIER_ORDER: DifficultyTier[] = ["intro", "core", "stretch"];
 
 export function getNextTier(current: DifficultyTier): DifficultyTier | null {
   const idx = TIER_ORDER.indexOf(current);
-  return idx < TIER_ORDER.length - 1 ? TIER_ORDER[idx + 1] : null;
+  return idx < TIER_ORDER.length - 1 ? (TIER_ORDER[idx + 1] ?? null) : null;
 }
 
 export function getPreviousTier(current: DifficultyTier): DifficultyTier | null {
   const idx = TIER_ORDER.indexOf(current);
-  return idx > 0 ? TIER_ORDER[idx - 1] : null;
+  return idx > 0 ? (TIER_ORDER[idx - 1] ?? null) : null;
 }
 
 /**

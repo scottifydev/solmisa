@@ -24,6 +24,16 @@ const stateClasses: Record<AnswerCardState, string> = {
   disabled: "border-steel/50 bg-obsidian/50 opacity-50 cursor-not-allowed",
 };
 
+interface AnswerGridProps {
+  columns?: 2 | 3 | 4;
+  children: ReactNode;
+}
+
+export function AnswerGrid({ columns = 2, children }: AnswerGridProps) {
+  const colClass = columns === 3 ? "grid-cols-3" : columns === 4 ? "grid-cols-4" : "grid-cols-2";
+  return <div className={`grid ${colClass} gap-3`}>{children}</div>;
+}
+
 export function AnswerCard({
   label,
   sublabel,

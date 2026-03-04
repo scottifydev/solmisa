@@ -119,10 +119,33 @@ export interface ResolutionOptions {
   timbre?: Timbre;
 }
 
+export interface PlayIntervalOptions {
+  interval: IntervalName;
+  key: NoteName;
+  baseDegree?: DiatonicDegree;
+  mode?: "melodic" | "harmonic";
+  octave?: number;
+  duration?: number;
+  gap?: number;
+  timbre?: Timbre;
+}
+
+export interface PlayChordOptions {
+  quality: ChordQuality;
+  root: NoteName;
+  inversion?: ChordInversion;
+  mode?: "block" | "arpeggiated";
+  octave?: number;
+  duration?: number;
+  timbre?: Timbre;
+}
+
 export interface UsePlaybackReturn {
   playDegree: (options: PlayDegreeOptions) => Promise<void>;
   playDegreeSequence: (degrees: DiatonicDegree[], options: Omit<PlayDegreeOptions, "degree">) => Promise<void>;
   playResolution: (options: ResolutionOptions) => Promise<void>;
+  playInterval: (options: PlayIntervalOptions) => Promise<void>;
+  playChord: (options: PlayChordOptions) => Promise<void>;
   stop: () => void;
   isPlaying: boolean;
 }

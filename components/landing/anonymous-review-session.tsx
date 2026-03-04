@@ -18,7 +18,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
   const [isComplete, setIsComplete] = useState(false);
 
   const total = cards.length;
-  const currentCard = cards[currentIndex];
+  const currentCard = cards[currentIndex]!;
   const correctCount = results.filter((r) => r === true).length;
 
   const handleSelect = useCallback(

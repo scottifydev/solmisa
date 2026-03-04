@@ -13,7 +13,7 @@ export default function FrameworkPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 h-16 border-b border-steel">
         <Link href="/">
-          <Logo size={28} withWordmark wordmarkSize={18} />
+          <Logo size={28} withWordmark wordmarkSize="md" />
         </Link>
         <Link
           href="/signup"

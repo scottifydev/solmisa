@@ -7,7 +7,7 @@ export default function Home() {
     <div className="min-h-screen bg-night text-ivory font-body">
       {/* Sticky header with backdrop blur */}
       <header className="sticky top-0 z-50 flex items-center justify-between px-6 h-14 border-b border-steel/50 bg-night/90 backdrop-blur-xl">
-        <Logo size={28} withWordmark wordmarkSize={17} />
+        <Logo size={28} withWordmark wordmarkSize="sm" />
         <div className="flex items-center gap-4">
           <Link
             href="/login"

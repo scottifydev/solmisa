@@ -85,7 +85,7 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
   const [quizCorrect, setQuizCorrect] = useState(0);
   const [quizTotal, setQuizTotal] = useState(0);
 
-  const stage = STAGES[stageIndex];
+  const stage = STAGES[stageIndex]!;
   const totalStages = STAGES.length;
   const progress = ((stageIndex + 1) / totalStages) * 100;
 

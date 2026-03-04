@@ -17,7 +17,7 @@ export default async function LearnPage() {
       {modules.length === 0 ? (
         <EmptyState
           title="No modules yet"
-          description="Curriculum content is being prepared. Check back soon!"
+          message="Curriculum content is being prepared. Check back soon!"
         />
       ) : (
         <div className="space-y-6">
@@ -53,7 +53,7 @@ export default async function LearnPage() {
                 {/* Lesson list */}
                 <div className="divide-y divide-steel/50">
                   {lessons.map((lesson, lessonIndex) => {
-                    const prevCompleted = lessonIndex === 0 || lessons[lessonIndex - 1].isCompleted;
+                    const prevCompleted = lessonIndex === 0 || lessons[lessonIndex - 1]!.isCompleted;
                     const isLocked = !prevCompleted && !lesson.isCompleted;
 
                     return (
