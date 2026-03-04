@@ -1,30 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-
-export interface SkillAxis {
-  axis_name: string;
-  score: number;
-  max_points: number;
-  percentage: number;
-}
-
-export const SKILL_AXES = [
-  "Key Signatures",
-  "Intervals",
-  "Scales & Modes",
-  "Chords & Harmony",
-  "Ear Training",
-  "Rhythm & Meter",
-  "Performance",
-  "Sight Reading",
-  "Practice Discipline",
-  "Active Listening",
-  "Composition & Arranging",
-  "Music Literacy",
-] as const;
-
-const MAX_POINTS = 1000;
+import { SKILL_AXES, MAX_SKILL_POINTS } from "@/lib/skill-axes";
+import type { SkillAxis } from "@/lib/skill-axes";
 
 export async function getSkillAxes(): Promise<SkillAxis[]> {
   const supabase = await createClient();
@@ -45,12 +23,12 @@ export async function getSkillAxes(): Promise<SkillAxis[]> {
   }
 
   return SKILL_AXES.map((name) => {
-    const score = Math.min(scoreMap.get(name) ?? 0, MAX_POINTS);
+    const score = Math.min(scoreMap.get(name) ?? 0, MAX_SKILL_POINTS);
     return {
       axis_name: name,
       score,
-      max_points: MAX_POINTS,
-      percentage: Math.round((score / MAX_POINTS) * 100),
+      max_points: MAX_SKILL_POINTS,
+      percentage: Math.round((score / MAX_SKILL_POINTS) * 100),
     };
   });
 }

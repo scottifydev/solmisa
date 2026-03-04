@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 import { brand, type as typeTokens } from "@/lib/tokens";
-import type { SkillAxis } from "@/lib/actions/skills";
+import type { SkillAxis } from "@/lib/skill-axes";
 
 interface SkillRadarProps {
   axes: SkillAxis[];
