@@ -91,6 +91,48 @@ export async function getLesson(lessonId: string): Promise<Lesson | null> {
   };
 }
 
+export interface LessonWithContext {
+  lesson: Lesson;
+  moduleTitle: string;
+  totalLessons: number;
+  allowedKeys: string[];
+}
+
+export async function getLessonWithContext(lessonId: string): Promise<LessonWithContext | null> {
+  if (!UUID_RE.test(lessonId)) return null;
+
+  const supabase = await createClient();
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq("id", lessonId)
+    .single();
+
+  if (!lesson) return null;
+
+  // Fetch module info + sibling count
+  const [{ data: module }, { count }] = await Promise.all([
+    supabase.from("modules").select("title").eq("id", lesson.module_id).single(),
+    supabase.from("lessons").select("id", { count: "exact", head: true }).eq("module_id", lesson.module_id),
+  ]);
+
+  return {
+    lesson: {
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      module_id: lesson.module_id,
+      lesson_order: lesson.lesson_order,
+      drone_key: lesson.drone_key,
+      stages: (lesson.stages ?? []) as LessonStage[],
+    },
+    moduleTitle: module?.title ?? "Module",
+    totalLessons: count ?? 1,
+    allowedKeys: [],
+  };
+}
+
 export async function completeLesson(lessonId: string) {
   const supabase = await createClient();
   const {
