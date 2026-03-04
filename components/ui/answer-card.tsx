@@ -16,12 +16,12 @@ interface AnswerCardProps {
 }
 
 const stateClasses: Record<AnswerCardState, string> = {
-  default: "border-steel hover:border-silver bg-charcoal hover:bg-steel/50 cursor-pointer",
+  default: "border-steel hover:border-silver bg-obsidian hover:bg-steel/50 cursor-pointer",
   hover: "border-silver bg-steel/50 cursor-pointer",
   selected: "border-coral bg-coral/10 ring-1 ring-coral/30 cursor-pointer",
   correct: "border-correct bg-correct/10 ring-1 ring-correct/30",
   incorrect: "border-incorrect bg-incorrect/10 ring-1 ring-incorrect/30",
-  disabled: "border-steel/50 bg-charcoal/50 opacity-50 cursor-not-allowed",
+  disabled: "border-steel/50 bg-obsidian/50 opacity-50 cursor-not-allowed",
 };
 
 export function AnswerCard({

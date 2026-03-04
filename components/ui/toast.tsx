@@ -14,7 +14,7 @@ interface ToastProps {
 const variantClasses: Record<ToastVariant, string> = {
   success: "border-correct bg-correct/10 text-correct",
   error: "border-incorrect bg-incorrect/10 text-incorrect",
-  info: "border-steel bg-charcoal text-ivory",
+  info: "border-steel bg-obsidian text-ivory",
 };
 
 export function Toast({ message, variant = "info", duration = 4000, onDismiss }: ToastProps) {

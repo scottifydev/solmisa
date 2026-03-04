@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 
 export async function getProfile() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
   const { data: profile } = await supabase
@@ -19,28 +21,28 @@ export async function getProfile() {
 
 export async function getProfileData() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
   const profile = await getProfile();
 
-  // Get lesson completion count
-  const { count: lessonsCompleted } = await supabase
-    .from("user_lesson_progress")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  // Get total review count
-  const { count: totalReviews } = await supabase
-    .from("srs_reviews")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  // Get total cards
-  const { count: totalCards } = await supabase
-    .from("srs_cards")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const [{ count: lessonsCompleted }, { count: totalReviews }, { count: totalCards }] =
+    await Promise.all([
+      supabase
+        .from("lesson_progress")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "completed"),
+      supabase
+        .from("review_records")
+        .select("id", { count: "exact", head: true }),
+      supabase
+        .from("user_card_state")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id),
+    ]);
 
   return {
     profile,
@@ -55,21 +57,24 @@ export async function getProfileData() {
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const displayName = (formData.get("display_name") as string)?.trim().slice(0, 100);
+  const name = (formData.get("name") as string)?.trim().slice(0, 100);
   const instrument = formData.get("instrument") as string;
   const experienceLevel = formData.get("experience_level") as string;
 
-  const validLevels = ["beginner", "intermediate", "advanced"];
+  const validLevels = ["beginner", "intermediate", "advanced", "professional"];
   if (experienceLevel && !validLevels.includes(experienceLevel)) {
     throw new Error("Invalid experience level");
   }
 
-  await supabase.from("profiles")
+  await supabase
+    .from("profiles")
     .update({
-      display_name: displayName || null,
+      name: name || null,
       instrument: instrument?.trim().slice(0, 100) || null,
       experience_level: experienceLevel || null,
     })

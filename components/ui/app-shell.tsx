@@ -7,9 +7,9 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-night">
+    <div className="min-h-screen bg-night text-ivory font-body">
       <NavBar />
-      <main className="pb-20 sm:pb-0 sm:pt-16">
+      <main className="pt-12 pb-[calc(64px+env(safe-area-inset-bottom))] sm:pt-14 sm:pb-0">
         {children}
       </main>
     </div>

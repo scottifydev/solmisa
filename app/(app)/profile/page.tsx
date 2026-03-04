@@ -21,7 +21,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Profile form */}
-      <form action={updateProfile} className="rounded-xl border border-steel bg-charcoal p-6 space-y-4">
+      <form action={updateProfile} className="rounded-xl border border-steel bg-obsidian p-6 space-y-4">
         <h2 className="font-display text-lg font-bold text-ivory">Settings</h2>
 
         <div>
@@ -35,13 +35,13 @@ export default async function ProfilePage() {
         </div>
 
         <div>
-          <label htmlFor="display_name" className="block text-sm text-silver mb-1">Display name</label>
+          <label htmlFor="name" className="block text-sm text-silver mb-1">Display name</label>
           <input
-            id="display_name"
-            name="display_name"
+            id="name"
+            name="name"
             type="text"
-            defaultValue={profile?.display_name ?? ""}
-            className="w-full rounded-lg border border-steel bg-charcoal px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
+            defaultValue={profile?.name ?? ""}
+            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
           />
         </div>
 
@@ -52,7 +52,7 @@ export default async function ProfilePage() {
             name="instrument"
             type="text"
             defaultValue={profile?.instrument ?? ""}
-            className="w-full rounded-lg border border-steel bg-charcoal px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
+            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
           />
         </div>
 
@@ -62,7 +62,7 @@ export default async function ProfilePage() {
             id="experience_level"
             name="experience_level"
             defaultValue={profile?.experience_level ?? ""}
-            className="w-full rounded-lg border border-steel bg-charcoal px-3 py-2 text-ivory focus:outline-none focus:ring-2 focus:ring-coral/50"
+            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory focus:outline-none focus:ring-2 focus:ring-coral/50"
           >
             <option value="">Select...</option>
             <option value="beginner">Beginner</option>

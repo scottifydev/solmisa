@@ -1,15 +1,26 @@
+import type { CardCategory } from "./srs";
+
+// ─── Module & Lesson (DB mirrors) ────────────────────────────
+
+export interface ModuleUnlockCriteria {
+  required_lessons?: string[];
+  min_accuracy?: number;
+  min_stage?: string;
+}
+
 export interface Module {
   id: string;
   title: string;
   description: string | null;
-  order: number;
-  lessons: LessonSummary[];
+  module_order: number;
+  unlock_criteria: ModuleUnlockCriteria | null;
+  lessons?: LessonSummary[];
 }
 
 export interface LessonSummary {
   id: string;
   title: string;
-  order: number;
+  lesson_order: number;
   isCompleted: boolean;
 }
 
@@ -17,73 +28,100 @@ export interface Lesson {
   id: string;
   title: string;
   description: string | null;
-  moduleId: string;
-  moduleTitle: string;
+  module_id: string;
+  lesson_order: number;
+  drone_key: string | null;
   stages: LessonStage[];
 }
 
-export interface ModuleProgress {
-  moduleId: string;
-  completedLessons: number;
-  totalLessons: number;
-  percentage: number;
-}
+// ─── Progress Tracking ───────────────────────────────────────
+
+export type LessonProgressStatus = "not_started" | "in_progress" | "completed";
+export type ModuleProgressStatus =
+  | "locked"
+  | "available"
+  | "in_progress"
+  | "completed";
 
 export interface LessonProgress {
-  lessonId: string;
-  currentStageIndex: number;
-  totalStages: number;
-  isCompleted: boolean;
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  status: LessonProgressStatus;
+  current_stage_index: number;
+  score: number | null;
+  started_at: string | null;
+  completed_at: string | null;
 }
+
+export interface ModuleProgress {
+  id: string;
+  user_id: string;
+  module_id: string;
+  status: ModuleProgressStatus;
+  lessons_completed: number;
+  unlocked_at: string | null;
+  completed_at: string | null;
+}
+
+// ─── Lesson Stages (the 5 types) ─────────────────────────────
 
 export type LessonStageType =
   | "aural_teach"
   | "theory_teach"
   | "aural_quiz"
   | "theory_quiz"
-  | "practice";
+  | "rhythm";
 
-export interface LessonStage {
-  id: string;
-  type: LessonStageType;
-  config: Record<string, unknown>;
-  order: number;
-}
+export type LessonStage =
+  | AuralTeachStage
+  | TheoryTeachStage
+  | AuralQuizStage
+  | TheoryQuizStage
+  | RhythmStage;
 
 export interface AuralTeachStage {
   type: "aural_teach";
-  audioSrc: string;
+  title: string;
   instructions: string;
-  degree: number;
-  key: string;
+  audio_degrees: number[];
+  show_degree_circle: boolean;
+  highlight_degree?: number;
 }
 
 export interface TheoryTeachStage {
   type: "theory_teach";
+  title: string;
   content: string;
   notation?: string;
-  degree: number;
+  degree?: number;
+  show_degree_circle: boolean;
 }
 
 export interface AuralQuizStage {
   type: "aural_quiz";
-  audioSrc: string;
+  prompt: string;
   options: QuizOption[];
-  correctAnswer: string;
+  correct_answer: string;
+  seeds_card?: string;
+  show_resolution?: boolean;
 }
 
 export interface TheoryQuizStage {
   type: "theory_quiz";
-  question: string;
+  prompt: string;
   options: QuizOption[];
-  correctAnswer: string;
+  correct_answer: string;
+  seeds_card?: string;
 }
 
-export interface PracticeStage {
-  type: "practice";
-  instructions: string;
-  audioSrc?: string;
-  targetDegrees: number[];
+export interface RhythmStage {
+  type: "rhythm";
+  mode: "listen" | "tap" | "quiz";
+  tempo: number;
+  time_signature: [number, number];
+  pattern: RhythmEvent[];
+  seeds_card?: string;
 }
 
 export interface QuizOption {
@@ -93,14 +131,57 @@ export interface QuizOption {
   degree?: number;
 }
 
+// ─── Rhythm Types ─────────────────────────────────────────────
+
+export interface RhythmEvent {
+  beat: number;
+  duration: number;
+  rest?: boolean;
+}
+
+export interface RhythmTapperProps {
+  events: RhythmEvent[];
+  tempo: number;
+  timeSignature: [number, number];
+  onComplete: (result: RhythmTapResult) => void;
+}
+
+export interface RhythmTapResult {
+  accuracy: number;
+  taps: { time: number; expected: number; delta: number }[];
+}
+
+// ─── Rendering Types ──────────────────────────────────────────
+
 export interface StageRendererProps {
   stage: LessonStage;
-  onComplete: () => void;
-  onAnswer?: (correct: boolean) => void;
+  stageIndex: number;
+  totalStages: number;
+  droneKey: string | null;
+  onComplete: (result: StageQuizResult | null) => void;
 }
 
 export interface LessonRenderData {
-  lesson: Lesson;
-  progress: LessonProgress;
+  module_title: string;
+  lesson_title: string;
+  lesson_num: number;
+  total_lessons: number;
+  drone_key: string | null;
+  allowed_keys: string[];
   stages: LessonStage[];
+}
+
+export interface LessonCompletionResult {
+  lesson_id: string;
+  stage_results: StageQuizResult[];
+  duration_ms: number;
+}
+
+export interface StageQuizResult {
+  stage_index: number;
+  stage_type: LessonStageType;
+  correct: boolean;
+  response_time_ms: number;
+  seeds_card: string | null;
+  card_category: CardCategory | null;
 }

@@ -84,15 +84,19 @@ export function LessonPlayer({ lesson }: LessonPlayerProps) {
         </div>
         <ProgressBar value={progress} size="sm" />
         <h1 className="font-display text-xl font-bold text-ivory">{lesson.title}</h1>
-        <p className="text-silver text-xs">{lesson.moduleTitle}</p>
       </div>
 
       {/* Stage content */}
       {currentStage && (
         <StageRenderer
           stage={currentStage}
-          onComplete={handleStageComplete}
-          onAnswer={handleAnswer}
+          stageIndex={currentStageIndex}
+          totalStages={totalStages}
+          droneKey={lesson.drone_key}
+          onComplete={(result) => {
+            if (result) handleAnswer(result.correct);
+            handleStageComplete();
+          }}
         />
       )}
     </div>
