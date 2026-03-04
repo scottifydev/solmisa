@@ -49,12 +49,22 @@ export function AnswerCard({
       `}
       style={borderColor ? { borderColor } : undefined}
     >
-      {label && (
-        <div className="text-ivory font-medium">{label}</div>
-      )}
-      {sublabel && (
-        <div className="text-silver text-sm mt-0.5">{sublabel}</div>
-      )}
+      <div className="flex items-center justify-between">
+        <div>
+          {label && (
+            <div className="text-ivory font-medium">{label}</div>
+          )}
+          {sublabel && (
+            <div className="text-silver text-sm mt-0.5">{sublabel}</div>
+          )}
+        </div>
+        {effectiveState === "correct" && (
+          <span className="text-correct text-lg shrink-0 ml-2">&#x2713;</span>
+        )}
+        {effectiveState === "incorrect" && (
+          <span className="text-incorrect text-lg shrink-0 ml-2">&#x2717;</span>
+        )}
+      </div>
       {children}
     </button>
   );

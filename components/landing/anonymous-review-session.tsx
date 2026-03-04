@@ -34,7 +34,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
       const newResults = [...results, isCorrect];
       setResults(newResults);
 
-      // Auto-advance after delay
+      // Auto-advance after feedback
       setTimeout(() => {
         if (currentIndex + 1 >= GATE_AFTER_CARD) {
           setIsGated(true);
@@ -43,7 +43,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
           setSelected(null);
           setRevealed(false);
         }
-      }, 900);
+      }, 1800);
     },
     [revealed, isGated, currentCard, currentIndex, total, results]
   );
@@ -147,21 +147,38 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
             </div>
           </div>
         ) : (
-          /* Options grid */
-          <div className="grid grid-cols-2 gap-2">
-            {currentCard.options.map((opt) => (
-              <AnswerCard
-                key={opt.id}
-                label={opt.label}
-                state={getCardState(opt.id)}
-                degreeColor={
-                  opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined
-                }
-                onClick={() => handleSelect(opt.id)}
-                disabled={revealed}
-              />
-            ))}
-          </div>
+          <>
+            {/* Options grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {currentCard.options.map((opt) => (
+                <AnswerCard
+                  key={opt.id}
+                  label={opt.label}
+                  state={getCardState(opt.id)}
+                  degreeColor={
+                    opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined
+                  }
+                  onClick={() => handleSelect(opt.id)}
+                  disabled={revealed}
+                />
+              ))}
+            </div>
+
+            {/* Feedback banner */}
+            {revealed && (
+              <div
+                className={`mt-3 rounded-lg px-4 py-3 text-sm font-body ${
+                  selected === currentCard.correctAnswer
+                    ? "bg-correct/10 text-correct border border-correct/30"
+                    : "bg-incorrect/10 text-incorrect border border-incorrect/30"
+                }`}
+              >
+                {selected === currentCard.correctAnswer
+                  ? currentCard.correctFeedback
+                  : currentCard.incorrectFeedback}
+              </div>
+            )}
+          </>
         )}
       </div>
 

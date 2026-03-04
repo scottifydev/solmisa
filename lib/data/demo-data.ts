@@ -19,6 +19,8 @@ export interface DemoReviewCard {
   prompt: string;
   options: { id: string; label: string; degree?: number }[];
   correctAnswer: string;
+  correctFeedback: string;
+  incorrectFeedback: string;
 }
 
 export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
@@ -33,6 +35,8 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Fa (4)", degree: 4 },
     ],
     correctAnswer: "b",
+    correctFeedback: "Ti sits a half-step below Do \u2014 that proximity creates the strongest gravitational pull in the scale.",
+    incorrectFeedback: "The leading tone (Ti) sits a half-step below Do. That closeness creates the strongest pull toward tonic.",
   },
   {
     id: "demo-2",
@@ -45,6 +49,8 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "4" },
     ],
     correctAnswer: "c",
+    correctFeedback: "A Major: F\u266F, C\u266F, G\u266F. Three sharps following the order of sharps.",
+    incorrectFeedback: "A Major has three sharps: F\u266F, C\u266F, G\u266F. Follow the circle of fifths from C to count them.",
   },
   {
     id: "demo-3",
@@ -57,6 +63,8 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Supertonic" },
     ],
     correctAnswer: "c",
+    correctFeedback: "The dominant. It\u2019s the second most stable degree after tonic \u2014 the harmonic anchor of the scale.",
+    incorrectFeedback: "Sol (5) is the dominant \u2014 the second most stable tone after tonic, and the root of the V chord.",
   },
   {
     id: "demo-4",
@@ -69,11 +77,13 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Phrygian" },
     ],
     correctAnswer: "c",
+    correctFeedback: "Mixolydian. The \u266D7 gives it a bluesy, unresolved quality \u2014 common in rock and folk.",
+    incorrectFeedback: "Mixolydian is a major scale with a \u266D7. Think of the dominant chord\u2019s scale \u2014 that bright-but-unsettled sound.",
   },
   {
     id: "demo-5",
     stage: "journeyman",
-    prompt: "This degree feels like 'home.' Which is it?",
+    prompt: "This degree feels like \u2018home.\u2019 Which is it?",
     options: [
       { id: "a", label: "Do (1)", degree: 1 },
       { id: "b", label: "Mi (3)", degree: 3 },
@@ -81,5 +91,7 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "La (6)", degree: 6 },
     ],
     correctAnswer: "a",
+    correctFeedback: "Do is tonic \u2014 the point of rest. Every other degree defines itself by its relationship to this one.",
+    incorrectFeedback: "Do (1) is tonic \u2014 the resting place. It\u2019s the degree that feels resolved, like arriving home.",
   },
 ];
