@@ -28,21 +28,24 @@ export async function getProfileData() {
 
   const profile = await getProfile();
 
-  const [{ count: lessonsCompleted }, { count: totalReviews }, { count: totalCards }] =
-    await Promise.all([
-      supabase
-        .from("lesson_progress")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("status", "completed"),
-      supabase
-        .from("review_records")
-        .select("id", { count: "exact", head: true }),
-      supabase
-        .from("user_card_state")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id),
-    ]);
+  const [
+    { count: lessonsCompleted },
+    { count: totalReviews },
+    { count: totalCards },
+  ] = await Promise.all([
+    supabase
+      .from("lesson_progress")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "completed"),
+    supabase
+      .from("review_records")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("user_card_state")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+  ]);
 
   return {
     profile,
@@ -79,6 +82,53 @@ export async function updateProfile(formData: FormData) {
       experience_level: experienceLevel || null,
     })
     .eq("id", user.id);
+}
+
+export async function updateLearningPreferences(data: {
+  primary_solfege_system: string;
+  goals: string[];
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const validSystems = ["numbers", "moveable_do"];
+  if (!validSystems.includes(data.primary_solfege_system)) {
+    throw new Error("Invalid solfege system");
+  }
+
+  await supabase
+    .from("profiles")
+    .update({
+      primary_solfege_system: data.primary_solfege_system,
+      goals: data.goals,
+    })
+    .eq("id", user.id);
+}
+
+export async function requestPasswordReset() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) throw new Error("Not authenticated");
+
+  await supabase.auth.resetPasswordForEmail(user.email);
+}
+
+export async function deleteAccount() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // Delete profile (cascades to related data via FK)
+  await supabase.from("profiles").delete().eq("id", user.id);
+  await supabase.auth.signOut();
+  redirect("/login");
 }
 
 export async function signOut() {
