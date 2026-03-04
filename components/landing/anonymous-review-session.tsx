@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { DemoReviewCard } from "@/lib/data/demo-data";
 import { AnswerCard } from "@/components/ui/answer-card";
 import { SrsBadge } from "@/components/ui/srs-badge";
+import { OnboardingTooltip } from "./onboarding-tooltip";
 
 interface AnonymousReviewSessionProps {
   cards: DemoReviewCard[];
@@ -16,6 +17,8 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
   const [revealed, setRevealed] = useState(false);
   const [results, setResults] = useState<(boolean | null)[]>([]);
   const [isComplete, setIsComplete] = useState(false);
+  const [showAnswerTip, setShowAnswerTip] = useState(true);
+  const [showFeedbackTip, setShowFeedbackTip] = useState(false);
 
   const total = cards.length;
   const currentCard = cards[currentIndex]!;
@@ -26,10 +29,15 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
       if (revealed) return;
       setSelected(optionId);
       setRevealed(true);
+      setShowAnswerTip(false);
 
       const isCorrect = optionId === currentCard.correctAnswer;
       const newResults = [...results, isCorrect];
       setResults(newResults);
+
+      if (newResults.length === 1) {
+        setShowFeedbackTip(true);
+      }
 
       // Auto-advance after feedback
       setTimeout(() => {
@@ -158,33 +166,48 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
         </p>
 
         {/* Options grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {currentCard.options.map((opt) => (
-            <AnswerCard
-              key={opt.id}
-              label={opt.label}
-              state={getCardState(opt.id)}
-              degreeColor={
-                opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined
-              }
-              onClick={() => handleSelect(opt.id)}
-              disabled={revealed}
-            />
-          ))}
+        <div className="relative">
+          <div className="grid grid-cols-2 gap-2">
+            {currentCard.options.map((opt) => (
+              <AnswerCard
+                key={opt.id}
+                label={opt.label}
+                state={getCardState(opt.id)}
+                degreeColor={
+                  opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined
+                }
+                onClick={() => handleSelect(opt.id)}
+                disabled={revealed}
+              />
+            ))}
+          </div>
+          <OnboardingTooltip
+            text="Tap the degree you think matches the prompt"
+            position="top"
+            show={showAnswerTip && currentIndex === 0}
+            onDismiss={() => setShowAnswerTip(false)}
+          />
         </div>
 
         {/* Feedback banner */}
         {revealed && (
-          <div
-            className={`mt-3 rounded-lg px-4 py-3 text-sm font-body ${
-              selected === currentCard.correctAnswer
-                ? "bg-correct/10 text-correct border border-correct/30"
-                : "bg-incorrect/10 text-incorrect border border-incorrect/30"
-            }`}
-          >
-            {selected === currentCard.correctAnswer
-              ? currentCard.correctFeedback
-              : currentCard.incorrectFeedback}
+          <div className="relative">
+            <div
+              className={`mt-3 rounded-lg px-4 py-3 text-sm font-body ${
+                selected === currentCard.correctAnswer
+                  ? "bg-correct/10 text-correct border border-correct/30"
+                  : "bg-incorrect/10 text-incorrect border border-incorrect/30"
+              }`}
+            >
+              {selected === currentCard.correctAnswer
+                ? currentCard.correctFeedback
+                : currentCard.incorrectFeedback}
+            </div>
+            <OnboardingTooltip
+              text="Spaced repetition schedules reviews at optimal intervals to build lasting memory"
+              show={showFeedbackTip}
+              onDismiss={() => setShowFeedbackTip(false)}
+            />
           </div>
         )}
       </div>

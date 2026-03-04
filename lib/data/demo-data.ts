@@ -1,4 +1,6 @@
 import type { ReviewStatsResponse, SrsStageGroup } from "@/types/srs";
+import type { SkillAxis } from "@/lib/skill-axes";
+import { SKILL_AXES, MAX_SKILL_POINTS } from "@/lib/skill-axes";
 
 export const DEMO_STATS: ReviewStatsResponse = {
   totalCards: 12,
@@ -95,3 +97,28 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
     incorrectFeedback: "Do (1) is tonic \u2014 the resting place. It\u2019s the degree that feels resolved, like arriving home.",
   },
 ];
+
+const DEMO_SCORES: Record<string, number> = {
+  "Key Signatures": 180,
+  Intervals: 120,
+  "Scales & Modes": 95,
+  "Chords & Harmony": 60,
+  "Ear Training": 240,
+  "Rhythm & Meter": 150,
+  Performance: 30,
+  "Sight Reading": 45,
+  "Practice Discipline": 80,
+  "Active Listening": 110,
+  "Composition & Arranging": 15,
+  "Music Literacy": 70,
+};
+
+export const DEMO_SKILL_AXES: SkillAxis[] = SKILL_AXES.map((name) => {
+  const score = DEMO_SCORES[name] ?? 0;
+  return {
+    axis_name: name,
+    score,
+    max_points: MAX_SKILL_POINTS,
+    percentage: Math.round((score / MAX_SKILL_POINTS) * 100),
+  };
+});
