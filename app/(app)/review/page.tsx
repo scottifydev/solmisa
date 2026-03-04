@@ -1,23 +1,21 @@
-import { getReviewQueue } from "@/lib/actions/review";
-import { getDashboardStats } from "@/lib/actions/dashboard";
+import { getReviewQueue, hasAnyCards } from "@/lib/actions/review";
 import { ReviewSession } from "@/components/review/review-session";
 import { EmptyState } from "@/components/ui/empty-state";
 import Link from "next/link";
 
 export default async function ReviewPage() {
-  const [queue, stats] = await Promise.all([
-    getReviewQueue(),
-    getDashboardStats(),
-  ]);
+  const queue = await getReviewQueue();
 
   if (queue.items.length === 0) {
+    const hasCards = await hasAnyCards();
+
     return (
       <div className="max-w-lg mx-auto p-6">
         <EmptyState
           icon="🎯"
           title="All caught up!"
           description={
-            stats.totalCards === 0
+            !hasCards
               ? "Complete lessons to create review cards."
               : "No cards are due right now. Check back later!"
           }

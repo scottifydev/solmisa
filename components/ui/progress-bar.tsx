@@ -1,3 +1,5 @@
+import { colors } from "@/lib/tokens";
+
 interface ProgressBarProps {
   value: number;
   max?: number;
@@ -9,7 +11,7 @@ interface ProgressBarProps {
 export function ProgressBar({
   value,
   max = 100,
-  color = "#FF6B6B",
+  color = colors.coral,
   showLabel = false,
   size = "md",
 }: ProgressBarProps) {

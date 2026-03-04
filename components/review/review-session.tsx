@@ -6,8 +6,10 @@ import type { ReviewQueueResponse, ReviewQueueItem, ReviewResult } from "@/types
 import { submitReview } from "@/lib/actions/review";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { StatCard } from "@/components/ui/stat-card";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { AnswerCard } from "@/components/ui/answer-card";
+import { colors, semanticColors } from "@/lib/tokens";
 
 interface ReviewSessionProps {
   initialQueue: ReviewQueueResponse;
@@ -69,18 +71,9 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         <h1 className="font-display text-2xl font-bold text-ivory">Session Complete!</h1>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-xl border border-steel bg-charcoal p-4">
-            <div className="text-2xl font-display font-bold text-ivory">{reviewed}</div>
-            <div className="text-silver text-xs">Reviewed</div>
-          </div>
-          <div className="rounded-xl border border-steel bg-charcoal p-4">
-            <div className="text-2xl font-display font-bold text-correct">{accuracy}%</div>
-            <div className="text-silver text-xs">Accuracy</div>
-          </div>
-          <div className="rounded-xl border border-steel bg-charcoal p-4">
-            <div className="text-2xl font-display font-bold text-coral">{correctCount}</div>
-            <div className="text-silver text-xs">Correct</div>
-          </div>
+          <StatCard label="Reviewed" value={reviewed} />
+          <StatCard label="Accuracy" value={`${accuracy}%`} color={semanticColors.correct} />
+          <StatCard label="Correct" value={correctCount} color={colors.coral} />
         </div>
 
         <div className="flex gap-3">
@@ -112,7 +105,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
             {currentIndex + 1} / {total}
           </span>
         </div>
-        <ProgressBar value={currentIndex + 1} max={total} color="#FF6B6B" size="sm" />
+        <ProgressBar value={currentIndex + 1} max={total} size="sm" />
       </div>
 
       {/* Card */}

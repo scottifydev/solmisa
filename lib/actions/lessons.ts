@@ -24,33 +24,38 @@ export async function getModulesWithLessons(): Promise<Module[]> {
 
   const completedLessonIds = new Set(progress?.map((p) => p.lesson_id) ?? []);
 
-  const result: Module[] = [];
+  // Fetch all lessons in one query instead of per-module
+  const moduleIds = modules.map((m) => m.id);
+  const { data: allLessons } = await supabase
+    .from("lessons")
+    .select("id, title, order, module_id")
+    .in("module_id", moduleIds)
+    .eq("is_published", true)
+    .order("order");
 
-  for (const mod of modules) {
-    const { data: lessons } = await supabase
-      .from("lessons")
-      .select("id, title, order")
-      .eq("module_id", mod.id)
-      .eq("is_published", true)
-      .order("order");
+  // Group lessons by module
+  const lessonsByModule = new Map<string, typeof allLessons>();
+  for (const lesson of allLessons ?? []) {
+    const existing = lessonsByModule.get(lesson.module_id) ?? [];
+    existing.push(lesson);
+    lessonsByModule.set(lesson.module_id, existing);
+  }
 
-    const lessonSummaries: LessonSummary[] = (lessons ?? []).map((l) => ({
-      id: l.id,
-      title: l.title,
-      order: l.order,
-      isCompleted: completedLessonIds.has(l.id),
-    }));
-
-    result.push({
+  return modules.map((mod) => {
+    const lessons = lessonsByModule.get(mod.id) ?? [];
+    return {
       id: mod.id,
       title: mod.title,
       description: mod.description,
       order: mod.order,
-      lessons: lessonSummaries,
-    });
-  }
-
-  return result;
+      lessons: lessons.map((l): LessonSummary => ({
+        id: l.id,
+        title: l.title,
+        order: l.order,
+        isCompleted: completedLessonIds.has(l.id),
+      })),
+    };
+  });
 }
 
 export async function getLesson(lessonId: string): Promise<Lesson | null> {

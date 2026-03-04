@@ -1,7 +1,7 @@
 import { getModulesWithLessons } from "@/lib/actions/lessons";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { EmptyState } from "@/components/ui/empty-state";
-import { degreeColors } from "@/lib/tokens";
+import { colors, degreeColors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function LearnPage() {
@@ -25,7 +25,7 @@ export default async function LearnPage() {
             const completedCount = mod.lessons.filter((l) => l.isCompleted).length;
             const total = mod.lessons.length;
             const percentage = total > 0 ? Math.round((completedCount / total) * 100) : 0;
-            const color = degreeColors[(modIndex + 1) as keyof typeof degreeColors] ?? "#FF6B6B";
+            const color = degreeColors[(modIndex + 1) as keyof typeof degreeColors] ?? colors.coral;
 
             return (
               <div key={mod.id} className="rounded-xl border border-steel bg-charcoal overflow-hidden">
