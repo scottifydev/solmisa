@@ -7,20 +7,34 @@ import { colors } from "@/lib/tokens";
 import { DEMO_STATS, DEMO_REVIEW_CARDS } from "@/lib/data/demo-data";
 import { SrsBar } from "./srs-bar";
 import { AnonymousReviewSession } from "./anonymous-review-session";
+import { DemoLesson } from "./demo-lesson";
+
+type View = "dashboard" | "review" | "lesson";
 
 export function LandingDashboard() {
-  const [showReview, setShowReview] = useState(false);
+  const [view, setView] = useState<View>("dashboard");
 
-  if (showReview) {
+  if (view === "review") {
     return (
       <main className="px-6 py-8 max-w-[500px] mx-auto">
         <button
-          onClick={() => setShowReview(false)}
+          onClick={() => setView("dashboard")}
           className="text-silver hover:text-ivory transition-colors text-sm font-mono mb-6"
         >
           &larr; Back to dashboard
         </button>
         <AnonymousReviewSession cards={DEMO_REVIEW_CARDS} />
+      </main>
+    );
+  }
+
+  if (view === "lesson") {
+    return (
+      <main className="px-6 py-8 max-w-[500px] mx-auto">
+        <DemoLesson
+          onBack={() => setView("dashboard")}
+          onComplete={() => setView("dashboard")}
+        />
       </main>
     );
   }
@@ -40,7 +54,7 @@ export function LandingDashboard() {
       {/* Side-by-side CTAs */}
       <div className="flex gap-3">
         <button
-          onClick={() => setShowReview(true)}
+          onClick={() => setView("review")}
           className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-amber/5 hover:from-coral/15 hover:to-amber/10 transition-all cursor-pointer text-left flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F504;</span>
@@ -53,8 +67,8 @@ export function LandingDashboard() {
             </div>
           </div>
         </button>
-        <Link
-          href="/signup"
+        <button
+          onClick={() => setView("lesson")}
           className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/10 bg-gradient-to-br from-coral/4 to-transparent hover:from-coral/8 transition-all cursor-pointer text-left flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F4D6;</span>
@@ -63,10 +77,10 @@ export function LandingDashboard() {
               Start Lesson
             </div>
             <div className="text-[12px] text-coral/70 font-mono">
-              Sign up to unlock
+              Meet Do &mdash; your first degree
             </div>
           </div>
-        </Link>
+        </button>
       </div>
 
       {/* Stats row */}
