@@ -2,19 +2,24 @@ import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
 import { getSkillAxes } from "@/lib/actions/skills";
 import { getNextTrickleQuestion } from "@/lib/actions/assessment";
+import { getRecentActivities, getWeeklySummary } from "@/lib/actions/activity";
 import { StatCard } from "@/components/ui/stat-card";
 import { SrsBar } from "@/components/landing/srs-bar";
 import { SkillRadar } from "@/components/dashboard/skill-radar";
 import { TrickleQuestion } from "@/components/assessment/trickle-question";
+import { ActivityFeed } from "@/components/activity/activity-feed";
+import { LogActivityButton } from "@/components/activity/log-activity-button";
 import { colors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const [stats, profile, skillAxes, trickleQuestion] = await Promise.all([
+  const [stats, profile, skillAxes, trickleQuestion, recentActivities, weeklySummary] = await Promise.all([
     getDashboardStats(),
     getProfile(),
     getSkillAxes(),
     getNextTrickleQuestion(),
+    getRecentActivities(),
+    getWeeklySummary(),
   ]);
 
   const hour = new Date().getHours();
@@ -136,6 +141,36 @@ export default async function DashboardPage() {
           </p>
         </div>
       )}
+
+      {/* Weekly summary + Activity feed */}
+      <div className="rounded-xl border border-steel bg-obsidian p-5">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono">
+            This Week
+          </div>
+          <div className="hidden sm:block">
+            <LogActivityButton />
+          </div>
+        </div>
+        {weeklySummary.activityCount > 0 ? (
+          <div className="flex gap-4 mb-4 text-sm">
+            <div>
+              <span className="text-ivory font-bold">{weeklySummary.totalMinutes}</span>
+              <span className="text-silver/60 ml-1">min</span>
+            </div>
+            <div>
+              <span className="text-ivory font-bold">{weeklySummary.activityCount}</span>
+              <span className="text-silver/60 ml-1">activities</span>
+            </div>
+          </div>
+        ) : null}
+        <ActivityFeed activities={recentActivities} />
+      </div>
+
+      {/* Floating log button (mobile) */}
+      <div className="sm:hidden">
+        <LogActivityButton />
+      </div>
     </div>
   );
 }
