@@ -20,6 +20,7 @@ import { DegreeCircle } from "@/components/lesson/degree-circle";
 import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import { brand } from "@/lib/tokens";
+import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
 
 // ─── Stage Pill ─────────────────────────────────────────────
 
@@ -354,30 +355,43 @@ function RhythmView({ stage, stageIndex, onComplete }: {
   stageIndex: number;
   onComplete: (result: StageQuizResult | null) => void;
 }) {
-  const [ts] = stage.time_signature;
+  const [done, setDone] = useState(false);
+  const meterStr = `${stage.time_signature[0]}/${stage.time_signature[1]}` as "4/4" | "3/4" | "6/8" | "5/8" | "7/8";
+
+  const handleRhythmComplete = useCallback((accuracy: number) => {
+    setDone(true);
+    if (stage.mode === "listen") {
+      // Listen mode: no scoring, just advance
+      return;
+    }
+    // Tap mode: score based on accuracy
+    onComplete({
+      stage_index: stageIndex,
+      stage_type: "rhythm",
+      correct: accuracy >= 0.6,
+      response_time_ms: 0,
+      seeds_card: stage.seeds_card ?? null,
+      card_category: "rhythm",
+    });
+  }, [stage, stageIndex, onComplete]);
+
   return (
     <div className="space-y-6">
       <div className="bg-obsidian border border-steel rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-[10px] px-2 py-[3px] rounded-sm font-mono bg-correct/10 text-correct border border-correct/30">
-            {stage.time_signature[0]}/{stage.time_signature[1]}
-          </span>
-          <span className="text-silver text-sm font-mono">{stage.tempo} BPM</span>
-        </div>
-        <h2 className="font-display text-lg font-bold text-ivory mb-3">Rhythm</h2>
-        {stage.mode === "listen" && (
-          <p className="text-silver">Listen to the rhythm pattern, then continue.</p>
-        )}
-        {stage.mode === "tap" && (
-          <p className="text-silver">Rhythm tapping will be available soon (SCO-55).</p>
-        )}
-        {stage.mode === "quiz" && (
-          <p className="text-silver">Rhythm quiz coming soon.</p>
-        )}
+        <h2 className="font-display text-lg font-bold text-ivory mb-4">Rhythm</h2>
+        <RhythmTapper
+          meter={meterStr}
+          bpm={stage.tempo}
+          targetPattern={stage.pattern}
+          mode={stage.mode === "quiz" ? "identify" : stage.mode}
+          onComplete={handleRhythmComplete}
+        />
       </div>
-      <Button fullWidth onClick={() => onComplete(null)}>
-        Continue &rarr;
-      </Button>
+      {(done || stage.mode === "listen") && (
+        <Button fullWidth onClick={() => onComplete(null)}>
+          Continue &rarr;
+        </Button>
+      )}
     </div>
   );
 }
