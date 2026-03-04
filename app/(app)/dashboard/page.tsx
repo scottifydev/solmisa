@@ -33,7 +33,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Side-by-side CTAs */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         {stats.dueToday > 0 ? (
           <Link
             href="/review"
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           label="Reviews Today"
           value={stats.reviewsToday}
