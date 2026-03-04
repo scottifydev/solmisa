@@ -10,40 +10,49 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
   if (!user) throw new Error("Not authenticated");
 
   const now = new Date().toISOString();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-  // Get total cards and due count
-  const { data: cards } = await supabase
-    .from("srs_cards")
-    .select("id, stage, due_at")
-    .eq("user_id", user.id);
+  // Fetch counts and stage data in parallel
+  const [
+    { count: totalCards },
+    { count: dueToday },
+    { data: stageData },
+    { count: reviewsToday },
+  ] = await Promise.all([
+    supabase
+      .from("srs_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+    supabase
+      .from("srs_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .lte("due_at", now),
+    supabase
+      .from("srs_cards")
+      .select("stage")
+      .eq("user_id", user.id),
+    supabase
+      .from("srs_reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("reviewed_at", todayStart.toISOString()),
+  ]);
 
-  const allCards = cards ?? [];
-  const dueToday = allCards.filter((c) => c.due_at <= now).length;
-
-  // Count by stage
+  const total = totalCards ?? 0;
   const stageCounts: Record<string, number> = {};
-  for (const card of allCards) {
+  for (const card of stageData ?? []) {
     stageCounts[card.stage] = (stageCounts[card.stage] || 0) + 1;
   }
 
-  const total = allCards.length || 1;
   const byStage: SrsStageGroup[] = (
     ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStage[]
   ).map((stage) => ({
     stage,
     count: stageCounts[stage] || 0,
-    percentage: Math.round(((stageCounts[stage] || 0) / total) * 100),
+    percentage: Math.round(((stageCounts[stage] || 0) / (total || 1)) * 100),
   }));
-
-  // Get today's review count
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const { count: reviewsToday } = await supabase
-    .from("srs_reviews")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .gte("reviewed_at", todayStart.toISOString());
 
   // Calculate streak (simplified: count consecutive days with reviews)
   const { data: recentReviews } = await supabase
@@ -83,8 +92,8 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
   }
 
   return {
-    totalCards: allCards.length,
-    dueToday,
+    totalCards: total,
+    dueToday: dueToday ?? 0,
     byStage,
     streakDays,
     reviewsToday: reviewsToday ?? 0,
@@ -103,53 +112,41 @@ export async function getModuleProgress(): Promise<ModuleProgress[]> {
 
   if (!modules) return [];
 
-  const progress: ModuleProgress[] = [];
+  const moduleIds = modules.map((m) => m.id);
 
-  for (const mod of modules) {
-    const { count: totalLessons } = await supabase
+  // Fetch all lessons and progress in two queries instead of 3N+1
+  const [{ data: allLessons }, { data: completedProgress }] = await Promise.all([
+    supabase
       .from("lessons")
-      .select("id", { count: "exact", head: true })
-      .eq("module_id", mod.id)
-      .eq("is_published", true);
-
-    const { count: completedLessons } = await supabase
+      .select("id, module_id")
+      .in("module_id", moduleIds)
+      .eq("is_published", true),
+    supabase
       .from("user_lesson_progress")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .in(
-        "lesson_id",
-        (
-          await supabase
-            .from("lessons")
-            .select("id")
-            .eq("module_id", mod.id)
-        ).data?.map((l) => l.id) ?? []
-      );
+      .select("lesson_id")
+      .eq("user_id", user.id),
+  ]);
 
-    const total = totalLessons ?? 0;
-    const completed = completedLessons ?? 0;
+  const completedIds = new Set((completedProgress ?? []).map((p) => p.lesson_id));
 
-    progress.push({
+  // Group by module
+  const lessonsByModule = new Map<string, string[]>();
+  for (const lesson of allLessons ?? []) {
+    const existing = lessonsByModule.get(lesson.module_id) ?? [];
+    existing.push(lesson.id);
+    lessonsByModule.set(lesson.module_id, existing);
+  }
+
+  return modules.map((mod) => {
+    const lessonIds = lessonsByModule.get(mod.id) ?? [];
+    const total = lessonIds.length;
+    const completed = lessonIds.filter((id) => completedIds.has(id)).length;
+    return {
       moduleId: mod.id,
       completedLessons: completed,
       totalLessons: total,
       percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
-    });
-  }
-
-  return progress;
+    };
+  });
 }
 
-export async function getProfile() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  return profile;
-}

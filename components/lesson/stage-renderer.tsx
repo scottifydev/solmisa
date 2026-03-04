@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { StageRendererProps, LessonStageType } from "@/types/lesson";
+import type { StageRendererProps } from "@/types/lesson";
 import { Button } from "@/components/ui/button";
 import { AnswerCard } from "@/components/ui/answer-card";
 import { AudioPlayer } from "@/components/ui/audio-player";
@@ -16,9 +16,9 @@ export function StageRenderer({ stage, onComplete, onAnswer }: StageRendererProp
     case "theory_teach":
       return <TheoryTeach config={config} onComplete={onComplete} />;
     case "aural_quiz":
-      return <QuizStage config={config} onComplete={onComplete} onAnswer={onAnswer} hasAudio />;
+      return <QuizStage config={config} onComplete={onComplete} onAnswer={onAnswer} />;
     case "theory_quiz":
-      return <QuizStage config={config} onComplete={onComplete} onAnswer={onAnswer} hasAudio={false} />;
+      return <QuizStage config={config} onComplete={onComplete} onAnswer={onAnswer} />;
     case "practice":
       return <PracticeStage config={config} onComplete={onComplete} />;
     default:
@@ -94,12 +94,10 @@ function QuizStage({
   config,
   onComplete,
   onAnswer,
-  hasAudio,
 }: {
   config: Record<string, unknown>;
   onComplete: () => void;
   onAnswer?: (correct: boolean) => void;
-  hasAudio: boolean;
 }) {
   const question = (config.question as string) ?? "Choose the correct answer:";
   const audioSrc = config.audioSrc as string | undefined;
@@ -136,7 +134,7 @@ function QuizStage({
         <h2 className="font-display text-lg font-bold text-ivory">{question}</h2>
       </div>
 
-      {hasAudio && audioSrc && (
+      {audioSrc && (
         <AudioPlayer src={audioSrc} label="Listen" variant="standalone" />
       )}
 

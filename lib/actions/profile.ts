@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export async function getProfileData() {
+export async function getProfile() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -13,6 +13,16 @@ export async function getProfileData() {
     .select("*")
     .eq("id", user.id)
     .single();
+
+  return profile;
+}
+
+export async function getProfileData() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const profile = await getProfile();
 
   // Get lesson completion count
   const { count: lessonsCompleted } = await supabase

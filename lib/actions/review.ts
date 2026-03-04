@@ -60,23 +60,23 @@ export async function submitReview(req: ReviewAnswerRequest): Promise<ReviewAnsw
     responseTimeMs: req.responseTimeMs,
   });
 
-  // Update the card
-  await supabase.from("srs_cards")
-    .update({
-      interval: result.newInterval,
-      ease_factor: result.newEaseFactor,
-      stage: result.newStage,
-      due_at: result.nextDueAt.toISOString(),
-    })
-    .eq("id", req.cardId);
-
-  // Record the review
-  await supabase.from("srs_reviews").insert({
-    card_id: req.cardId,
-    user_id: user.id,
-    result: req.result,
-    response_time_ms: req.responseTimeMs,
-  });
+  // Update card and record review in parallel (independent writes)
+  await Promise.all([
+    supabase.from("srs_cards")
+      .update({
+        interval: result.newInterval,
+        ease_factor: result.newEaseFactor,
+        stage: result.newStage,
+        due_at: result.nextDueAt.toISOString(),
+      })
+      .eq("id", req.cardId),
+    supabase.from("srs_reviews").insert({
+      card_id: req.cardId,
+      user_id: user.id,
+      result: req.result,
+      response_time_ms: req.responseTimeMs,
+    }),
+  ]);
 
   return {
     newInterval: result.newInterval,
@@ -84,4 +84,18 @@ export async function submitReview(req: ReviewAnswerRequest): Promise<ReviewAnsw
     newStage: result.newStage,
     nextDueAt: result.nextDueAt.toISOString(),
   };
+}
+
+export async function hasAnyCards(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { count } = await supabase
+    .from("srs_cards")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .limit(1);
+
+  return (count ?? 0) > 0;
 }

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { Lesson } from "@/types/lesson";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { StatCard } from "@/components/ui/stat-card";
+import { semanticColors } from "@/lib/tokens";
 import { completeLesson } from "@/lib/actions/lessons";
 import { StageRenderer } from "./stage-renderer";
 
@@ -54,14 +56,8 @@ export function LessonPlayer({ lesson }: LessonPlayerProps) {
         <p className="text-silver">{lesson.title}</p>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-steel bg-charcoal p-4">
-            <div className="text-2xl font-display font-bold text-correct">{accuracy}%</div>
-            <div className="text-silver text-sm">Accuracy</div>
-          </div>
-          <div className="rounded-xl border border-steel bg-charcoal p-4">
-            <div className="text-2xl font-display font-bold text-ivory">{totalStages}</div>
-            <div className="text-silver text-sm">Stages</div>
-          </div>
+          <StatCard label="Accuracy" value={`${accuracy}%`} color={semanticColors.correct} />
+          <StatCard label="Stages" value={totalStages} />
         </div>
 
         <Button fullWidth loading={saving} onClick={handleFinish}>
@@ -86,7 +82,7 @@ export function LessonPlayer({ lesson }: LessonPlayerProps) {
             {currentStageIndex + 1} / {totalStages}
           </span>
         </div>
-        <ProgressBar value={progress} color="#FF6B6B" size="sm" />
+        <ProgressBar value={progress} size="sm" />
         <h1 className="font-display text-xl font-bold text-ivory">{lesson.title}</h1>
         <p className="text-silver text-xs">{lesson.moduleTitle}</p>
       </div>

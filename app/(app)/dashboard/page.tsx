@@ -1,8 +1,9 @@
-import { getDashboardStats, getProfile } from "@/lib/actions/dashboard";
+import { getDashboardStats } from "@/lib/actions/dashboard";
+import { getProfile } from "@/lib/actions/profile";
 import { StatCard } from "@/components/ui/stat-card";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { srsStageColors } from "@/lib/tokens";
+import { colors, srsStageColors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -25,13 +26,13 @@ export default async function DashboardPage() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Cards Due" value={stats.dueToday} color="#FF6B6B" />
+        <StatCard label="Cards Due" value={stats.dueToday} color={colors.coral} />
         <StatCard label="Total Cards" value={stats.totalCards} />
         <StatCard label="Reviews Today" value={stats.reviewsToday} />
         <StatCard
           label="Streak"
           value={`${stats.streakDays}d`}
-          color="#FFB347"
+          color={colors.amber}
         />
       </div>
 

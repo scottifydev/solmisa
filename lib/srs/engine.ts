@@ -69,8 +69,6 @@ function handleCorrect(
   easeFactor: number,
   stage: SrsStage
 ): SchedulingOutput {
-  const stageIdx = getStageIndex(stage);
-
   if (stage === "apprentice") {
     // Move through learning steps
     const stepIndex = currentInterval < 1 ? 0 : Math.min(
@@ -117,7 +115,7 @@ function handleCorrect(
 }
 
 function handleIncorrect(
-  _currentInterval: number,
+  currentInterval: number,
   easeFactor: number,
   stage: SrsStage
 ): SchedulingOutput {
@@ -140,7 +138,7 @@ function handleIncorrect(
   }
 
   // Reduce interval significantly
-  const newInterval = Math.max(1, Math.round(_currentInterval * 0.5));
+  const newInterval = Math.max(1, Math.round(currentInterval * 0.5));
 
   return {
     newInterval,
