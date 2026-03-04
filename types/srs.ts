@@ -251,6 +251,7 @@ export interface ReviewStatsResponse {
   byStage: { stage: SrsStageGroup; count: number }[];
   streakDays: number;
   reviewsToday: number;
+  weekAccuracy: number | null;
 }
 
 // ─── Constants ────────────────────────────────────────────────

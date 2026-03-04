@@ -7,6 +7,7 @@ export const DEMO_STATS: ReviewStatsResponse = {
   dueToday: 5,
   reviewsToday: 3,
   streakDays: 2,
+  weekAccuracy: 84,
   byStage: [
     { stage: "apprentice", count: 5 },
     { stage: "journeyman", count: 4 },

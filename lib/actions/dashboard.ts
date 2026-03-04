@@ -14,6 +14,8 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
   const now = new Date().toISOString();
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
 
   const [
     { count: totalCards },
@@ -21,6 +23,7 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
     { data: stageData },
     { count: reviewsToday },
     { data: profile },
+    { data: weekReviews },
   ] = await Promise.all([
     supabase
       .from("user_card_state")
@@ -45,6 +48,10 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
       .select("streak_days")
       .eq("id", user.id)
       .single(),
+    supabase
+      .from("review_records")
+      .select("correct")
+      .gte("created_at", weekAgo.toISOString()),
   ]);
 
   const total = totalCards ?? 0;
@@ -69,11 +76,17 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
     count: groupCounts[stage],
   }));
 
+  const weekTotal = weekReviews?.length ?? 0;
+  const weekCorrect = weekReviews?.filter((r) => r.correct).length ?? 0;
+  const weekAccuracy =
+    weekTotal > 0 ? Math.round((weekCorrect / weekTotal) * 100) : null;
+
   return {
     totalCards: total,
     dueToday: dueToday ?? 0,
     byStage,
     streakDays: profile?.streak_days ?? 0,
     reviewsToday: reviewsToday ?? 0,
+    weekAccuracy,
   };
 }
