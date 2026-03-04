@@ -101,7 +101,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Skill Radar */}
-      <SkillRadar axes={skillAxes} />
+      <SkillRadar axes={skillAxes} emptyMessage="Complete lessons to build your skill profile" />
 
       {/* SRS breakdown */}
       {stats.totalCards > 0 ? (

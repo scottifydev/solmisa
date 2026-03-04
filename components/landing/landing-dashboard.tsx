@@ -4,15 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { StatCard } from "@/components/ui/stat-card";
 import { colors } from "@/lib/tokens";
-import { DEMO_STATS, DEMO_REVIEW_CARDS } from "@/lib/data/demo-data";
+import { DEMO_STATS, DEMO_REVIEW_CARDS, DEMO_SKILL_AXES } from "@/lib/data/demo-data";
 import { SrsBar } from "./srs-bar";
 import { AnonymousReviewSession } from "./anonymous-review-session";
 import { DemoLesson } from "./demo-lesson";
+import { OnboardingTooltip } from "./onboarding-tooltip";
+import { SkillRadar } from "@/components/dashboard/skill-radar";
 
 type View = "dashboard" | "review" | "lesson";
 
 export function LandingDashboard() {
   const [view, setView] = useState<View>("dashboard");
+  const [showDashboardTip, setShowDashboardTip] = useState(true);
 
   if (view === "review") {
     return (
@@ -52,21 +55,31 @@ export function LandingDashboard() {
       </div>
 
       {/* Side-by-side CTAs */}
-      <div className="flex gap-3">
-        <button
-          onClick={() => setView("review")}
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-amber/5 hover:from-coral/15 hover:to-amber/10 transition-all cursor-pointer text-left flex items-center gap-3"
-        >
-          <span className="text-2xl shrink-0">&#x1F504;</span>
-          <div>
-            <div className="text-[15px] font-bold text-ivory font-body">
-              Start Reviews
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <button
+            onClick={() => {
+              setShowDashboardTip(false);
+              setView("review");
+            }}
+            className="w-full p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-amber/5 hover:from-coral/15 hover:to-amber/10 transition-all cursor-pointer text-left flex items-center gap-3"
+          >
+            <span className="text-2xl shrink-0">&#x1F504;</span>
+            <div>
+              <div className="text-[15px] font-bold text-ivory font-body">
+                Start Reviews
+              </div>
+              <div className="text-[12px] text-coral font-mono">
+                {DEMO_STATS.dueToday} items due now
+              </div>
             </div>
-            <div className="text-[12px] text-coral font-mono">
-              {DEMO_STATS.dueToday} items due now
-            </div>
-          </div>
-        </button>
+          </button>
+          <OnboardingTooltip
+            text="Try a quick review session — test your ear with scale degrees"
+            show={showDashboardTip}
+            onDismiss={() => setShowDashboardTip(false)}
+          />
+        </div>
         <button
           onClick={() => setView("lesson")}
           className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/10 bg-gradient-to-br from-coral/4 to-transparent hover:from-coral/8 transition-all cursor-pointer text-left flex items-center gap-3"
@@ -84,7 +97,7 @@ export function LandingDashboard() {
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           label="Reviews Today"
           value={DEMO_STATS.reviewsToday}
@@ -110,6 +123,9 @@ export function LandingDashboard() {
           color={colors.warning}
         />
       </div>
+
+      {/* Skill Radar */}
+      <SkillRadar axes={DEMO_SKILL_AXES} />
 
       {/* SRS breakdown */}
       <div className="rounded-xl border border-steel bg-obsidian p-5">
