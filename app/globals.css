@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-night text-ivory antialiased;
+  }
+
+  body {
+    @apply font-body min-h-screen;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
+  ::selection {
+    @apply bg-coral/30 text-ivory;
+  }
+}
