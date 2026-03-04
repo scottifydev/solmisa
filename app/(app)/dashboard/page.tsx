@@ -1,17 +1,20 @@
 import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
 import { getSkillAxes } from "@/lib/actions/skills";
+import { getNextTrickleQuestion } from "@/lib/actions/assessment";
 import { StatCard } from "@/components/ui/stat-card";
 import { SrsBar } from "@/components/landing/srs-bar";
 import { SkillRadar } from "@/components/dashboard/skill-radar";
+import { TrickleQuestion } from "@/components/assessment/trickle-question";
 import { colors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const [stats, profile, skillAxes] = await Promise.all([
+  const [stats, profile, skillAxes, trickleQuestion] = await Promise.all([
     getDashboardStats(),
     getProfile(),
     getSkillAxes(),
+    getNextTrickleQuestion(),
   ]);
 
   const hour = new Date().getHours();
@@ -105,6 +108,9 @@ export default async function DashboardPage() {
 
       {/* Skill Radar */}
       <SkillRadar axes={skillAxes} emptyMessage="Complete lessons to build your skill profile" />
+
+      {/* Trickle assessment question */}
+      {trickleQuestion && <TrickleQuestion question={trickleQuestion} />}
 
       {/* SRS breakdown */}
       {stats.totalCards > 0 ? (
