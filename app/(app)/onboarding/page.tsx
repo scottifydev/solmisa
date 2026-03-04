@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { OnboardingAssessment } from "@/components/assessment/onboarding-assessment";
+import { getOnboardingQuestions } from "@/lib/actions/assessment";
+import type { AssessmentQuestion } from "@/lib/actions/assessment";
 
 const TOTAL_STEPS = 9;
 
@@ -74,6 +77,13 @@ export default function OnboardingPage() {
   const [solfege, setSolfege] = useState<SolfegeSystem>("moveable_do");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [assessmentQuestions, setAssessmentQuestions] = useState<AssessmentQuestion[]>([]);
+
+  useEffect(() => {
+    if (step === 7 && assessmentQuestions.length === 0) {
+      getOnboardingQuestions().then(setAssessmentQuestions).catch(() => {});
+    }
+  }, [step, assessmentQuestions.length]);
 
   const playDemoArpeggio = () => {
     try {
@@ -400,24 +410,29 @@ export default function OnboardingPage() {
         )}
 
         {step === 7 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="font-display text-2xl font-bold text-ivory">
-                Assessment
-              </h2>
-              <p className="text-silver mt-2">
-                Assessment questions coming soon
-              </p>
+          assessmentQuestions.length > 0 ? (
+            <OnboardingAssessment
+              questions={assessmentQuestions}
+              onComplete={next}
+              onBack={back}
+            />
+          ) : (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="font-display text-2xl font-bold text-ivory">
+                  Loading assessment...
+                </h2>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="ghost" onClick={back}>
+                  Back
+                </Button>
+                <Button fullWidth onClick={next}>
+                  Skip
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={back}>
-                Back
-              </Button>
-              <Button fullWidth onClick={next}>
-                Skip
-              </Button>
-            </div>
-          </div>
+          )
         )}
 
         {step === 8 && (

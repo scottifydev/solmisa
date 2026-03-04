@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { SKILL_AXES, MAX_SKILL_POINTS } from "@/lib/skill-axes";
+import { SKILL_AXES, MAX_SKILL_POINTS, AXIS_DB_TO_DISPLAY } from "@/lib/skill-axes";
 import type { SkillAxis } from "@/lib/skill-axes";
 
 export async function getSkillAxes(): Promise<SkillAxis[]> {
@@ -16,10 +16,12 @@ export async function getSkillAxes(): Promise<SkillAxis[]> {
     .select("axis_name, score")
     .eq("user_id", user.id);
 
+  // Map DB snake_case axis names to display names and sum scores
   const scoreMap = new Map<string, number>();
   for (const axis of axes ?? []) {
-    const existing = scoreMap.get(axis.axis_name) ?? 0;
-    scoreMap.set(axis.axis_name, existing + (axis.score ?? 0));
+    const displayName = AXIS_DB_TO_DISPLAY[axis.axis_name] ?? axis.axis_name;
+    const existing = scoreMap.get(displayName) ?? 0;
+    scoreMap.set(displayName, existing + (axis.score ?? 0));
   }
 
   return SKILL_AXES.map((name) => {
