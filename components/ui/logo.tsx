@@ -60,7 +60,7 @@ export function Logo({
           className="font-display font-bold bg-gradient-to-r from-coral to-amber bg-clip-text text-transparent"
           style={{ fontSize: textSize }}
         >
-          Solmisa
+          solmisa
         </span>
       )}
     </div>

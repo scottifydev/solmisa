@@ -71,7 +71,7 @@ export default function OnboardingPage() {
           <div className="text-center space-y-6">
             <Logo size={64} glow />
             <div>
-              <h1 className="font-display text-3xl font-bold text-ivory">Welcome to Solmisa</h1>
+              <h1 className="font-display text-3xl font-bold text-ivory">Welcome to solmisa</h1>
               <p className="text-silver mt-2">
                 Train your ear using Gordon&apos;s Music Learning Theory.
                 Let&apos;s set up your profile.

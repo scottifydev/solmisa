@@ -37,7 +37,8 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||
     request.nextUrl.pathname.startsWith("/reset-password");
-  const isPublicPage = request.nextUrl.pathname === "/";
+  const publicPaths = ["/", "/framework"];
+  const isPublicPage = publicPaths.includes(request.nextUrl.pathname);
 
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();

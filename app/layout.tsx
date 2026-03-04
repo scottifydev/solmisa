@@ -22,7 +22,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Solmisa",
+  title: "solmisa",
   description: "Music ear training built on Gordon's Music Learning Theory",
 };
 
