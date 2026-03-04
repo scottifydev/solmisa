@@ -206,6 +206,7 @@ export interface SchedulerResult {
 // ─── Review Queue Types (API) ─────────────────────────────────
 
 export interface ReviewQueueItem {
+  user_card_state_id: string;
   card_instance_id: string;
   card_template_id: string;
   prompt_rendered: string;

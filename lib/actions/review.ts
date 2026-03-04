@@ -63,6 +63,7 @@ export async function getReviewQueue(
     const template = instance?.card_templates;
 
     return {
+      user_card_state_id: card.id,
       card_instance_id: card.card_instance_id,
       card_template_id: instance?.template_id ?? "",
       prompt_rendered: instance?.prompt_rendered ?? "",
