@@ -8,6 +8,7 @@ import type {
   ReviewQueueResponse,
   ReviewAnswerRequest,
   ReviewAnswerResponse,
+  ReviewStatsResponse,
   SrsStageGroup,
   SrsStageKey,
   CardCategory,
@@ -188,4 +189,68 @@ export async function hasAnyCards(): Promise<boolean> {
     .limit(1);
 
   return (count ?? 0) > 0;
+}
+
+export async function getReviewStats(): Promise<ReviewStatsResponse> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const [
+    { count: totalCards },
+    { count: dueToday },
+    { data: stageData },
+    { data: profile },
+    { count: reviewsToday },
+  ] = await Promise.all([
+    supabase
+      .from("user_card_state")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+    supabase
+      .from("user_card_state")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .neq("srs_stage", "mastered")
+      .lte("next_review_at", new Date().toISOString()),
+    supabase
+      .from("user_card_state")
+      .select("srs_stage")
+      .eq("user_id", user.id),
+    supabase
+      .from("profiles")
+      .select("streak_days")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("review_records")
+      .select("id", { count: "exact", head: true })
+      .eq("user_card_state_id", user.id)
+      .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+  ]);
+
+  // Count by stage group
+  const groupCounts: Record<SrsStageGroup, number> = {
+    apprentice: 0,
+    journeyman: 0,
+    adept: 0,
+    virtuoso: 0,
+    mastered: 0,
+  };
+  for (const row of stageData ?? []) {
+    groupCounts[stageToGroup(row.srs_stage as SrsStageKey)]++;
+  }
+  const byStage = (
+    ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
+  ).map((stage) => ({ stage, count: groupCounts[stage] }));
+
+  return {
+    totalCards: totalCards ?? 0,
+    dueToday: dueToday ?? 0,
+    byStage,
+    streakDays: profile?.streak_days ?? 0,
+    reviewsToday: reviewsToday ?? 0,
+  };
 }
