@@ -154,11 +154,8 @@ export interface RhythmTapResult {
 // ─── Rendering Types ──────────────────────────────────────────
 
 export interface StageRendererProps {
-  stage: LessonStage;
-  stageIndex: number;
-  totalStages: number;
-  droneKey: string | null;
-  onComplete: (result: StageQuizResult | null) => void;
+  lesson: LessonRenderData;
+  onComplete: (results: StageQuizResult[]) => void;
 }
 
 export interface LessonRenderData {

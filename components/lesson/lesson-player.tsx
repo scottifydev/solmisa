@@ -3,8 +3,8 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Lesson } from "@/types/lesson";
+import type { StageQuizResult } from "@/types/lesson";
 import { Button } from "@/components/ui/button";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatCard } from "@/components/ui/stat-card";
 import { semanticColors } from "@/lib/tokens";
 import { completeLesson } from "@/lib/actions/lessons";
@@ -12,31 +12,17 @@ import { StageRenderer } from "./stage-renderer";
 
 interface LessonPlayerProps {
   lesson: Lesson;
+  moduleTitle?: string;
+  totalLessons?: number;
 }
 
-export function LessonPlayer({ lesson }: LessonPlayerProps) {
+export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1 }: LessonPlayerProps) {
   const router = useRouter();
-  const [currentStageIndex, setCurrentStageIndex] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [totalAnswers, setTotalAnswers] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [results, setResults] = useState<StageQuizResult[] | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const totalStages = lesson.stages.length;
-  const currentStage = lesson.stages[currentStageIndex];
-  const progress = totalStages > 0 ? ((currentStageIndex + 1) / totalStages) * 100 : 0;
-
-  const handleStageComplete = useCallback(() => {
-    if (currentStageIndex < totalStages - 1) {
-      setCurrentStageIndex((i) => i + 1);
-    } else {
-      setIsComplete(true);
-    }
-  }, [currentStageIndex, totalStages]);
-
-  const handleAnswer = useCallback((correct: boolean) => {
-    setTotalAnswers((t) => t + 1);
-    if (correct) setCorrectCount((c) => c + 1);
+  const handleComplete = useCallback((quizResults: StageQuizResult[]) => {
+    setResults(quizResults);
   }, []);
 
   const handleFinish = async () => {
@@ -46,18 +32,19 @@ export function LessonPlayer({ lesson }: LessonPlayerProps) {
     router.refresh();
   };
 
-  if (isComplete) {
-    const accuracy = totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 100;
+  if (results !== null) {
+    const quizCount = results.length;
+    const correctCount = results.filter((r) => r.correct).length;
+    const accuracy = quizCount > 0 ? Math.round((correctCount / quizCount) * 100) : 100;
 
     return (
       <div className="max-w-lg mx-auto p-6 text-center space-y-6">
-        <div className="text-5xl">🎉</div>
-        <h1 className="font-display text-2xl font-bold text-ivory">Lesson Complete!</h1>
+        <h1 className="font-display text-2xl font-bold text-ivory">Lesson Complete</h1>
         <p className="text-silver">{lesson.title}</p>
 
         <div className="grid grid-cols-2 gap-4">
           <StatCard label="Accuracy" value={`${accuracy}%`} color={semanticColors.correct} />
-          <StatCard label="Stages" value={totalStages} />
+          <StatCard label="Questions" value={`${correctCount}/${quizCount}`} />
         </div>
 
         <Button fullWidth loading={saving} onClick={handleFinish}>
@@ -68,37 +55,19 @@ export function LessonPlayer({ lesson }: LessonPlayerProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      {/* Header with progress */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="text-silver hover:text-ivory transition-colors text-sm"
-          >
-            ← Back
-          </button>
-          <span className="text-silver text-sm font-mono">
-            {currentStageIndex + 1} / {totalStages}
-          </span>
-        </div>
-        <ProgressBar value={progress} size="sm" />
-        <h1 className="font-display text-xl font-bold text-ivory">{lesson.title}</h1>
-      </div>
-
-      {/* Stage content */}
-      {currentStage && (
-        <StageRenderer
-          stage={currentStage}
-          stageIndex={currentStageIndex}
-          totalStages={totalStages}
-          droneKey={lesson.drone_key}
-          onComplete={(result) => {
-            if (result) handleAnswer(result.correct);
-            handleStageComplete();
-          }}
-        />
-      )}
+    <div className="p-6">
+      <StageRenderer
+        lesson={{
+          module_title: moduleTitle,
+          lesson_title: lesson.title,
+          lesson_num: lesson.lesson_order,
+          total_lessons: totalLessons,
+          drone_key: lesson.drone_key,
+          allowed_keys: [],
+          stages: lesson.stages,
+        }}
+        onComplete={handleComplete}
+      />
     </div>
   );
 }
