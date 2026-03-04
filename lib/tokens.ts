@@ -1,36 +1,54 @@
-export const colors = {
-  night: "#0A0A0F",
-  obsidian: "#141420",
-  charcoal: "#1E1E2E",
-  steel: "#2A2A3D",
-  silver: "#9999AA",
-  ivory: "#F5F5F0",
+export const brand = {
+  night: "#08080c",
+  obsidian: "#0f0f16",
+  slate: "#181821",
+  graphite: "#22222f",
+  steel: "#2e2e3e",
+  ivory: "#eae8e4",
+  silver: "#a09bb3",
+  ash: "#65607a",
+  shadow: "#3d3852",
   coral: "#FF6B6B",
-  amber: "#FFB347",
+  coralBright: "#FF8A8A",
+  coralDim: "#CC5555",
+  coralGhost: "rgba(255,107,107,0.08)",
+  correct: "#4ade80",
+  correctDim: "rgba(74,222,128,0.10)",
+  warning: "#fbbf24",
+  warningDim: "rgba(251,191,36,0.10)",
+  incorrect: "#f87171",
+  incorrectDim: "rgba(248,113,113,0.10)",
+  info: "#60a5fa",
+  infoDim: "rgba(96,165,250,0.10)",
 } as const;
 
+// Legacy alias — components that import `colors` still work
+export const colors = brand;
+
 export const degreeColors = {
-  1: "#FF6B6B",
-  2: "#FFB347",
-  3: "#4ECDC4",
-  4: "#45B7D1",
-  5: "#96E6A1",
-  6: "#DDA0DD",
-  7: "#F7DC6F",
+  1: "#e2e2e2",
+  2: "#ff6b9d",
+  3: "#a78bfa",
+  4: "#60a5fa",
+  5: "#34d399",
+  6: "#f59e0b",
+  7: "#ef4444",
+} as const;
+
+export const chromaticDegreeColors = {
+  b2: "#e74c6f",
+  b3: "#c084fc",
+  "#4": "#38bdf8",
+  b6: "#fbbf24",
+  b7: "#f97316",
 } as const;
 
 export const srsStageColors = {
-  apprentice: "#4ECDC4",
-  journeyman: "#45B7D1",
-  adept: "#96E6A1",
-  virtuoso: "#DDA0DD",
-  mastered: "#FFD700",
-} as const;
-
-export const semanticColors = {
-  correct: "#4ECDC4",
-  incorrect: "#FF6B6B",
-  warning: "#FFB347",
+  apprentice: "#f87171",
+  journeyman: "#fbbf24",
+  adept: "#34d399",
+  virtuoso: "#60a5fa",
+  mastered: "#b794f6",
 } as const;
 
 export const srsStageLabels = {
@@ -41,6 +59,16 @@ export const srsStageLabels = {
   mastered: "Mastered",
 } as const;
 
+// SRS stage rendering data — colors/labels are the source of truth here.
+// For stage logic (transitions, intervals, scheduling), see types/srs.ts.
+export const srsStages = {
+  apprentice: { label: "Apprentice", color: "#f87171", icon: "\u{1F331}" },
+  journeyman: { label: "Journeyman", color: "#fbbf24", icon: "\u{1F525}" },
+  adept: { label: "Adept", color: "#34d399", icon: "\u{26A1}" },
+  virtuoso: { label: "Virtuoso", color: "#60a5fa", icon: "\u{1F48E}" },
+  mastered: { label: "Mastered", color: "#b794f6", icon: "\u{1F451}" },
+} as const;
+
 export const degreeLabels = {
   1: "Do",
   2: "Re",
@@ -49,4 +77,25 @@ export const degreeLabels = {
   5: "Sol",
   6: "La",
   7: "Ti",
+} as const;
+
+export const type = {
+  display: "'Outfit', sans-serif",
+  body: "'DM Sans', sans-serif",
+  mono: "'IBM Plex Mono', monospace",
+} as const;
+
+export const radii = {
+  sm: 6,
+  md: 10,
+  lg: 14,
+  xl: 20,
+  pill: 100,
+} as const;
+
+export const semanticColors = {
+  correct: "#4ade80",
+  incorrect: "#f87171",
+  warning: "#fbbf24",
+  info: "#60a5fa",
 } as const;

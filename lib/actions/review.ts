@@ -1,106 +1,188 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { schedule } from "@/lib/srs/engine";
-import type { ReviewQueueItem, ReviewQueueResponse, ReviewAnswerRequest, ReviewAnswerResponse } from "@/types/srs";
+import { computeSchedule } from "@/lib/srs/scheduler";
+import { stageToGroup } from "@/lib/srs/stages";
+import type {
+  ReviewQueueItem,
+  ReviewQueueResponse,
+  ReviewAnswerRequest,
+  ReviewAnswerResponse,
+  SrsStageGroup,
+  SrsStageKey,
+  CardCategory,
+} from "@/types/srs";
 
-export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
+export async function getReviewQueue(
+  limit = 20
+): Promise<ReviewQueueResponse> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   const now = new Date().toISOString();
 
-  const { data: cards, count } = await supabase
-    .from("srs_cards")
-    .select("*", { count: "exact" })
+  // Get due card states joined with card instances and templates
+  const { data: dueCards, count } = await supabase
+    .from("user_card_state")
+    .select(
+      `
+      id,
+      card_instance_id,
+      srs_stage,
+      difficulty_tier,
+      card_instances!inner (
+        id,
+        template_id,
+        prompt_rendered,
+        answer_data,
+        options_data,
+        card_templates!inner (
+          card_category,
+          response_type,
+          playback,
+          feedback,
+          dimensions
+        )
+      )
+    `,
+      { count: "exact" }
+    )
     .eq("user_id", user.id)
-    .lte("due_at", now)
-    .order("due_at")
+    .neq("srs_stage", "mastered")
+    .lte("next_review_at", now)
+    .order("next_review_at")
     .limit(limit);
 
-  const items: ReviewQueueItem[] = (cards ?? []).map((card) => ({
-    cardId: card.id,
-    front: card.front,
-    back: card.back,
-    dueAt: card.due_at,
-    interval: card.interval,
-    easeFactor: card.ease_factor,
-    stage: card.stage,
-    cardCategory: card.card_category,
-  }));
+  const items: ReviewQueueItem[] = (dueCards ?? []).map((card) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const instance = card.card_instances as any;
+    const template = instance?.card_templates;
+
+    return {
+      card_instance_id: card.card_instance_id,
+      card_template_id: instance?.template_id ?? "",
+      prompt_rendered: instance?.prompt_rendered ?? "",
+      response_type: template?.response_type ?? "select_one",
+      options_data: instance?.options_data ?? null,
+      answer_data: instance?.answer_data ?? {},
+      card_category: template?.card_category ?? "declarative",
+      srs_stage: card.srs_stage as SrsStageKey,
+      difficulty_tier: card.difficulty_tier,
+      playback: template?.playback ?? null,
+      feedback: template?.feedback ?? { correct: { text: "Correct!", show_answer: true, play_confirmation: false }, incorrect: { text: "Incorrect.", show_answer: true, play_correct: false, delay_ms: 1500 } },
+      dimensions: template?.dimensions ?? [],
+    };
+  });
+
+  // Stage breakdown
+  const groupCounts: Record<SrsStageGroup, number> = {
+    apprentice: 0,
+    journeyman: 0,
+    adept: 0,
+    virtuoso: 0,
+    mastered: 0,
+  };
+  for (const item of items) {
+    groupCounts[stageToGroup(item.srs_stage)]++;
+  }
+  const stage_breakdown = (
+    ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
+  ).map((group) => ({ group, count: groupCounts[group] }));
 
   return {
     items,
-    totalDue: count ?? 0,
+    total_due: count ?? 0,
+    session_size: items.length,
+    stage_breakdown,
   };
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function submitReview(req: ReviewAnswerRequest): Promise<ReviewAnswerResponse> {
+export async function submitReview(
+  req: ReviewAnswerRequest
+): Promise<ReviewAnswerResponse> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  if (!UUID_RE.test(req.cardId)) throw new Error("Invalid card ID");
-  if (!["correct", "incorrect", "skip"].includes(req.result)) throw new Error("Invalid result");
-  if (req.responseTimeMs != null && (!Number.isFinite(req.responseTimeMs) || req.responseTimeMs < 0)) {
-    throw new Error("Invalid response time");
-  }
+  if (!UUID_RE.test(req.user_card_state_id))
+    throw new Error("Invalid card state ID");
 
   // Get current card state
-  const { data: card } = await supabase
-    .from("srs_cards")
-    .select("*")
-    .eq("id", req.cardId)
+  const { data: cardState } = await supabase
+    .from("user_card_state")
+    .select("*, card_instances!inner(card_templates!inner(card_category))")
+    .eq("id", req.user_card_state_id)
     .eq("user_id", user.id)
     .single();
 
-  if (!card) throw new Error("Card not found");
+  if (!cardState) throw new Error("Card state not found");
 
-  // Run scheduling
-  const result = schedule({
-    currentInterval: card.interval,
-    easeFactor: card.ease_factor,
-    stage: card.stage,
-    result: req.result,
-    responseTimeMs: req.responseTimeMs,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cardCategory = ((cardState.card_instances as any)?.card_templates
+    ?.card_category ?? "declarative") as CardCategory;
+
+  // Compute new schedule
+  const result = computeSchedule({
+    item: {
+      id: cardState.id,
+      user_id: cardState.user_id,
+      card_instance_id: cardState.card_instance_id,
+      srs_stage: cardState.srs_stage as SrsStageKey,
+      difficulty_tier: cardState.difficulty_tier,
+      ease_factor: cardState.ease_factor,
+      interval_days: cardState.interval_days,
+      next_review_at: cardState.next_review_at,
+      correct_streak: cardState.correct_streak,
+      total_reviews: cardState.total_reviews,
+      total_correct: cardState.total_correct,
+      dimension_accuracy: cardState.dimension_accuracy,
+      created_at: cardState.created_at,
+      updated_at: cardState.updated_at,
+    },
+    card_category: cardCategory,
+    correct: req.correct,
+    response_time_ms: req.response_time_ms,
+    session_accuracy: req.session_accuracy,
   });
 
-  // Update card and record review in parallel (independent writes)
-  await Promise.all([
-    supabase.from("srs_cards")
-      .update({
-        interval: result.newInterval,
-        ease_factor: result.newEaseFactor,
-        stage: result.newStage,
-        due_at: result.nextDueAt.toISOString(),
-      })
-      .eq("id", req.cardId),
-    supabase.from("srs_reviews").insert({
-      card_id: req.cardId,
-      user_id: user.id,
-      result: req.result,
-      response_time_ms: req.responseTimeMs,
-    }),
-  ]);
+  // Use RPC to atomically update state + create review record
+  await supabase.rpc("process_review_answer", {
+    p_user_card_state_id: req.user_card_state_id,
+    p_response: req.response,
+    p_correct: req.correct,
+    p_response_time_ms: req.response_time_ms,
+    p_new_stage: result.new_stage,
+    p_new_ease_factor: result.new_ease_factor,
+    p_new_interval_days: result.new_interval_days,
+    p_next_review_at: result.next_review_at,
+    p_new_difficulty_tier: result.new_difficulty_tier,
+  });
 
   return {
-    newInterval: result.newInterval,
-    newEaseFactor: result.newEaseFactor,
-    newStage: result.newStage,
-    nextDueAt: result.nextDueAt.toISOString(),
+    new_stage: result.new_stage,
+    new_interval_days: result.new_interval_days,
+    next_review_at: result.next_review_at,
+    stage_changed: result.new_stage !== cardState.srs_stage,
   };
 }
 
 export async function hasAnyCards(): Promise<boolean> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return false;
 
   const { count } = await supabase
-    .from("srs_cards")
+    .from("user_card_state")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .limit(1);

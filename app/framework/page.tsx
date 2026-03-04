@@ -13,7 +13,7 @@ export default function FrameworkPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 h-16 border-b border-steel">
         <Link href="/">
-          <Logo size={28} withWordmark wordmarkSize={18} />
+          <Logo size={28} withWordmark wordmarkSize="md" />
         </Link>
         <Link
           href="/signup"
@@ -266,7 +266,7 @@ export default function FrameworkPage() {
           </div>
 
           {/* Dependency chain */}
-          <div className="rounded-xl border border-steel bg-charcoal p-6 mt-6">
+          <div className="rounded-xl border border-steel bg-obsidian p-6 mt-6">
             <h3 className="font-display text-base font-bold text-ivory mb-3">Module Prerequisites</h3>
             <div className="font-mono text-sm text-silver space-y-1">
               <p>Module 1 (Sound Foundations)</p>
@@ -289,19 +289,19 @@ export default function FrameworkPage() {
         {/* Section 8 */}
         <Section title="Three guiding principles">
           <div className="space-y-6">
-            <div className="rounded-xl border border-steel bg-charcoal p-6">
+            <div className="rounded-xl border border-steel bg-obsidian p-6">
               <h3 className="font-display text-base font-bold text-ivory mb-2">Function before label, always</h3>
               <p className="text-silver leading-relaxed">
                 Every concept is first heard in tonal context before receiving a name, and first receives a name before being shown in notation. This is Gordon&apos;s sequence compressed for adult efficiency but never inverted.
               </p>
             </div>
-            <div className="rounded-xl border border-steel bg-charcoal p-6">
+            <div className="rounded-xl border border-steel bg-obsidian p-6">
               <h3 className="font-display text-base font-bold text-ivory mb-2">SRS adapted for music, not imported from language learning</h3>
               <p className="text-silver leading-relaxed">
                 Perceptual ear training requires session-based scheduling (multiple trials per review), context variation across reviews (different keys, timbres, registers), and progressive response modes (recognition at early stages, production at advanced stages).
               </p>
             </div>
-            <div className="rounded-xl border border-steel bg-charcoal p-6">
+            <div className="rounded-xl border border-steel bg-obsidian p-6">
               <h3 className="font-display text-base font-bold text-ivory mb-2">Honest about what it is</h3>
               <p className="text-silver leading-relaxed">
                 solmisa is a secondary reinforcement tool, not a teacher replacement. It excels at spaced review, pattern drilling, progressive skill building, and self-paced theory study. It cannot evaluate musicality or adapt to creative goals the way a human teacher can. This honest positioning &mdash; combined with functional ear training meets SRS &mdash; is its most defensible position.
@@ -349,7 +349,7 @@ function P({ children }: { children: React.ReactNode }) {
 
 function ModuleCard({ number, title, description, topics }: { number: number; title: string; description: string; topics: string }) {
   return (
-    <div className="rounded-xl border border-steel bg-charcoal p-5">
+    <div className="rounded-xl border border-steel bg-obsidian p-5">
       <div className="flex items-start gap-3">
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral/10 text-coral font-mono text-sm font-bold flex-shrink-0">
           {number}

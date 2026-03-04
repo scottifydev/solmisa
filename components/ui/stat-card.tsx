@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 interface StatCardProps {
   label: string;
-  value: string | number;
+  value?: string | number;
   sub?: string;
   color?: string;
   children?: ReactNode;
@@ -10,16 +10,23 @@ interface StatCardProps {
 
 export function StatCard({ label, value, sub, color, children }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-steel bg-charcoal p-4">
-      <div className="text-silver text-sm font-body">{label}</div>
-      <div
-        className="text-2xl font-display font-bold mt-1"
-        style={color ? { color } : undefined}
-      >
-        {value}
+    <div className="rounded-lg border border-steel bg-obsidian px-5 py-[18px] flex-1 min-w-[140px]">
+      <div className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono mb-2.5">
+        {label}
       </div>
-      {sub && <div className="text-silver text-xs mt-0.5">{sub}</div>}
-      {children}
+      {children || (
+        <>
+          <div
+            className="text-[28px] font-body font-extrabold leading-none"
+            style={color ? { color } : undefined}
+          >
+            {value}
+          </div>
+          {sub && (
+            <div className="text-[11px] text-ash font-mono mt-1.5">{sub}</div>
+          )}
+        </>
+      )}
     </div>
   );
 }

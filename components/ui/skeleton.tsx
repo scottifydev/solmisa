@@ -1,16 +1,24 @@
 interface SkeletonProps {
   className?: string;
+  width?: string | number;
+  height?: string | number;
 }
 
-export function SkeletonRect({ className = "" }: SkeletonProps) {
+export function SkeletonRect({ className = "", width, height }: SkeletonProps) {
   return (
-    <div className={`animate-pulse bg-steel rounded-lg ${className}`} />
+    <div
+      className={`animate-pulse bg-steel rounded-md ${className}`}
+      style={{ width, height }}
+    />
   );
 }
 
-export function SkeletonCircle({ className = "" }: SkeletonProps) {
+export function SkeletonCircle({ className = "", width, height }: SkeletonProps) {
   return (
-    <div className={`animate-pulse bg-steel rounded-full ${className}`} />
+    <div
+      className={`animate-pulse bg-steel rounded-full ${className}`}
+      style={{ width: width ?? height, height: height ?? width }}
+    />
   );
 }
 
@@ -20,7 +28,7 @@ export function SkeletonText({ lines = 3, className = "" }: SkeletonProps & { li
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse bg-steel rounded h-4"
+          className="animate-pulse bg-steel rounded-sm h-4"
           style={{ width: i === lines - 1 ? "60%" : "100%" }}
         />
       ))}

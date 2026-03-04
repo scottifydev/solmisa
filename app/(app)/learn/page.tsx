@@ -17,18 +17,19 @@ export default async function LearnPage() {
       {modules.length === 0 ? (
         <EmptyState
           title="No modules yet"
-          description="Curriculum content is being prepared. Check back soon!"
+          message="Curriculum content is being prepared. Check back soon!"
         />
       ) : (
         <div className="space-y-6">
           {modules.map((mod, modIndex) => {
-            const completedCount = mod.lessons.filter((l) => l.isCompleted).length;
-            const total = mod.lessons.length;
+            const lessons = mod.lessons ?? [];
+            const completedCount = lessons.filter((l) => l.isCompleted).length;
+            const total = lessons.length;
             const percentage = total > 0 ? Math.round((completedCount / total) * 100) : 0;
             const color = degreeColors[(modIndex + 1) as keyof typeof degreeColors] ?? colors.coral;
 
             return (
-              <div key={mod.id} className="rounded-xl border border-steel bg-charcoal overflow-hidden">
+              <div key={mod.id} className="rounded-xl border border-steel bg-obsidian overflow-hidden">
                 {/* Module header */}
                 <div className="p-5 border-b border-steel">
                   <div className="flex items-start justify-between">
@@ -51,8 +52,8 @@ export default async function LearnPage() {
 
                 {/* Lesson list */}
                 <div className="divide-y divide-steel/50">
-                  {mod.lessons.map((lesson, lessonIndex) => {
-                    const prevCompleted = lessonIndex === 0 || mod.lessons[lessonIndex - 1].isCompleted;
+                  {lessons.map((lesson, lessonIndex) => {
+                    const prevCompleted = lessonIndex === 0 || lessons[lessonIndex - 1]!.isCompleted;
                     const isLocked = !prevCompleted && !lesson.isCompleted;
 
                     return (
@@ -80,7 +81,7 @@ export default async function LearnPage() {
                             }
                           `}
                         >
-                          {lesson.isCompleted ? "✓" : lesson.order}
+                          {lesson.isCompleted ? "✓" : lesson.lesson_order}
                         </div>
 
                         <div className="flex-1 min-w-0">

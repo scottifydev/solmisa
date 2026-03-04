@@ -1,0 +1,267 @@
+import * as Tone from "tone";
+import type {
+  NoteName,
+  DiatonicDegree,
+  IntervalName,
+  ChordQuality,
+  ChordInversion,
+  PlayDegreeOptions,
+  ResolutionOptions,
+  PlayIntervalOptions,
+  PlayChordOptions,
+} from "@/types/audio";
+
+// ─── Music Theory Maps ──────────────────────────────────────
+
+const NOTE_SEMITONES: Record<string, number> = {
+  C: 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, F: 5,
+  "F#": 6, Gb: 6, G: 7, "G#": 8, Ab: 8, A: 9, "A#": 10, Bb: 10, B: 11,
+};
+
+const SEMITONE_TO_NOTE: string[] = [
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+];
+
+const DEGREE_SEMITONES: Record<DiatonicDegree, number> = {
+  1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11,
+};
+
+const INTERVAL_SEMITONES: Record<IntervalName, number> = {
+  P1: 0, m2: 1, M2: 2, m3: 3, M3: 4, P4: 5,
+  TT: 6, P5: 7, m6: 8, M6: 9, m7: 10, M7: 11, P8: 12,
+};
+
+const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
+  major: [0, 4, 7],
+  minor: [0, 3, 7],
+  diminished: [0, 3, 6],
+  augmented: [0, 4, 8],
+  dominant7: [0, 4, 7, 10],
+  major7: [0, 4, 7, 11],
+  minor7: [0, 3, 7, 10],
+};
+
+function noteToMidi(name: NoteName, octave: number): number {
+  const semi = NOTE_SEMITONES[name];
+  if (semi === undefined) throw new Error(`Unknown note: ${name}`);
+  return (octave + 1) * 12 + semi;
+}
+
+function midiToNoteName(midi: number): string {
+  const octave = Math.floor(midi / 12) - 1;
+  const note = SEMITONE_TO_NOTE[midi % 12]!;
+  return `${note}${octave}`;
+}
+
+function degreeToNote(key: NoteName, degree: DiatonicDegree, octave: number): string {
+  const rootMidi = noteToMidi(key, octave);
+  return midiToNoteName(rootMidi + DEGREE_SEMITONES[degree]);
+}
+
+// ─── Playback Engine ────────────────────────────────────────
+
+export class PlaybackEngine {
+  private synth: Tone.Synth | null = null;
+  private polySynth: Tone.PolySynth | null = null;
+  private isActive = false;
+  private stopRequested = false;
+
+  get playing(): boolean {
+    return this.isActive;
+  }
+
+  private getSynth(): Tone.Synth {
+    if (!this.synth) {
+      this.synth = new Tone.Synth({
+        oscillator: { type: "fmtriangle" },
+        envelope: { attack: 0.03, decay: 0.2, sustain: 0.5, release: 0.5 },
+        volume: -3,
+      }).toDestination();
+    }
+    return this.synth;
+  }
+
+  private getPolySynth(): Tone.PolySynth {
+    if (!this.polySynth) {
+      this.polySynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "fmtriangle" },
+        envelope: { attack: 0.03, decay: 0.2, sustain: 0.5, release: 0.5 },
+        volume: -3,
+      }).toDestination();
+    }
+    return this.polySynth;
+  }
+
+  async playDegree(options: PlayDegreeOptions): Promise<void> {
+    const { degree, key, octave = 4, duration = 1 } = options;
+    this.isActive = true;
+    this.stopRequested = false;
+
+    const note = degreeToNote(key, degree, octave);
+    const synth = this.getSynth();
+    synth.triggerAttackRelease(note, duration, Tone.now());
+
+    await this.wait(duration * 1000 + 100);
+    this.isActive = false;
+  }
+
+  async playDegreeSequence(
+    degrees: DiatonicDegree[],
+    options: Omit<PlayDegreeOptions, "degree">,
+  ): Promise<void> {
+    const { key, octave = 4, duration = 0.6 } = options;
+    this.isActive = true;
+    this.stopRequested = false;
+
+    const synth = this.getSynth();
+    const gap = duration * 0.15; // slight overlap for legato feel
+    const now = Tone.now();
+
+    for (let i = 0; i < degrees.length; i++) {
+      if (this.stopRequested) break;
+      const note = degreeToNote(key, degrees[i]!, octave);
+      synth.triggerAttackRelease(note, duration, now + i * (duration - gap));
+    }
+
+    await this.wait(degrees.length * (duration - gap) * 1000 + 200);
+    this.isActive = false;
+  }
+
+  async playResolution(options: ResolutionOptions): Promise<void> {
+    const { fromDegree, key, timbre: _timbre } = options;
+    if (fromDegree === 1) return; // already at tonic
+
+    // Build stepwise path to tonic using shortest direction
+    const path: DiatonicDegree[] = [];
+    if (fromDegree <= 4) {
+      // Resolve downward: e.g. 3 -> 2 -> 1
+      for (let d = fromDegree; d >= 1; d--) {
+        path.push(d as DiatonicDegree);
+      }
+    } else {
+      // Resolve upward: e.g. 5 -> 6 -> 7 -> 1(octave above)
+      for (let d = fromDegree; d <= 7; d++) {
+        path.push(d as DiatonicDegree);
+      }
+      path.push(1); // tonic above (handled by octave shift in playback)
+    }
+
+    this.isActive = true;
+    this.stopRequested = false;
+
+    const synth = this.getSynth();
+    const stepDuration = 0.25;
+    const overlap = 0.05;
+    const now = Tone.now();
+    const baseOctave = 4;
+
+    for (let i = 0; i < path.length; i++) {
+      if (this.stopRequested) break;
+      const degree = path[i]!;
+      const isLast = i === path.length - 1;
+      const dur = isLast ? stepDuration * 1.5 : stepDuration; // final tonic rings longer
+
+      // If resolving upward and we've wrapped to degree 1, play octave above
+      const octave = (fromDegree > 4 && degree === 1) ? baseOctave + 1 : baseOctave;
+      const note = degreeToNote(key, degree, octave);
+      synth.triggerAttackRelease(note, dur, now + i * (stepDuration - overlap));
+    }
+
+    await this.wait(path.length * (stepDuration - overlap) * 1000 + 300);
+    this.isActive = false;
+  }
+
+  async playInterval(options: PlayIntervalOptions): Promise<void> {
+    const { interval, key, mode = "melodic", octave = 4, duration = 0.8, gap = 0.4 } = options;
+    const baseDegree = options.baseDegree ?? 1;
+    const rootMidi = noteToMidi(key, octave) + DEGREE_SEMITONES[baseDegree];
+    const topMidi = rootMidi + INTERVAL_SEMITONES[interval];
+    const bottomNote = midiToNoteName(rootMidi);
+    const topNote = midiToNoteName(topMidi);
+
+    this.isActive = true;
+    this.stopRequested = false;
+
+    if (mode === "harmonic") {
+      const poly = this.getPolySynth();
+      poly.triggerAttackRelease([bottomNote, topNote], duration, Tone.now());
+      await this.wait(duration * 1000 + 100);
+    } else {
+      const synth = this.getSynth();
+      const now = Tone.now();
+      synth.triggerAttackRelease(bottomNote, duration, now);
+      synth.triggerAttackRelease(topNote, duration, now + duration + gap);
+      await this.wait((duration * 2 + gap) * 1000 + 100);
+    }
+
+    this.isActive = false;
+  }
+
+  async playChord(options: PlayChordOptions): Promise<void> {
+    const { quality, root, inversion = "root", mode = "block", octave = 4, duration = 1.2 } = options;
+    const intervals = CHORD_INTERVALS[quality];
+    if (!intervals) throw new Error(`Unknown chord quality: ${quality}`);
+
+    const rootMidi = noteToMidi(root, octave);
+    let midiNotes = intervals.map((semi) => rootMidi + semi);
+
+    // Apply inversions
+    if (inversion === "first" && midiNotes.length >= 2) {
+      midiNotes[0] = midiNotes[0]! + 12; // raise root octave
+      midiNotes = [midiNotes[1]!, midiNotes[2]!, ...midiNotes.slice(3), midiNotes[0]!];
+    } else if (inversion === "second" && midiNotes.length >= 3) {
+      midiNotes[0] = midiNotes[0]! + 12;
+      midiNotes[1] = midiNotes[1]! + 12;
+      midiNotes = [midiNotes[2]!, ...midiNotes.slice(3), midiNotes[0]!, midiNotes[1]!];
+    }
+
+    const notes = midiNotes.map(midiToNoteName);
+
+    this.isActive = true;
+    this.stopRequested = false;
+
+    if (mode === "block") {
+      // Block chord - all notes at once, bass slightly louder
+      const poly = this.getPolySynth();
+      // Play bass note separately with more volume
+      const bassSynth = this.getSynth();
+      bassSynth.volume.value = 0; // slightly louder than polySynth at -3
+      bassSynth.triggerAttackRelease(notes[0]!, duration, Tone.now());
+      if (notes.length > 1) {
+        poly.triggerAttackRelease(notes.slice(1), duration, Tone.now());
+      }
+      await this.wait(duration * 1000 + 100);
+      bassSynth.volume.value = -3; // restore
+    } else {
+      // Arpeggiated
+      const synth = this.getSynth();
+      const arpGap = 0.12;
+      const now = Tone.now();
+      for (let i = 0; i < notes.length; i++) {
+        synth.triggerAttackRelease(notes[i]!, duration, now + i * arpGap);
+      }
+      await this.wait((notes.length * arpGap + duration) * 1000 + 100);
+    }
+
+    this.isActive = false;
+  }
+
+  stop(): void {
+    this.stopRequested = true;
+    this.synth?.triggerRelease();
+    this.polySynth?.releaseAll();
+    this.isActive = false;
+  }
+
+  dispose(): void {
+    this.stop();
+    this.synth?.dispose();
+    this.synth = null;
+    this.polySynth?.dispose();
+    this.polySynth = null;
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}

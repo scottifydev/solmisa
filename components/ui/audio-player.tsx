@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import type { AudioPlayerProps } from "@/types/audio";
+interface AudioPlayerProps {
+  src: string;
+  label?: string;
+  sublabel?: string;
+  variant?: "standalone" | "inline";
+  onPlay?: () => void;
+  onStop?: () => void;
+}
 
 export function AudioPlayer({
   src,
@@ -79,7 +86,7 @@ export function AudioPlayer({
   }
 
   return (
-    <div className="rounded-xl border border-steel bg-charcoal p-4">
+    <div className="rounded-xl border border-steel bg-obsidian p-4">
       <audio
         ref={audioRef}
         src={src}

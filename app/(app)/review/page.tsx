@@ -12,15 +12,14 @@ export default async function ReviewPage() {
     return (
       <div className="max-w-lg mx-auto p-6">
         <EmptyState
-          icon="🎯"
+          icon={<span className="text-5xl">&#x1F3AF;</span>}
           title="All caught up!"
-          description={
+          message={
             !hasCards
               ? "Complete lessons to create review cards."
               : "No cards are due right now. Check back later!"
           }
-          actionLabel="Go to lessons"
-          onAction={undefined}
+          action={{ label: "Go to lessons", href: "/learn" }}
         />
         <div className="mt-4 text-center">
           <Link href="/learn" className="text-coral text-sm hover:text-coral/80 transition-colors">
