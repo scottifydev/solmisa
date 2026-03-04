@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Lesson } from "@/types/lesson";
 import type { StageQuizResult } from "@/types/lesson";
@@ -8,18 +8,32 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { semanticColors } from "@/lib/tokens";
 import { completeLesson } from "@/lib/actions/lessons";
+import { seedCardsFromLesson } from "@/lib/lessons/seed-cards";
+import { useDrone } from "@/hooks/use-drone";
 import { StageRenderer } from "./stage-renderer";
 
 interface LessonPlayerProps {
   lesson: Lesson;
   moduleTitle?: string;
   totalLessons?: number;
+  userId?: string;
 }
 
-export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1 }: LessonPlayerProps) {
+export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1, userId }: LessonPlayerProps) {
   const router = useRouter();
+  const drone = useDrone();
   const [results, setResults] = useState<StageQuizResult[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cardsSeeded, setCardsSeeded] = useState(0);
+
+  // Start drone on mount, stop on unmount
+  useEffect(() => {
+    if (lesson.drone_key) {
+      void drone.start({ key: lesson.drone_key as Parameters<typeof drone.start>[0]["key"] });
+    }
+    return () => { drone.stop(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleComplete = useCallback((quizResults: StageQuizResult[]) => {
     setResults(quizResults);
@@ -27,6 +41,21 @@ export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1 
 
   const handleFinish = async () => {
     setSaving(true);
+
+    // Seed SRS cards from quiz results
+    if (userId && results) {
+      try {
+        const seedResult = await seedCardsFromLesson({
+          user_id: userId,
+          lesson_id: lesson.id,
+          stage_results: results,
+        });
+        setCardsSeeded(seedResult.cards_seeded);
+      } catch {
+        // Don't block completion on seeding failure
+      }
+    }
+
     await completeLesson(lesson.id);
     router.push("/learn");
     router.refresh();

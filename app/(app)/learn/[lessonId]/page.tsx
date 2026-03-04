@@ -1,4 +1,5 @@
-import { getLesson } from "@/lib/actions/lessons";
+import { getLessonWithContext } from "@/lib/actions/lessons";
+import { createClient } from "@/lib/supabase/server";
 import { LessonPlayer } from "@/components/lesson/lesson-player";
 import { notFound } from "next/navigation";
 
@@ -8,11 +9,23 @@ interface Props {
 
 export default async function LessonPage({ params }: Props) {
   const { lessonId } = await params;
-  const lesson = await getLesson(lessonId);
+  const [data, supabase] = await Promise.all([
+    getLessonWithContext(lessonId),
+    createClient(),
+  ]);
 
-  if (!lesson) {
+  if (!data) {
     notFound();
   }
 
-  return <LessonPlayer lesson={lesson} />;
+  const { data: { user } } = await supabase.auth.getUser();
+
+  return (
+    <LessonPlayer
+      lesson={data.lesson}
+      moduleTitle={data.moduleTitle}
+      totalLessons={data.totalLessons}
+      userId={user?.id}
+    />
+  );
 }
