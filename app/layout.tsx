@@ -24,6 +24,10 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "solmisa",
   description: "Music ear training built on Gordon's Music Learning Theory",
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${dmSans.variable} ${ibmPlexMono.variable}`}>
+    <html
+      lang="en"
+      className={`${outfit.variable} ${dmSans.variable} ${ibmPlexMono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
