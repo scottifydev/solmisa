@@ -12,18 +12,62 @@ const tabs = [
 
 function GridIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
-      <rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
+      <rect
+        x="2"
+        y="2"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="11"
+        y="2"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="2"
+        y="11"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="11"
+        y="11"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
 
 function BookIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
       <path
         d="M3 4.5C3 3.67 3.67 3 4.5 3H8c1.1 0 2 .9 2 2v11.5l-.5-.5c-.55-.55-1.3-.5-1.5-.5H4.5c-.83 0-1.5-.67-1.5-1.5V4.5Z"
         stroke="currentColor"
@@ -44,7 +88,13 @@ function BookIcon({ className }: { className?: string }) {
 
 function RefreshIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
       <path
         d="M14.5 3.5A7 7 0 0 0 3 10"
         stroke="currentColor"
@@ -57,15 +107,33 @@ function RefreshIcon({ className }: { className?: string }) {
         strokeWidth="1.5"
         strokeLinecap="round"
       />
-      <path d="M12 3.5h3v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 16.5H5v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M12 3.5h3v3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 16.5H5v-3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function GearIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
       <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M8.5 2.5h3l.4 1.8a5.5 5.5 0 0 1 1.5.9l1.8-.5 1.5 2.6-1.4 1.2a5.5 5.5 0 0 1 0 1.8l1.4 1.2-1.5 2.6-1.8-.5a5.5 5.5 0 0 1-1.5.9l-.4 1.8h-3l-.4-1.8a5.5 5.5 0 0 1-1.5-.9l-1.8.5-1.5-2.6 1.4-1.2a5.5 5.5 0 0 1 0-1.8L3.3 7.3l1.5-2.6 1.8.5a5.5 5.5 0 0 1 1.5-.9l.4-1.8Z"
@@ -77,14 +145,18 @@ function GearIcon({ className }: { className?: string }) {
   );
 }
 
-const mobileIcons: Record<string, (props: { className?: string }) => React.JSX.Element> = {
+const mobileIcons: Record<
+  string,
+  (props: { className?: string }) => React.JSX.Element
+> = {
   "/dashboard": GridIcon,
   "/learn": BookIcon,
   "/review": RefreshIcon,
 };
 
 function isTabActive(pathname: string, href: string): boolean {
-  if (href === "/learn") return pathname === "/learn" || pathname.startsWith("/learn/");
+  if (href === "/learn")
+    return pathname === "/learn" || pathname.startsWith("/learn/");
   return pathname.startsWith(href);
 }
 
@@ -129,10 +201,15 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
         </nav>
 
         <div className="flex items-center gap-4 shrink-0">
-          <span className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}>
+          <span
+            className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+          >
             🔥 {streak}
           </span>
-          <Link href="/profile" className="text-silver hover:text-ivory transition-colors">
+          <Link
+            href="/settings"
+            className="text-silver hover:text-ivory transition-colors"
+          >
             <GearIcon />
           </Link>
         </div>
@@ -145,17 +222,28 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
         </Link>
 
         <div className="flex items-center gap-3">
-          <span className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}>
+          <span
+            className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+          >
             🔥 {streak}
           </span>
-          <Link href="/profile" className="text-silver hover:text-ivory transition-colors">
+          <Link
+            href="/settings"
+            className="text-silver hover:text-ivory transition-colors"
+          >
             <GearIcon />
           </Link>
         </div>
       </header>
 
       {/* Mobile bottom tab bar */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-night border-t border-steel" style={{ height: "calc(64px + env(safe-area-inset-bottom))", paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-night border-t border-steel"
+        style={{
+          height: "calc(64px + env(safe-area-inset-bottom))",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
         {tabs.map((tab) => {
           const active = isTabActive(pathname, tab.href);
           const Icon = mobileIcons[tab.href];
