@@ -41,8 +41,7 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("profiles") as any).update({
+    await supabase.from("profiles").update({
       display_name: name || null,
       instrument: instrument || null,
       experience_level: experience || null,
