@@ -14,11 +14,14 @@ export default async function DashboardPage() {
     getSkillAxes(),
   ]);
 
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   const greeting = profile?.name
-    ? `Good evening, ${profile.name}`
+    ? `Good ${timeOfDay}, ${profile.name}`
     : "Welcome back";
 
-  const accuracy = stats.reviewsToday > 0 ? "84%" : "--";
+  const accuracy =
+    stats.weekAccuracy !== null ? `${stats.weekAccuracy}%` : "--";
 
   return (
     <div className="px-6 py-8 max-w-[960px] mx-auto space-y-5">
@@ -86,7 +89,7 @@ export default async function DashboardPage() {
           sub={`${stats.dueToday} due`}
           color={colors.coral}
         />
-        <StatCard label="7-Day Accuracy" value={accuracy} color="#4ECDC4" />
+        <StatCard label="7-Day Accuracy" value={accuracy} color={colors.correct} />
         <StatCard
           label="Items Mastered"
           value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}

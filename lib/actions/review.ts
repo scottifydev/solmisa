@@ -199,12 +199,18 @@ export async function getReviewStats(): Promise<ReviewStatsResponse> {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
   const [
     { count: totalCards },
     { count: dueToday },
     { data: stageData },
     { data: profile },
     { count: reviewsToday },
+    { data: weekReviews },
   ] = await Promise.all([
     supabase
       .from("user_card_state")
@@ -228,8 +234,11 @@ export async function getReviewStats(): Promise<ReviewStatsResponse> {
     supabase
       .from("review_records")
       .select("id", { count: "exact", head: true })
-      .eq("user_card_state_id", user.id)
-      .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+      .gte("created_at", todayStart.toISOString()),
+    supabase
+      .from("review_records")
+      .select("correct")
+      .gte("created_at", weekAgo.toISOString()),
   ]);
 
   // Count by stage group
@@ -247,11 +256,17 @@ export async function getReviewStats(): Promise<ReviewStatsResponse> {
     ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
   ).map((stage) => ({ stage, count: groupCounts[stage] }));
 
+  const weekTotal = weekReviews?.length ?? 0;
+  const weekCorrect = weekReviews?.filter((r) => r.correct).length ?? 0;
+  const weekAccuracy =
+    weekTotal > 0 ? Math.round((weekCorrect / weekTotal) * 100) : null;
+
   return {
     totalCards: totalCards ?? 0,
     dueToday: dueToday ?? 0,
     byStage,
     streakDays: profile?.streak_days ?? 0,
     reviewsToday: reviewsToday ?? 0,
+    weekAccuracy,
   };
 }
