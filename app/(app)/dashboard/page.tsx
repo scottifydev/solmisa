@@ -1,14 +1,17 @@
 import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
+import { getSkillAxes } from "@/lib/actions/skills";
 import { StatCard } from "@/components/ui/stat-card";
 import { SrsBar } from "@/components/landing/srs-bar";
+import { SkillRadar } from "@/components/dashboard/skill-radar";
 import { colors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const [stats, profile] = await Promise.all([
+  const [stats, profile, skillAxes] = await Promise.all([
     getDashboardStats(),
     getProfile(),
+    getSkillAxes(),
   ]);
 
   const greeting = profile?.name
@@ -30,7 +33,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Side-by-side CTAs */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         {stats.dueToday > 0 ? (
           <Link
             href="/review"
@@ -76,18 +79,14 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           label="Reviews Today"
           value={stats.reviewsToday}
           sub={`${stats.dueToday} due`}
           color={colors.coral}
         />
-        <StatCard
-          label="7-Day Accuracy"
-          value={accuracy}
-          color="#4ECDC4"
-        />
+        <StatCard label="7-Day Accuracy" value={accuracy} color="#4ECDC4" />
         <StatCard
           label="Items Mastered"
           value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}
@@ -100,6 +99,9 @@ export default async function DashboardPage() {
           color={colors.warning}
         />
       </div>
+
+      {/* Skill Radar */}
+      <SkillRadar axes={skillAxes} />
 
       {/* SRS breakdown */}
       {stats.totalCards > 0 ? (
