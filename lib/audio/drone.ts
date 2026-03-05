@@ -65,34 +65,70 @@ function majorTriadMidi(rootMidi: number): number[] {
   return [rootMidi, rootMidi + 4, rootMidi + 7];
 }
 
-// ─── Cadence chord builder (I-IV-V-I) ───────────────────────
+function minorTriadMidi(rootMidi: number): number[] {
+  return [rootMidi, rootMidi + 3, rootMidi + 7];
+}
 
-function buildCadenceChords(key: NoteName, bassOctave: number): string[][] {
+// ─── Cadence chord builders ─────────────────────────────────
+
+function buildMajorCadenceChords(
+  key: NoteName,
+  bassOctave: number,
+): string[][] {
   const root = noteToMidi(key, bassOctave);
-  const upperOctave = bassOctave + 1;
-  const upperRoot = noteToMidi(key, upperOctave);
+  const upperRoot = noteToMidi(key, bassOctave + 1);
 
-  // I: bass root + upper triad
+  // I: bass root + upper major triad
   const I = [
     midiToNoteName(root),
     ...majorTriadMidi(upperRoot).map(midiToNoteName),
   ];
-  // IV: bass 4th + upper triad on 4th
-  const iv = root + 5;
+  // IV: bass 4th + upper major triad on 4th
   const IV = [
-    midiToNoteName(iv),
-    ...majorTriadMidi(noteToMidi(key, upperOctave) + 5).map(midiToNoteName),
+    midiToNoteName(root + 5),
+    ...majorTriadMidi(upperRoot + 5).map(midiToNoteName),
   ];
-  // V: bass 5th + upper triad on 5th
-  const v = root + 7;
+  // V: bass 5th + upper major triad on 5th
   const V = [
-    midiToNoteName(v),
-    ...majorTriadMidi(noteToMidi(key, upperOctave) + 7).map(midiToNoteName),
+    midiToNoteName(root + 7),
+    ...majorTriadMidi(upperRoot + 7).map(midiToNoteName),
   ];
-  // I (final): same as I
-  const Ifinal = [...I];
+  return [I, IV, V, [...I]];
+}
 
-  return [I, IV, V, Ifinal];
+function buildMinorCadenceChords(
+  key: NoteName,
+  bassOctave: number,
+): string[][] {
+  const root = noteToMidi(key, bassOctave);
+  const upperRoot = noteToMidi(key, bassOctave + 1);
+
+  // i: bass root + upper minor triad
+  const i = [
+    midiToNoteName(root),
+    ...minorTriadMidi(upperRoot).map(midiToNoteName),
+  ];
+  // iv: bass 4th + upper minor triad on 4th
+  const iv = [
+    midiToNoteName(root + 5),
+    ...minorTriadMidi(upperRoot + 5).map(midiToNoteName),
+  ];
+  // V: bass 5th + upper major triad on 5th (harmonic minor — raised 7th)
+  const V = [
+    midiToNoteName(root + 7),
+    ...majorTriadMidi(upperRoot + 7).map(midiToNoteName),
+  ];
+  return [i, iv, V, [...i]];
+}
+
+function buildCadenceChords(
+  key: NoteName,
+  bassOctave: number,
+  cadenceType: "major" | "minor" = "major",
+): string[][] {
+  return cadenceType === "minor"
+    ? buildMinorCadenceChords(key, bassOctave)
+    : buildMajorCadenceChords(key, bassOctave);
 }
 
 // ─── Pad Voice Configuration ─────────────────────────────────
@@ -357,7 +393,11 @@ export class DroneGenerator {
       volume: -6,
     }).toDestination();
 
-    const chords = buildCadenceChords(key as NoteName, 3);
+    const chords = buildCadenceChords(
+      key as NoteName,
+      3,
+      options?.cadenceType ?? "major",
+    );
     const now = Tone.now() + 0.05;
 
     for (let i = 0; i < chords.length; i++) {
