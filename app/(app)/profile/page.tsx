@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { getDashboardStats } from "@/lib/actions/dashboard";
+import {
+  getDashboardStats,
+  getSmartSuggestion,
+  getTrackProgress,
+} from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
 import { getRadarScores } from "@/lib/actions/radar";
 import { getNextTrickleQuestion } from "@/lib/actions/assessment";
 import { getRecentActivities, getWeeklySummary } from "@/lib/actions/activity";
+import { getRecommendations } from "@/lib/actions/practice";
 import { StatCard } from "@/components/ui/stat-card";
 import { SrsBar } from "@/components/landing/srs-bar";
 import { SkillRadar } from "@/components/dashboard/skill-radar";
@@ -23,6 +28,9 @@ export default async function ProfilePage() {
     trickleQuestion,
     recentActivities,
     weeklySummary,
+    suggestion,
+    trackProgress,
+    recommendations,
   ] = await Promise.all([
     getDashboardStats(),
     getProfile(),
@@ -30,6 +38,9 @@ export default async function ProfilePage() {
     getNextTrickleQuestion(),
     getRecentActivities(),
     getWeeklySummary(),
+    getSmartSuggestion(),
+    getTrackProgress(),
+    getRecommendations(3),
   ]);
 
   const hour = new Date().getHours();
@@ -43,16 +54,11 @@ export default async function ProfilePage() {
 
   return (
     <div className="px-6 py-8 max-w-[960px] mx-auto space-y-5">
-      {/* Greeting */}
+      {/* Greeting + Settings */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[26px] font-bold text-ivory tracking-tight">
-            {greeting}
-          </h1>
-          <p className="text-silver/60 text-[13px] font-mono mt-1">
-            {stats.dueToday} reviews due &bull; {stats.totalCards} total cards
-          </p>
-        </div>
+        <h1 className="font-display text-[26px] font-bold text-ivory tracking-tight">
+          {greeting}
+        </h1>
         <Link
           href="/settings"
           className="text-silver hover:text-ivory transition-colors text-sm font-mono"
@@ -61,69 +67,85 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      {/* Side-by-side CTAs */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {stats.dueToday > 0 ? (
-          <Link
-            href="/review"
-            className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all flex items-center gap-3"
-          >
-            <span className="text-2xl shrink-0">&#x1F504;</span>
-            <div>
-              <div className="text-[15px] font-bold text-ivory font-body">
-                Start Reviews
-              </div>
-              <div className="text-[12px] text-violet font-mono">
-                {stats.dueToday} items due now
-              </div>
-            </div>
-          </Link>
-        ) : (
-          <div className="flex-1 p-4 sm:p-5 rounded-xl border border-steel bg-obsidian flex items-center gap-3 opacity-60">
-            <span className="text-2xl shrink-0">&#x2705;</span>
-            <div>
-              <div className="text-[15px] font-bold text-ivory font-body">
-                All caught up
-              </div>
-              <div className="text-[12px] text-silver font-mono">
-                No reviews due
-              </div>
-            </div>
-          </div>
-        )}
-        <Link
-          href="/learn"
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15 transition-all flex items-center gap-3"
-        >
-          <span className="text-2xl shrink-0">&#x1F4D6;</span>
-          <div>
-            <div className="text-[15px] font-bold text-ivory font-body">
-              Continue Lesson
-            </div>
-            <div className="text-[12px] text-violet/70 font-mono">
-              Pick up where you left off
-            </div>
-          </div>
-        </Link>
-      </div>
+      {/* Smart suggestion CTA */}
+      <Link
+        href={suggestion.href}
+        className={`block p-4 sm:p-5 rounded-xl border transition-all ${
+          suggestion.type === "review"
+            ? "border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10"
+            : suggestion.type === "track_nudge"
+              ? "border-warning/20 bg-gradient-to-br from-warning/8 to-violet/5 hover:from-warning/15"
+              : "border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15"
+        }`}
+      >
+        <div className="text-[15px] font-bold text-ivory font-body">
+          {suggestion.title}
+        </div>
+        <div className="text-[12px] text-silver/70 font-mono mt-0.5">
+          {suggestion.subtitle}
+        </div>
+        <div className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-body font-semibold text-violet">
+          {suggestion.buttonLabel}
+          <span aria-hidden="true">&rarr;</span>
+        </div>
+      </Link>
 
-      {/* Stats row */}
+      {/* Track status strip */}
+      {trackProgress.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {trackProgress.map((track) => {
+            const pct =
+              track.lessonsTotal > 0
+                ? Math.round(
+                    (track.lessonsCompleted / track.lessonsTotal) * 100,
+                  )
+                : 0;
+            return (
+              <Link
+                key={track.slug}
+                href={`/learn?track=${track.slug}`}
+                className="rounded-xl border border-steel bg-obsidian p-3.5 hover:border-violet/30 transition-colors"
+              >
+                <div className="text-xs font-body text-ivory font-semibold truncate">
+                  {track.name}
+                </div>
+                <div className="mt-2 h-1.5 bg-steel rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-violet rounded-full transition-all duration-300"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="text-[10px] text-silver/60 font-mono mt-1.5">
+                  {track.lessonsCompleted}/{track.lessonsTotal} lessons
+                </div>
+                {track.currentModule && (
+                  <div className="text-[10px] text-ash font-mono truncate mt-0.5">
+                    {track.currentModule}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Review stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
-          label="Reviews Today"
+          label="Reviewed Today"
           value={stats.reviewsToday}
-          sub={`${stats.dueToday} due`}
+          sub={stats.dueToday > 0 ? `${stats.dueToday} remaining` : "all done"}
           color={colors.violet}
         />
         <StatCard
-          label="7-Day Accuracy"
+          label="Weekly Accuracy"
           value={accuracy}
           color={colors.correct}
         />
         <StatCard
-          label="Items Mastered"
+          label="Mastered"
           value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}
-          sub={`of ${stats.totalCards} total`}
+          sub={`of ${stats.totalCards} items`}
           color={colors.violet}
         />
         <StatCard
@@ -133,7 +155,7 @@ export default async function ProfilePage() {
         />
       </div>
 
-      {/* Skill Radar */}
+      {/* Skills Radar (full version with expand) */}
       <SkillRadar
         current={radarScores.current}
         lifetime={radarScores.lifetime}
@@ -143,11 +165,47 @@ export default async function ProfilePage() {
       {/* Trickle assessment question */}
       {trickleQuestion && <TrickleQuestion question={trickleQuestion} />}
 
-      {/* SRS breakdown */}
-      {stats.totalCards > 0 ? (
+      {/* Practice recommendations */}
+      {recommendations.length > 0 && (
         <div className="rounded-xl border border-steel bg-obsidian p-5">
           <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
-            SRS Progress
+            Recommended Practice
+          </div>
+          <div className="space-y-2">
+            {recommendations.map((rec) => (
+              <div key={rec.id} className="flex items-start gap-3 py-2">
+                <span className="text-[10px] font-mono text-violet bg-violet/10 px-1.5 py-0.5 rounded shrink-0">
+                  {rec.tool_type}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-ivory">{rec.tool_name}</div>
+                  {rec.description && (
+                    <div className="text-xs text-silver/60 mt-0.5">
+                      {rec.description}
+                    </div>
+                  )}
+                </div>
+                {rec.tool_url && (
+                  <a
+                    href={rec.tool_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-violet font-mono shrink-0"
+                  >
+                    Open
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Review progress bar */}
+      {stats.totalCards > 0 && (
+        <div className="rounded-xl border border-steel bg-obsidian p-5">
+          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
+            Review Progress
           </div>
           <SrsBar
             stages={stats.byStage.map((s) => ({
@@ -156,15 +214,6 @@ export default async function ProfilePage() {
             }))}
             total={stats.totalCards}
           />
-        </div>
-      ) : (
-        <div className="rounded-xl border border-steel bg-obsidian p-5">
-          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
-            SRS Progress
-          </div>
-          <p className="text-silver text-sm">
-            No cards yet. Complete lessons to start building your review deck.
-          </p>
         </div>
       )}
 
