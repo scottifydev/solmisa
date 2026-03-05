@@ -111,6 +111,40 @@ export async function updateLearningPreferences(data: {
   if (error) throw new Error(error.message);
 }
 
+export async function getReviewSessionCap(): Promise<number | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 20;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("review_session_cap")
+    .eq("id", user.id)
+    .single();
+
+  return data?.review_session_cap ?? 20;
+}
+
+export async function updateReviewSessionCap(cap: number | null) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  if (cap !== null && (cap < 10 || cap > 50)) {
+    throw new Error("Cap must be between 10 and 50, or null");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ review_session_cap: cap })
+    .eq("id", user.id);
+  if (error) throw new Error(error.message);
+}
+
 export async function requestPasswordReset() {
   const supabase = await createClient();
   const {

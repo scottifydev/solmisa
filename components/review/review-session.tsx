@@ -205,7 +205,11 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
 
   if (phase === "summary") {
     return (
-      <SessionSummary results={results} startTime={startTimeRef.current} />
+      <SessionSummary
+        results={results}
+        startTime={startTimeRef.current}
+        remainingDue={Math.max(0, initialQueue.total_due - queue.length)}
+      />
     );
   }
 

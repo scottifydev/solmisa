@@ -13,13 +13,23 @@ import type {
   CardCategory,
 } from "@/types/srs";
 
-export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
+export async function getReviewQueue(
+  limitOverride?: number,
+): Promise<ReviewQueueResponse> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // Read user's session cap from profile (null = unlimited)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("review_session_cap")
+    .eq("id", user.id)
+    .single();
+
+  const cap = limitOverride ?? profile?.review_session_cap ?? 20;
   const now = new Date().toISOString();
 
   // Fetch due cards across all tracks with template + track joins
@@ -56,7 +66,7 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
     .neq("srs_stage", "mastered")
     .lte("next_review_at", now)
     .order("next_review_at")
-    .limit(limit);
+    .limit(cap);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rawItems: ReviewQueueItem[] = (dueCards ?? []).map((card: any) => {
