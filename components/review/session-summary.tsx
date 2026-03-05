@@ -71,24 +71,6 @@ function AnimatedCheckmark() {
           strokeLinejoin="round"
           className="check-mark"
         />
-        <style>{`
-          .check-circle {
-            stroke-dasharray: 201;
-            stroke-dashoffset: 201;
-            animation: drawCircle 0.6s ease-out forwards;
-          }
-          .check-mark {
-            stroke-dasharray: 50;
-            stroke-dashoffset: 50;
-            animation: drawCheck 0.4s ease-out 0.3s forwards;
-          }
-          @keyframes drawCircle {
-            to { stroke-dashoffset: 0; }
-          }
-          @keyframes drawCheck {
-            to { stroke-dashoffset: 0; }
-          }
-        `}</style>
       </svg>
     </div>
   );

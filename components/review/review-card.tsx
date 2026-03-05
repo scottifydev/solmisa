@@ -51,7 +51,6 @@ function WaveformBars() {
           }}
         />
       ))}
-      <style>{`@keyframes wave { from { transform: scaleY(0.4) } to { transform: scaleY(1) } }`}</style>
     </div>
   );
 }

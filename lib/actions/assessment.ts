@@ -67,6 +67,7 @@ export async function getNextTrickleQuestion(): Promise<AssessmentQuestion | nul
   const { data: questions } = await supabase
     .from("assessment_questions")
     .select("id, question_text, category, options, display_order")
+    .eq("is_onboarding", false)
     .order("display_order", { ascending: true });
 
   const unanswered = (questions ?? []).find((q) => !answeredIds.has(q.id));
