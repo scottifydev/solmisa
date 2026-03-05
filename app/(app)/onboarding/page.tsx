@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import { OnboardingAssessment } from "@/components/assessment/onboarding-assessment";
-import { getOnboardingQuestions } from "@/lib/actions/assessment";
-import type { AssessmentQuestion } from "@/lib/actions/assessment";
+import { CATPlacementTest } from "@/components/cat/cat-placement-test";
+import { CATResults } from "@/components/cat/cat-results";
+import { savePlacementResults } from "@/lib/actions/cat";
+import type { PlacementResult } from "@/lib/cat/types";
 
 const TOTAL_STEPS = 9;
 
@@ -95,17 +96,8 @@ export default function OnboardingPage() {
   const [solfege, setSolfege] = useState<SolfegeSystem>("moveable_do");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [assessmentQuestions, setAssessmentQuestions] = useState<
-    AssessmentQuestion[]
-  >([]);
-
-  useEffect(() => {
-    if (step === 7 && assessmentQuestions.length === 0) {
-      getOnboardingQuestions()
-        .then(setAssessmentQuestions)
-        .catch(() => {});
-    }
-  }, [step, assessmentQuestions.length]);
+  const [placementResult, setPlacementResult] =
+    useState<PlacementResult | null>(null);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const playDemoArpeggio = () => {
@@ -139,6 +131,17 @@ export default function OnboardingPage() {
     );
   };
 
+  const handleCATComplete = (placement: PlacementResult) => {
+    setPlacementResult(placement);
+    next();
+  };
+
+  const handleSkipCAT = () => {
+    // Beginner — skip all placement, go straight to results with defaults
+    setPlacementResult(null);
+    next();
+  };
+
   const handleComplete = async () => {
     setLoading(true);
     setError("");
@@ -153,6 +156,7 @@ export default function OnboardingPage() {
         return;
       }
 
+      // Save profile data
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -172,7 +176,12 @@ export default function OnboardingPage() {
         return;
       }
 
-      router.push("/dashboard");
+      // Persist placement results if CAT was completed
+      if (placementResult) {
+        await savePlacementResults(placementResult);
+      }
+
+      router.push("/learn");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -440,47 +449,41 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {step === 7 &&
-          (assessmentQuestions.length > 0 ? (
-            <OnboardingAssessment
-              questions={assessmentQuestions}
-              onComplete={next}
-              onBack={back}
-            />
-          ) : (
+        {step === 7 && (
+          <CATPlacementTest
+            onComplete={handleCATComplete}
+            onSkipAll={handleSkipCAT}
+            onBack={back}
+          />
+        )}
+
+        {step === 8 &&
+          (placementResult ? (
             <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="font-display text-2xl font-bold text-ivory">
-                  Loading assessment...
-                </h2>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={back}>
-                  Back
-                </Button>
-                <Button fullWidth onClick={next}>
-                  Skip
-                </Button>
-              </div>
+              <CATResults
+                placement={placementResult}
+                onContinue={handleComplete}
+                loading={loading}
+              />
+              {error && (
+                <p className="text-incorrect text-sm text-center">{error}</p>
+              )}
+            </div>
+          ) : (
+            <div className="text-center space-y-6">
+              <h2 className="font-display text-2xl font-bold text-ivory">
+                You&apos;re ready to start hearing music differently.
+              </h2>
+              <p className="text-silver text-sm">
+                All tracks will start at Lesson 1. Your skills profile will
+                build as you learn.
+              </p>
+              {error && <p className="text-incorrect text-sm">{error}</p>}
+              <Button fullWidth loading={loading} onClick={handleComplete}>
+                Start Learning
+              </Button>
             </div>
           ))}
-
-        {step === 8 && (
-          <div className="text-center space-y-6">
-            <h2 className="font-display text-2xl font-bold text-ivory">
-              You&apos;re ready to start hearing music differently.
-            </h2>
-            {error && <p className="text-incorrect text-sm">{error}</p>}
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={back}>
-                Back
-              </Button>
-              <Button fullWidth loading={loading} onClick={handleComplete}>
-                Go to dashboard
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
