@@ -1,103 +1,206 @@
 import type { Metadata } from "next";
-import { getProfileData, updateProfile, signOut } from "@/lib/actions/profile";
+import { getDashboardStats } from "@/lib/actions/dashboard";
+import { getProfile } from "@/lib/actions/profile";
+import { getRadarScores } from "@/lib/actions/radar";
+import { getNextTrickleQuestion } from "@/lib/actions/assessment";
+import { getRecentActivities, getWeeklySummary } from "@/lib/actions/activity";
 import { StatCard } from "@/components/ui/stat-card";
-import { Button } from "@/components/ui/button";
-import { redirect } from "next/navigation";
+import { SrsBar } from "@/components/landing/srs-bar";
+import { SkillRadar } from "@/components/dashboard/skill-radar";
+import { TrickleQuestion } from "@/components/assessment/trickle-question";
+import { ActivityFeed } from "@/components/activity/activity-feed";
+import { LogActivityButton } from "@/components/activity/log-activity-button";
+import { colors } from "@/lib/tokens";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Profile" };
 
 export default async function ProfilePage() {
-  const data = await getProfileData();
-  if (!data) redirect("/login");
+  const [
+    stats,
+    profile,
+    radarScores,
+    trickleQuestion,
+    recentActivities,
+    weeklySummary,
+  ] = await Promise.all([
+    getDashboardStats(),
+    getProfile(),
+    getRadarScores(),
+    getNextTrickleQuestion(),
+    getRecentActivities(),
+    getWeeklySummary(),
+  ]);
 
-  const { profile, stats, email } = data;
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  const greeting = profile?.name
+    ? `Good ${timeOfDay}, ${profile.name}`
+    : "Welcome back";
+
+  const accuracy =
+    stats.weekAccuracy !== null ? `${stats.weekAccuracy}%` : "--";
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
-      <h1 className="font-display text-3xl font-bold text-ivory">Profile</h1>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Lessons" value={stats.lessonsCompleted} />
-        <StatCard label="Reviews" value={stats.totalReviews} />
-        <StatCard label="Cards" value={stats.totalCards} />
+    <div className="px-6 py-8 max-w-[960px] mx-auto space-y-5">
+      {/* Greeting */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-[26px] font-bold text-ivory tracking-tight">
+            {greeting}
+          </h1>
+          <p className="text-silver/60 text-[13px] font-mono mt-1">
+            {stats.dueToday} reviews due &bull; {stats.totalCards} total cards
+          </p>
+        </div>
+        <Link
+          href="/settings"
+          className="text-silver hover:text-ivory transition-colors text-sm font-mono"
+        >
+          Settings
+        </Link>
       </div>
 
-      {/* Profile form */}
-      <form
-        action={updateProfile}
-        className="rounded-xl border border-steel bg-obsidian p-6 space-y-4"
-      >
-        <h2 className="font-display text-lg font-bold text-ivory">Settings</h2>
+      {/* Side-by-side CTAs */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {stats.dueToday > 0 ? (
+          <Link
+            href="/review"
+            className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all flex items-center gap-3"
+          >
+            <span className="text-2xl shrink-0">&#x1F504;</span>
+            <div>
+              <div className="text-[15px] font-bold text-ivory font-body">
+                Start Reviews
+              </div>
+              <div className="text-[12px] text-violet font-mono">
+                {stats.dueToday} items due now
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex-1 p-4 sm:p-5 rounded-xl border border-steel bg-obsidian flex items-center gap-3 opacity-60">
+            <span className="text-2xl shrink-0">&#x2705;</span>
+            <div>
+              <div className="text-[15px] font-bold text-ivory font-body">
+                All caught up
+              </div>
+              <div className="text-[12px] text-silver font-mono">
+                No reviews due
+              </div>
+            </div>
+          </div>
+        )}
+        <Link
+          href="/learn"
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15 transition-all flex items-center gap-3"
+        >
+          <span className="text-2xl shrink-0">&#x1F4D6;</span>
+          <div>
+            <div className="text-[15px] font-bold text-ivory font-body">
+              Continue Lesson
+            </div>
+            <div className="text-[12px] text-violet/70 font-mono">
+              Pick up where you left off
+            </div>
+          </div>
+        </Link>
+      </div>
 
-        <div>
-          <label className="block text-sm text-silver mb-1">Email</label>
-          <input
-            type="email"
-            value={email}
-            disabled
-            className="w-full rounded-lg border border-steel bg-night/50 px-3 py-2 text-silver cursor-not-allowed"
+      {/* Stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard
+          label="Reviews Today"
+          value={stats.reviewsToday}
+          sub={`${stats.dueToday} due`}
+          color={colors.violet}
+        />
+        <StatCard
+          label="7-Day Accuracy"
+          value={accuracy}
+          color={colors.correct}
+        />
+        <StatCard
+          label="Items Mastered"
+          value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}
+          sub={`of ${stats.totalCards} total`}
+          color={colors.violet}
+        />
+        <StatCard
+          label="Streak"
+          value={`${stats.streakDays}d`}
+          color={colors.warning}
+        />
+      </div>
+
+      {/* Skill Radar */}
+      <SkillRadar
+        current={radarScores.current}
+        lifetime={radarScores.lifetime}
+        emptyMessage="Complete lessons to build your skill profile"
+      />
+
+      {/* Trickle assessment question */}
+      {trickleQuestion && <TrickleQuestion question={trickleQuestion} />}
+
+      {/* SRS breakdown */}
+      {stats.totalCards > 0 ? (
+        <div className="rounded-xl border border-steel bg-obsidian p-5">
+          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
+            SRS Progress
+          </div>
+          <SrsBar
+            stages={stats.byStage.map((s) => ({
+              stage: s.stage,
+              count: s.count,
+            }))}
+            total={stats.totalCards}
           />
         </div>
-
-        <div>
-          <label htmlFor="name" className="block text-sm text-silver mb-1">
-            Display name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            defaultValue={profile?.name ?? ""}
-            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-violet/50"
-          />
+      ) : (
+        <div className="rounded-xl border border-steel bg-obsidian p-5">
+          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
+            SRS Progress
+          </div>
+          <p className="text-silver text-sm">
+            No cards yet. Complete lessons to start building your review deck.
+          </p>
         </div>
+      )}
 
-        <div>
-          <label
-            htmlFor="instrument"
-            className="block text-sm text-silver mb-1"
-          >
-            Instrument
-          </label>
-          <input
-            id="instrument"
-            name="instrument"
-            type="text"
-            defaultValue={profile?.instrument ?? ""}
-            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-violet/50"
-          />
+      {/* Weekly summary + Activity feed */}
+      <div className="rounded-xl border border-steel bg-obsidian p-5">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono">
+            This Week
+          </div>
+          <div className="hidden sm:block">
+            <LogActivityButton />
+          </div>
         </div>
+        {weeklySummary.activityCount > 0 ? (
+          <div className="flex gap-4 mb-4 text-sm">
+            <div>
+              <span className="text-ivory font-bold">
+                {weeklySummary.totalMinutes}
+              </span>
+              <span className="text-silver/60 ml-1">min</span>
+            </div>
+            <div>
+              <span className="text-ivory font-bold">
+                {weeklySummary.activityCount}
+              </span>
+              <span className="text-silver/60 ml-1">activities</span>
+            </div>
+          </div>
+        ) : null}
+        <ActivityFeed activities={recentActivities} />
+      </div>
 
-        <div>
-          <label
-            htmlFor="experience_level"
-            className="block text-sm text-silver mb-1"
-          >
-            Experience level
-          </label>
-          <select
-            id="experience_level"
-            name="experience_level"
-            defaultValue={profile?.experience_level ?? ""}
-            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory focus:outline-none focus:ring-2 focus:ring-violet/50"
-          >
-            <option value="">Select...</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
-        </div>
-
-        <Button type="submit">Save changes</Button>
-      </form>
-
-      {/* Sign out */}
-      <form action={signOut}>
-        <Button variant="ghost" type="submit" fullWidth>
-          Sign out
-        </Button>
-      </form>
+      {/* Floating log button (mobile) */}
+      <div className="sm:hidden">
+        <LogActivityButton />
+      </div>
     </div>
   );
 }

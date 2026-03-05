@@ -7,15 +7,21 @@ import { stageToGroup } from "@/lib/srs/stages";
 export async function getNavStats(): Promise<{
   streak: number;
   reviewCount: number;
+  newLessonCount: number;
 }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { streak: 0, reviewCount: 0 };
+  if (!user) return { streak: 0, reviewCount: 0, newLessonCount: 0 };
 
   const now = new Date().toISOString();
-  const [{ count: dueToday }, { data: profile }] = await Promise.all([
+  const [
+    { count: dueToday },
+    { data: profile },
+    { count: totalLessons },
+    { count: completedLessons },
+  ] = await Promise.all([
     supabase
       .from("user_card_state")
       .select("id", { count: "exact", head: true })
@@ -23,11 +29,20 @@ export async function getNavStats(): Promise<{
       .neq("srs_stage", "mastered")
       .lte("next_review_at", now),
     supabase.from("profiles").select("streak_days").eq("id", user.id).single(),
+    supabase.from("lessons").select("id", { count: "exact", head: true }),
+    supabase
+      .from("lesson_progress")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "completed"),
   ]);
+
+  const newLessons = Math.max(0, (totalLessons ?? 0) - (completedLessons ?? 0));
 
   return {
     streak: profile?.streak_days ?? 0,
     reviewCount: dueToday ?? 0,
+    newLessonCount: newLessons,
   };
 }
 
