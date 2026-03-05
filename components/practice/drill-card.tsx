@@ -19,6 +19,7 @@ const DRILL_TYPE_LABELS: Record<string, string> = {
   roman_numeral_id: "Roman Numerals",
   melodic_dictation: "Melodic Dictation",
   harmonic_dictation: "Harmonic Dictation",
+  chord_progression: "Chord Progressions",
 };
 
 export function DrillCard({ drill }: { drill: DrillItem }) {

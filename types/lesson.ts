@@ -1,5 +1,3 @@
-import type { CardCategory } from "./srs";
-
 // ─── Skill Tracks (v2) ──────────────────────────────────────
 
 export type SkillTrackSlug =
@@ -328,7 +326,8 @@ export type DrillType =
   | "scale_construction"
   | "roman_numeral_id"
   | "melodic_dictation"
-  | "harmonic_dictation";
+  | "harmonic_dictation"
+  | "chord_progression";
 
 export type OnboardingLevel =
   | "beginner"
