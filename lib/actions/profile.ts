@@ -26,13 +26,13 @@ export async function getProfileData() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const profile = await getProfile();
-
   const [
+    { data: profile },
     { count: lessonsCompleted },
     { count: totalReviews },
     { count: totalCards },
   ] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("lesson_progress")
       .select("id", { count: "exact", head: true })
@@ -40,7 +40,8 @@ export async function getProfileData() {
       .eq("status", "completed"),
     supabase
       .from("review_records")
-      .select("id", { count: "exact", head: true }),
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
     supabase
       .from("user_card_state")
       .select("id", { count: "exact", head: true })
@@ -74,7 +75,7 @@ export async function updateProfile(formData: FormData) {
     throw new Error("Invalid experience level");
   }
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({
       name: name || null,
@@ -82,6 +83,7 @@ export async function updateProfile(formData: FormData) {
       experience_level: experienceLevel || null,
     })
     .eq("id", user.id);
+  if (error) throw new Error(error.message);
 }
 
 export async function updateLearningPreferences(data: {
@@ -99,13 +101,14 @@ export async function updateLearningPreferences(data: {
     throw new Error("Invalid solfege system");
   }
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({
       primary_solfege_system: data.primary_solfege_system,
       goals: data.goals,
     })
     .eq("id", user.id);
+  if (error) throw new Error(error.message);
 }
 
 export async function requestPasswordReset() {
@@ -126,7 +129,8 @@ export async function deleteAccount() {
   if (!user) throw new Error("Not authenticated");
 
   // Delete profile (cascades to related data via FK)
-  await supabase.from("profiles").delete().eq("id", user.id);
+  const { error } = await supabase.from("profiles").delete().eq("id", user.id);
+  if (error) throw new Error("Failed to delete account");
   await supabase.auth.signOut();
   redirect("/login");
 }

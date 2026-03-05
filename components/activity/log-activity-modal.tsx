@@ -44,18 +44,27 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="log-activity-title"
+    >
       <div
         className="absolute inset-0 bg-night/80 backdrop-blur-sm"
         onClick={onClose}
       />
       <div className="relative w-full max-w-md bg-obsidian border border-steel rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-ivory">
+          <h2
+            id="log-activity-title"
+            className="font-display text-lg font-bold text-ivory"
+          >
             Log activity
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-silver/40 hover:text-silver text-xl leading-none transition-colors"
           >
             &times;
@@ -65,7 +74,9 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
         {success ? (
           <div className="text-center py-8">
             <div className="text-3xl mb-2">&#x2705;</div>
-            <p className="text-ivory font-body">Logged. Your radar is updating.</p>
+            <p className="text-ivory font-body">
+              Logged. Your radar is updating.
+            </p>
           </div>
         ) : (
           <>
@@ -77,7 +88,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                   onClick={() => setSelectedType(type.key)}
                   className={`rounded-lg border p-3 text-center transition-colors ${
                     selectedType === type.key
-                      ? "border-coral bg-coral/10"
+                      ? "border-violet bg-violet/10"
                       : "border-steel bg-slate hover:border-silver"
                   }`}
                 >
@@ -93,15 +104,19 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
               <>
                 {/* Duration */}
                 <div>
-                  <label className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5">
+                  <label
+                    htmlFor="activity-duration"
+                    className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5"
+                  >
                     Duration (minutes)
                   </label>
                   <input
+                    id="activity-duration"
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     placeholder={`${typeConfig?.defaultDuration ?? 30}`}
-                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-coral/50"
+                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-violet/50"
                     min={1}
                     max={480}
                   />
@@ -109,23 +124,24 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
 
                 {/* Notes */}
                 <div>
-                  <label className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5">
+                  <label
+                    htmlFor="activity-notes"
+                    className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5"
+                  >
                     Notes (optional)
                   </label>
                   <input
+                    id="activity-notes"
                     type="text"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="What did you work on?"
-                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-coral/50"
+                    maxLength={500}
+                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-violet/50"
                   />
                 </div>
 
-                <Button
-                  fullWidth
-                  loading={submitting}
-                  onClick={handleSubmit}
-                >
+                <Button fullWidth loading={submitting} onClick={handleSubmit}>
                   Log {typeConfig?.label}
                 </Button>
               </>

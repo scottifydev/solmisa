@@ -38,26 +38,34 @@ export default function SignupPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="font-display text-2xl font-bold text-ivory">Create an account</h1>
-        <p className="text-silver text-sm mt-1">Start your ear training journey</p>
+        <h1 className="font-display text-2xl font-bold text-ivory">
+          Create an account
+        </h1>
+        <p className="text-silver text-sm mt-1">
+          Start your ear training journey
+        </p>
       </div>
 
       <form onSubmit={handleSignup} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm text-silver mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm text-silver mb-1">
+            Email
+          </label>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
+            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-violet/50"
             placeholder="you@example.com"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm text-silver mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm text-silver mb-1">
+            Password
+          </label>
           <input
             id="password"
             type="password"
@@ -65,14 +73,12 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
+            className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-violet/50"
             placeholder="At least 6 characters"
           />
         </div>
 
-        {error && (
-          <div className="text-incorrect text-sm">{error}</div>
-        )}
+        {error && <div className="text-incorrect text-sm">{error}</div>}
 
         <Button type="submit" fullWidth loading={loading}>
           Create account
@@ -81,7 +87,10 @@ export default function SignupPage() {
 
       <p className="text-center text-sm text-silver">
         Already have an account?{" "}
-        <Link href="/login" className="text-coral hover:text-coral/80 transition-colors">
+        <Link
+          href="/login"
+          className="text-violet hover:text-violet/80 transition-colors"
+        >
           Sign in
         </Link>
       </p>

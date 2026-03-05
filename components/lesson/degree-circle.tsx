@@ -24,10 +24,32 @@ type DegreeState = "locked" | "unlocked" | "active";
 const DIATONIC_NUMBER_LABELS = ["1", "2", "3", "4", "5", "6", "7"];
 const DIATONIC_SOLFEGE_LABELS = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Ti"];
 const CHROMATIC_NUMBER_LABELS = [
-  "1", "\u266D2", "2", "\u266D3", "3", "4", "\u266F4", "5", "\u266D6", "6", "\u266D7", "7",
+  "1",
+  "\u266D2",
+  "2",
+  "\u266D3",
+  "3",
+  "4",
+  "\u266F4",
+  "5",
+  "\u266D6",
+  "6",
+  "\u266D7",
+  "7",
 ];
 const CHROMATIC_SOLFEGE_LABELS = [
-  "Do", "Ra", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti",
+  "Do",
+  "Ra",
+  "Re",
+  "Me",
+  "Mi",
+  "Fa",
+  "Fi",
+  "Sol",
+  "Le",
+  "La",
+  "Te",
+  "Ti",
 ];
 
 // Map chromatic index to degree number for click callbacks
@@ -41,7 +63,15 @@ function getDiatonicColor(degree: number): string {
 
 function getChromaticColor(index: number): string {
   // Diatonic positions: 0,2,4,5,7,9,11 -> degrees 1-7
-  const diatonicMap: Record<number, number> = { 0: 1, 2: 2, 4: 3, 5: 4, 7: 5, 9: 6, 11: 7 };
+  const diatonicMap: Record<number, number> = {
+    0: 1,
+    2: 2,
+    4: 3,
+    5: 4,
+    7: 5,
+    9: 6,
+    11: 7,
+  };
   const chromaticMap: Record<number, string> = {
     1: chromaticDegreeColors.b2,
     3: chromaticDegreeColors.b3,
@@ -77,11 +107,18 @@ export function DegreeCircle({
   const orbitRadius = size * 0.38;
 
   const activeSet = useMemo(() => new Set(activeDegrees), [activeDegrees]);
-  const unlockedSet = useMemo(() => new Set(unlockedDegrees), [unlockedDegrees]);
+  const unlockedSet = useMemo(
+    () => new Set(unlockedDegrees),
+    [unlockedDegrees],
+  );
 
   const labels = showChromatic
-    ? (labelMode === "solfege" ? CHROMATIC_SOLFEGE_LABELS : CHROMATIC_NUMBER_LABELS)
-    : (labelMode === "solfege" ? DIATONIC_SOLFEGE_LABELS : DIATONIC_NUMBER_LABELS);
+    ? labelMode === "solfege"
+      ? CHROMATIC_SOLFEGE_LABELS
+      : CHROMATIC_NUMBER_LABELS
+    : labelMode === "solfege"
+      ? DIATONIC_SOLFEGE_LABELS
+      : DIATONIC_NUMBER_LABELS;
 
   function getDegreeNumber(index: number): number {
     if (showChromatic) return CHROMATIC_DEGREE_MAP[index] ?? index + 1;
@@ -97,14 +134,19 @@ export function DegreeCircle({
 
   function getNodeRadius(state: DegreeState): number {
     switch (state) {
-      case "active": return 22;
-      case "unlocked": return 17;
-      case "locked": return 14;
+      case "active":
+        return 22;
+      case "unlocked":
+        return 17;
+      case "locked":
+        return 14;
     }
   }
 
   function getColor(index: number): string {
-    return showChromatic ? getChromaticColor(index) : getDiatonicColor(index + 1);
+    return showChromatic
+      ? getChromaticColor(index)
+      : getDiatonicColor(index + 1);
   }
 
   function nodePosition(index: number): { x: number; y: number } {
@@ -117,7 +159,8 @@ export function DegreeCircle({
 
   // Resolution arrow: small curved arc near a degree node pointing toward tonic
   function renderResolutionArrow(index: number, state: DegreeState) {
-    if (!showResolutionArrows || state === "locked" || showChromatic) return null;
+    if (!showResolutionArrows || state === "locked" || showChromatic)
+      return null;
     const deg = index + 1;
     if (deg === 1) return null; // tonic has no resolution arrow
 
@@ -127,7 +170,6 @@ export function DegreeCircle({
 
     // Arrow direction: degrees 2-4 curve toward tonic (clockwise/down), 5-7 curve up
     const resolveDown = deg <= 4;
-    const tonicAngle = (0 / 7) * Math.PI * 2 - Math.PI / 2;
     const nodeAngle = (index / 7) * Math.PI * 2 - Math.PI / 2;
 
     // Small arc offset from node
@@ -152,7 +194,14 @@ export function DegreeCircle({
           stroke={color}
           strokeWidth={1.5}
         />
-        <line x1={x2} y1={y2} x2={ax} y2={ay} stroke={color} strokeWidth={1.5} />
+        <line
+          x1={x2}
+          y1={y2}
+          x2={ax}
+          y2={ay}
+          stroke={color}
+          strokeWidth={1.5}
+        />
       </g>
     );
   }
@@ -207,7 +256,6 @@ export function DegreeCircle({
       {Array.from({ length: nodeCount }, (_, i) => {
         const state = getState(i);
         if (state === "locked") return null;
-        const pos = nodePosition(i);
         const color = getColor(i);
         const innerR = orbitRadius * 0.35;
         const outerR = orbitRadius - 22;
@@ -219,7 +267,10 @@ export function DegreeCircle({
         return (
           <line
             key={`line-${i}`}
-            x1={x1} y1={y1} x2={x2} y2={y2}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
             stroke={color}
             strokeWidth={1}
             opacity={state === "active" ? 0.5 : 0.08}
@@ -228,9 +279,10 @@ export function DegreeCircle({
       })}
 
       {/* Layer 4: Resolution arrows */}
-      {!showChromatic && Array.from({ length: 7 }, (_, i) =>
-        renderResolutionArrow(i, getState(i)),
-      )}
+      {!showChromatic &&
+        Array.from({ length: 7 }, (_, i) =>
+          renderResolutionArrow(i, getState(i)),
+        )}
 
       {/* Layer 5-7: Nodes */}
       {Array.from({ length: nodeCount }, (_, i) => {
@@ -240,8 +292,10 @@ export function DegreeCircle({
         const r = getNodeRadius(state);
         const label = labels[i] ?? "";
 
-        const fillOpacity = state === "active" ? 0.25 : state === "unlocked" ? 0.08 : 0;
-        const strokeWidth = state === "active" ? 2 : state === "locked" ? 0.5 : 1;
+        const fillOpacity =
+          state === "active" ? 0.25 : state === "unlocked" ? 0.08 : 0;
+        const strokeWidth =
+          state === "active" ? 2 : state === "locked" ? 0.5 : 1;
         const isClickable = interactive && state !== "locked";
 
         return (
@@ -250,7 +304,9 @@ export function DegreeCircle({
             onClick={() => handleClick(i)}
             style={{ cursor: isClickable ? "pointer" : "default" }}
             role={isClickable ? "button" : undefined}
-            aria-label={isClickable ? `Play degree ${getDegreeNumber(i)}` : undefined}
+            aria-label={
+              isClickable ? `Play degree ${getDegreeNumber(i)}` : undefined
+            }
           >
             {/* Active outer ring with glow */}
             {state === "active" && (

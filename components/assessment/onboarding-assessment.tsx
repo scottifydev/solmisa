@@ -35,15 +35,19 @@ export function OnboardingAssessment({
   const answeredCount = answers.size;
 
   const handleAnswer = async (optionIndex: number) => {
-    await submitAssessmentAnswer(current.id, optionIndex);
-    setAnswers((prev) => new Map(prev).set(current.id, optionIndex));
+    try {
+      await submitAssessmentAnswer(current.id, optionIndex);
+      setAnswers((prev) => new Map(prev).set(current.id, optionIndex));
 
-    // Auto-advance after a brief pause
-    setTimeout(() => {
-      if (currentIndex < totalQuestions - 1) {
-        setCurrentIndex((i) => i + 1);
-      }
-    }, 300);
+      // Auto-advance after a brief pause
+      setTimeout(() => {
+        if (currentIndex < totalQuestions - 1) {
+          setCurrentIndex((i) => i + 1);
+        }
+      }, 300);
+    } catch {
+      // Keep current question visible on failure — user can retry
+    }
   };
 
   const handleSkip = () => {
@@ -70,7 +74,7 @@ export function OnboardingAssessment({
       <div className="flex items-center gap-3">
         <div className="flex-1 h-1.5 bg-steel rounded-full overflow-hidden">
           <div
-            className="h-full bg-coral rounded-full transition-all duration-300"
+            className="h-full bg-violet rounded-full transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>

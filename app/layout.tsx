@@ -22,11 +22,28 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "solmisa",
-  description: "Music ear training built on Gordon's Music Learning Theory",
+  title: {
+    default: "Solmisa — Train Your Ear",
+    template: "%s | Solmisa",
+  },
+  description:
+    "Music ear training built on Gordon's Music Learning Theory. Develop relative pitch, master intervals, and build deep musicianship through spaced repetition.",
   icons: {
     icon: "/icon",
     apple: "/apple-icon",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Solmisa",
+    title: "Solmisa — Train Your Ear",
+    description:
+      "Music ear training built on research. Develop relative pitch through spaced repetition.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Solmisa — Train Your Ear",
+    description:
+      "Music ear training built on research. Develop relative pitch through spaced repetition.",
   },
 };
 

@@ -50,7 +50,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
         }
       }, 1800);
     },
-    [revealed, currentCard, currentIndex, total, results]
+    [revealed, currentCard, currentIndex, total, results],
   );
 
   const getCardState = (optionId: string) => {
@@ -64,9 +64,10 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
 
   // Session complete screen
   if (isComplete) {
-    const accuracy = results.length > 0
-      ? Math.round((correctCount / results.length) * 100)
-      : 0;
+    const accuracy =
+      results.length > 0
+        ? Math.round((correctCount / results.length) * 100)
+        : 0;
 
     return (
       <div className="flex flex-col items-center gap-6">
@@ -75,7 +76,8 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
             Session Complete
           </h1>
           <p className="text-silver text-sm mt-2">
-            {correctCount}/{results.length} correct &middot; {accuracy}% accuracy
+            {correctCount}/{results.length} correct &middot; {accuracy}%
+            accuracy
           </p>
         </div>
 
@@ -100,7 +102,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
           <div className="flex flex-col gap-3">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-coral text-white font-body font-medium hover:bg-coral/90 transition-colors"
+              className="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-violet text-white font-body font-medium hover:bg-violet/90 transition-colors"
             >
               Create free account
             </Link>
@@ -138,7 +140,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
           let bg = "bg-steel";
           if (result === true) bg = "bg-correct";
           else if (result === false) bg = "bg-incorrect";
-          else if (isActive) bg = "bg-coral";
+          else if (isActive) bg = "bg-violet";
 
           return (
             <div

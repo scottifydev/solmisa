@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ToastType = "success" | "error" | "info";
 
@@ -26,7 +26,11 @@ const iconColors: Record<ToastType, string> = {
 let toastId = 0;
 let listeners: Array<(toast: ToastData) => void> = [];
 
-export function toast(props: { message: string; type?: ToastType; duration?: number }) {
+export function toast(props: {
+  message: string;
+  type?: ToastType;
+  duration?: number;
+}) {
   const data: ToastData = {
     id: ++toastId,
     message: props.message,
@@ -36,7 +40,13 @@ export function toast(props: { message: string; type?: ToastType; duration?: num
   listeners.forEach((fn) => fn(data));
 }
 
-function ToastItem({ data, onClose }: { data: ToastData; onClose: () => void }) {
+function ToastItem({
+  data,
+  onClose,
+}: {
+  data: ToastData;
+  onClose: () => void;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

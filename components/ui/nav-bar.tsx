@@ -165,7 +165,7 @@ interface NavBarProps {
   reviewCount?: number;
 }
 
-export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
+export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
   const pathname = usePathname();
   const hasActiveStreak = streak > 0;
 
@@ -203,14 +203,16 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
         <div className="flex items-center gap-4 shrink-0">
           <span
             className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+            aria-label={`Streak: ${streak} days`}
           >
-            🔥 {streak}
+            <span aria-hidden="true">🔥</span> {streak}
           </span>
           <Link
             href="/settings"
+            aria-label="Settings"
             className="text-silver hover:text-ivory transition-colors"
           >
-            <GearIcon />
+            <GearIcon aria-hidden="true" />
           </Link>
         </div>
       </header>
@@ -224,14 +226,16 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
         <div className="flex items-center gap-3">
           <span
             className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+            aria-label={`Streak: ${streak} days`}
           >
-            🔥 {streak}
+            <span aria-hidden="true">🔥</span> {streak}
           </span>
           <Link
             href="/settings"
+            aria-label="Settings"
             className="text-silver hover:text-ivory transition-colors"
           >
-            <GearIcon />
+            <GearIcon aria-hidden="true" />
           </Link>
         </div>
       </header>
@@ -253,10 +257,10 @@ export function NavBar({ streak = 3, reviewCount = 5 }: NavBarProps) {
               href={tab.href}
               className={`
                 relative flex flex-col items-center justify-center gap-0.5 py-2 px-3 text-xs font-body
-                ${active ? "text-coral" : "text-ash"}
+                ${active ? "text-violet" : "text-ash"}
               `}
             >
-              {Icon && <Icon />}
+              {Icon && <Icon aria-hidden="true" />}
               <span>{tab.label}</span>
               {tab.href === "/review" && reviewCount > 0 && (
                 <span className="absolute top-1 right-0.5 bg-incorrect text-white font-mono text-[10px] rounded-full px-1 min-w-[16px] text-center leading-4">

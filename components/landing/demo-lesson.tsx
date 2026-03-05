@@ -23,7 +23,7 @@ const STAGES: LessonStage[] = [
   {
     type: "teach",
     title: "Meet Do",
-    body: "Every melody has a home base \u2014 a note that everything else revolves around. In music, we call this the tonic, or Do. Before we name anything else, listen for the note that feels like \"home.\"",
+    body: 'Every melody has a home base \u2014 a note that everything else revolves around. In music, we call this the tonic, or Do. Before we name anything else, listen for the note that feels like "home."',
   },
   {
     type: "teach",
@@ -43,12 +43,14 @@ const STAGES: LessonStage[] = [
       { id: "d", label: "Anxious" },
     ],
     correctAnswer: "b",
-    correctFeedback: "Do is the point of rest. Every journey through the scale begins and ends here.",
-    incorrectFeedback: "Do feels resolved \u2014 stable and at rest. It\u2019s the musical \"home\" that other degrees pull toward.",
+    correctFeedback:
+      "Do is the point of rest. Every journey through the scale begins and ends here.",
+    incorrectFeedback:
+      'Do feels resolved \u2014 stable and at rest. It\u2019s the musical "home" that other degrees pull toward.',
   },
   {
     type: "teach",
-    body: "In movable-do solf\u00E8ge, we sing this note as \"Do.\" In scale degree numbers, it\u2019s simply \"1.\" Both systems work \u2014 what matters is that you learn to feel this degree, not just name it.",
+    body: 'In movable-do solf\u00E8ge, we sing this note as "Do." In scale degree numbers, it\u2019s simply "1." Both systems work \u2014 what matters is that you learn to feel this degree, not just name it.',
   },
   {
     type: "quiz",
@@ -60,12 +62,14 @@ const STAGES: LessonStage[] = [
       { id: "d", label: "7th" },
     ],
     correctAnswer: "c",
-    correctFeedback: "The 1st degree. The foundation everything else is built on.",
-    incorrectFeedback: "Do is the 1st degree \u2014 the root of the scale and the center of tonal gravity.",
+    correctFeedback:
+      "The 1st degree. The foundation everything else is built on.",
+    incorrectFeedback:
+      "Do is the 1st degree \u2014 the root of the scale and the center of tonal gravity.",
   },
   {
     type: "quiz",
-    body: "If someone plays a scale and stops on the note that feels most \"complete,\" which degree did they land on?",
+    body: 'If someone plays a scale and stops on the note that feels most "complete," which degree did they land on?',
     options: [
       { id: "a", label: "Sol (5)", degree: 5 },
       { id: "b", label: "Do (1)", degree: 1 },
@@ -73,8 +77,10 @@ const STAGES: LessonStage[] = [
       { id: "d", label: "Re (2)", degree: 2 },
     ],
     correctAnswer: "b",
-    correctFeedback: "Do is where completeness lives. You\u2019ll learn to feel this instinctively.",
-    incorrectFeedback: "The most \"complete\" feeling is Do (1) \u2014 the tonic. Sol (5) is stable but still wants to resolve to Do.",
+    correctFeedback:
+      "Do is where completeness lives. You\u2019ll learn to feel this instinctively.",
+    incorrectFeedback:
+      'The most "complete" feeling is Do (1) \u2014 the tonic. Sol (5) is stable but still wants to resolve to Do.',
   },
 ];
 
@@ -110,7 +116,8 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
   };
 
   const getCardState = (optionId: string) => {
-    if (!revealed) return selected === optionId ? "selected" : ("default" as const);
+    if (!revealed)
+      return selected === optionId ? "selected" : ("default" as const);
     if (optionId === stage.correctAnswer) return "correct" as const;
     if (optionId === selected) return "incorrect" as const;
     return "disabled" as const;
@@ -134,7 +141,7 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
       {/* Progress bar */}
       <div className="w-full h-1 rounded-full bg-steel overflow-hidden">
         <div
-          className="h-full bg-coral rounded-full transition-all duration-300"
+          className="h-full bg-violet rounded-full transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -63,29 +63,6 @@ export const SRS_STAGES: Record<SrsStageGroup, SrsStageMetadata> = {
   },
 } as const;
 
-/** Hours per stage for the scheduler */
-export const STAGE_INTERVALS: Record<SrsStageKey, number> = {
-  apprentice_1: 4,
-  apprentice_2: 8,
-  apprentice_3: 24,
-  apprentice_4: 48,
-  journeyman_1: 96,
-  journeyman_2: 168,
-  adept_1: 336,
-  adept_2: 720,
-  virtuoso_1: 1440,
-  virtuoso_2: 2880,
-  mastered: Infinity,
-};
-
-export function stageToGroup(key: SrsStageKey): SrsStageGroup {
-  if (key.startsWith("apprentice")) return "apprentice";
-  if (key.startsWith("journeyman")) return "journeyman";
-  if (key.startsWith("adept")) return "adept";
-  if (key.startsWith("virtuoso")) return "virtuoso";
-  return "mastered";
-}
-
 // ─── Card & Scheduling Types ──────────────────────────────────
 
 export type CardCategory = "perceptual" | "declarative" | "rhythm";
@@ -219,8 +196,6 @@ export interface ReviewQueueItem {
   playback: PlaybackConfig | null;
   feedback: FeedbackConfig;
   dimensions: string[];
-  skill_group?: string;
-  drone_key?: string;
 }
 
 export interface ReviewQueueResponse {

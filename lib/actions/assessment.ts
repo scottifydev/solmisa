@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { AXIS_DB_TO_DISPLAY } from "@/lib/skill-axes";
 
 export interface AssessmentOption {
   text: string;
@@ -68,6 +67,7 @@ export async function getNextTrickleQuestion(): Promise<AssessmentQuestion | nul
   const { data: questions } = await supabase
     .from("assessment_questions")
     .select("id, question_text, category, options, display_order")
+    .eq("is_onboarding", false)
     .order("display_order", { ascending: true });
 
   const unanswered = (questions ?? []).find((q) => !answeredIds.has(q.id));
@@ -114,115 +114,76 @@ export async function submitAssessmentAnswer(
     .eq("question_id", questionId)
     .maybeSingle();
 
-  const previousWeights: Record<string, number> =
-    existing ? (options[existing.selected_option]?.weights ?? {}) : {};
+  const previousWeights: Record<string, number> = existing
+    ? (options[existing.selected_option]?.weights ?? {})
+    : {};
 
   // Upsert the response
-  await supabase.from("assessment_responses").upsert(
-    {
-      user_id: user.id,
-      question_id: questionId,
-      selected_option: selectedOption,
-    },
-    { onConflict: "user_id,question_id" },
-  );
+  const { error: upsertError } = await supabase
+    .from("assessment_responses")
+    .upsert(
+      {
+        user_id: user.id,
+        question_id: questionId,
+        selected_option: selectedOption,
+      },
+      { onConflict: "user_id,question_id" },
+    );
+  if (upsertError) throw new Error(upsertError.message);
 
   // Calculate weight deltas (new weights minus old weights)
-  const allAxes = new Set([
-    ...Object.keys(selected.weights),
-    ...Object.keys(previousWeights),
-  ]);
+  const allAxes = [
+    ...new Set([
+      ...Object.keys(selected.weights),
+      ...Object.keys(previousWeights),
+    ]),
+  ];
+
+  if (allAxes.length === 0) return { success: true };
+
+  // Batch read: fetch all existing skill_axes rows for this user+source in one query
+  const { data: existingAxes } = await supabase
+    .from("skill_axes")
+    .select("id, axis_name, score")
+    .eq("user_id", user.id)
+    .eq("source", "assessment")
+    .in("axis_name", allAxes);
+
+  const axisMap = new Map((existingAxes ?? []).map((r) => [r.axis_name, r]));
+
+  const now = new Date().toISOString();
+  const updates: PromiseLike<unknown>[] = [];
 
   for (const axis of allAxes) {
     const newWeight = selected.weights[axis] ?? 0;
     const oldWeight = previousWeights[axis] ?? 0;
     const delta = newWeight - oldWeight;
-
     if (delta === 0) continue;
 
-    // Get display name for lookup
-    const displayName = AXIS_DB_TO_DISPLAY[axis] ?? axis;
-    void displayName; // used for validation only
-
-    // Check if skill axis row exists
-    const { data: axisRow } = await supabase
-      .from("skill_axes")
-      .select("id, score")
-      .eq("user_id", user.id)
-      .eq("axis_name", axis)
-      .eq("source", "assessment")
-      .maybeSingle();
-
-    if (axisRow) {
-      await supabase
-        .from("skill_axes")
-        .update({ score: (axisRow.score ?? 0) + delta, updated_at: new Date().toISOString() })
-        .eq("id", axisRow.id);
+    const existing_axis = axisMap.get(axis);
+    if (existing_axis) {
+      updates.push(
+        supabase
+          .from("skill_axes")
+          .update({
+            score: (existing_axis.score ?? 0) + delta,
+            updated_at: now,
+          })
+          .eq("id", existing_axis.id),
+      );
     } else {
-      await supabase.from("skill_axes").insert({
-        user_id: user.id,
-        axis_name: axis,
-        score: Math.max(0, delta),
-        source: "assessment",
-      });
+      updates.push(
+        supabase.from("skill_axes").insert({
+          user_id: user.id,
+          axis_name: axis,
+          score: Math.max(0, delta),
+          source: "assessment",
+        }),
+      );
     }
   }
 
+  await Promise.all(updates);
+
   return { success: true };
-}
-
-export async function getAssessmentProgress(): Promise<{
-  answered: number;
-  total: number;
-}> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const [{ count: total }, { count: answered }] = await Promise.all([
-    supabase
-      .from("assessment_questions")
-      .select("id", { count: "exact", head: true }),
-    supabase
-      .from("assessment_responses")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
-  ]);
-
-  return { answered: answered ?? 0, total: total ?? 0 };
-}
-
-export async function getAllQuestions(): Promise<AssessmentQuestion[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const [{ data: questions }, { data: responses }] = await Promise.all([
-    supabase
-      .from("assessment_questions")
-      .select("id, question_text, category, options, display_order")
-      .order("display_order", { ascending: true }),
-    supabase
-      .from("assessment_responses")
-      .select("question_id, selected_option")
-      .eq("user_id", user.id),
-  ]);
-
-  const responseMap = new Map<string, number>();
-  for (const r of responses ?? []) {
-    responseMap.set(r.question_id, r.selected_option);
-  }
-
-  return (questions ?? []).map((q) => ({
-    id: q.id,
-    question_text: q.question_text,
-    category: q.category,
-    options: q.options as AssessmentOption[],
-    display_order: q.display_order ?? 0,
-    selected_option: responseMap.get(q.id) ?? null,
-  }));
 }

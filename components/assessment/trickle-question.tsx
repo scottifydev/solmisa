@@ -16,8 +16,12 @@ export function TrickleQuestion({ question }: TrickleQuestionProps) {
   if (dismissed || answered) return null;
 
   const handleAnswer = async (optionIndex: number) => {
-    await submitAssessmentAnswer(question.id, optionIndex);
-    setAnswered(true);
+    try {
+      await submitAssessmentAnswer(question.id, optionIndex);
+      setAnswered(true);
+    } catch {
+      // Keep card visible on failure — user can retry
+    }
   };
 
   return (

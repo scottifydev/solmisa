@@ -16,7 +16,6 @@ interface ReviewCardProps {
   onPlayCadence?: () => Promise<void>;
   onPlayDegree?: (degree: number) => void;
   onPlayResolution?: (degree: number) => Promise<void>;
-  solfegeMode?: "numbers" | "solfege";
 }
 
 interface OptionData {
@@ -44,7 +43,7 @@ function WaveformBars() {
       {WAVEFORM_HEIGHTS.map((h, i) => (
         <div
           key={i}
-          className="w-[2.5px] rounded-sm bg-coral opacity-60"
+          className="w-[2.5px] rounded-sm bg-violet opacity-60"
           style={{
             height: h,
             animation: `wave 0.6s ease-in-out infinite alternate`,
@@ -52,34 +51,42 @@ function WaveformBars() {
           }}
         />
       ))}
-      <style>{`@keyframes wave { from { transform: scaleY(0.4) } to { transform: scaleY(1) } }`}</style>
     </div>
   );
 }
 
 // ─── Audio Player Button ────────────────────────────────────
 
-function AudioPlayerButton({ playing, onPlay }: { playing: boolean; onPlay: () => void }) {
+function AudioPlayerButton({
+  playing,
+  onPlay,
+}: {
+  playing: boolean;
+  onPlay: () => void;
+}) {
   return (
     <button
       onClick={onPlay}
+      aria-label={playing ? "Audio playing" : "Replay audio"}
       className={`
         w-full py-3 px-4 mb-6 rounded-md border flex items-center gap-3 transition-all
-        ${playing
-          ? "bg-gradient-to-br from-coral/10 to-info/10 border-coral/40"
-          : "bg-obsidian border-steel hover:border-silver"
+        ${
+          playing
+            ? "bg-gradient-to-br from-violet/10 to-info/10 border-violet/40"
+            : "bg-obsidian border-steel hover:border-silver"
         }
       `}
     >
       <div
         className={`
           w-8 h-8 rounded-full flex items-center justify-center shrink-0
-          ${playing ? "bg-coral text-night" : "bg-graphite text-ivory"}
+          ${playing ? "bg-violet text-night" : "bg-graphite text-ivory"}
         `}
       >
         {playing ? (
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-            <rect x="1" y="1" width="3" height="8" /><rect x="6" y="1" width="3" height="8" />
+            <rect x="1" y="1" width="3" height="8" />
+            <rect x="6" y="1" width="3" height="8" />
           </svg>
         ) : (
           <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
@@ -87,7 +94,9 @@ function AudioPlayerButton({ playing, onPlay }: { playing: boolean; onPlay: () =
           </svg>
         )}
       </div>
-      <span className={`font-mono text-xs ${playing ? "text-coral" : "text-silver"}`}>
+      <span
+        className={`font-mono text-xs ${playing ? "text-violet" : "text-silver"}`}
+      >
         {playing ? "Playing..." : "Replay"}
       </span>
       {playing && <WaveformBars />}
@@ -118,7 +127,6 @@ export function ReviewCard({
   onPlayCadence,
   onPlayDegree,
   onPlayResolution,
-  solfegeMode = "numbers",
 }: ReviewCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -128,13 +136,15 @@ export function ReviewCard({
   const [resolutionPlaying, setResolutionPlaying] = useState(false);
   const answerStartTime = useRef<number | null>(null);
   const cadencePlayed = useRef(false);
-  const pauseTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const pauseTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(
+    undefined,
+  );
 
   const options = (card.options_data as unknown as OptionData[]) ?? [];
-  const correctAnswer = (card.answer_data as { correct_answer?: string })?.correct_answer;
+  const correctAnswer = (card.answer_data as { correct_answer?: string })
+    ?.correct_answer;
   const isPerceptual = card.card_category === "perceptual";
   const isRhythm = card.card_category === "rhythm";
-  const pauseDuration = isPerceptual ? PERCEPTUAL_PAUSE_MS : isRhythm ? RHYTHM_PAUSE_MS : 0;
 
   // Start audiation pause countdown
   const startAudiationPause = useCallback((durationMs: number) => {
@@ -181,7 +191,7 @@ export function ReviewCard({
     }
 
     return () => clearInterval(pauseTimerRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleReplay = async () => {
@@ -215,11 +225,20 @@ export function ReviewCard({
         await onPlayResolution(correctOpt.degree);
         setResolutionPlaying(false);
       }
-      setTimeout(() => onAnswer(isCorrect, responseTimeMs), REVEAL_DELAY_PERCEPTUAL);
+      setTimeout(
+        () => onAnswer(isCorrect, responseTimeMs),
+        REVEAL_DELAY_PERCEPTUAL,
+      );
     } else if (isRhythm) {
-      setTimeout(() => onAnswer(isCorrect, responseTimeMs), REVEAL_DELAY_RHYTHM);
+      setTimeout(
+        () => onAnswer(isCorrect, responseTimeMs),
+        REVEAL_DELAY_RHYTHM,
+      );
     } else {
-      setTimeout(() => onAnswer(isCorrect, responseTimeMs), REVEAL_DELAY_DECLARATIVE);
+      setTimeout(
+        () => onAnswer(isCorrect, responseTimeMs),
+        REVEAL_DELAY_DECLARATIVE,
+      );
     }
   };
 
@@ -232,9 +251,11 @@ export function ReviewCard({
   };
 
   const cardStateClasses: Record<string, string> = {
-    default: "bg-obsidian border-ash text-ivory hover:border-silver cursor-pointer",
+    default:
+      "bg-obsidian border-ash text-ivory hover:border-silver cursor-pointer",
     paused: "bg-obsidian border-ash text-ivory opacity-50 cursor-not-allowed",
-    selected: "bg-coral/10 border-coral text-ivory ring-1 ring-coral/30 cursor-pointer",
+    selected:
+      "bg-violet/10 border-violet text-ivory ring-1 ring-violet/30 cursor-pointer",
     correct: "bg-correct/10 border-correct text-correct",
     incorrect: "bg-incorrect/10 border-incorrect text-incorrect",
     dimmed: "border-steel/50 text-shadow",
@@ -245,7 +266,9 @@ export function ReviewCard({
       {/* Top row: SRS badge + counter */}
       <div className="flex items-center justify-between mb-4">
         <SrsBadge stage={stageToGroup(card.srs_stage)} size="sm" />
-        <span className="text-xs text-ash font-mono">{index + 1}/{total}</span>
+        <span className="text-xs text-ash font-mono">
+          {index + 1}/{total}
+        </span>
       </div>
 
       {/* Prompt */}
@@ -255,7 +278,10 @@ export function ReviewCard({
 
       {/* Audio player for perceptual cards */}
       {isPerceptual && (
-        <AudioPlayerButton playing={playing} onPlay={() => void handleReplay()} />
+        <AudioPlayerButton
+          playing={playing}
+          onPlay={() => void handleReplay()}
+        />
       )}
 
       {/* Audiation pause indicator */}
@@ -269,7 +295,7 @@ export function ReviewCard({
               className="h-full rounded-sm transition-none"
               style={{
                 width: `${audiationProgress * 100}%`,
-                backgroundColor: brand.coral,
+                backgroundColor: brand.violet,
               }}
             />
           </div>
@@ -294,7 +320,9 @@ export function ReviewCard({
               {opt.degree && <DegreeDot degree={opt.degree} />}
               <span>{opt.label}</span>
               {opt.sublabel && (
-                <span className="ml-1 text-xs font-normal text-silver">{opt.sublabel}</span>
+                <span className="ml-1 text-xs font-normal text-silver">
+                  {opt.sublabel}
+                </span>
               )}
             </button>
           );
@@ -308,9 +336,10 @@ export function ReviewCard({
           disabled={!selected}
           className={`
             w-full mt-4 py-2 rounded-lg font-body font-medium text-base transition-colors
-            ${selected
-              ? "bg-coral text-white hover:bg-coral/90"
-              : "bg-steel text-silver cursor-not-allowed"
+            ${
+              selected
+                ? "bg-violet text-white hover:bg-violet/90"
+                : "bg-steel text-silver cursor-not-allowed"
             }
           `}
         >

@@ -98,7 +98,44 @@ export interface TheoryTeachStage {
   show_degree_circle: boolean;
 }
 
-export interface AuralQuizStage {
+// ─── Drill Config (parameterized quiz generation) ────────────
+
+export interface DrillConfig {
+  type: string;
+  degrees?: (number | string)[];
+  pair?: [number | string, number | string];
+  trials?: number;
+  threshold?: number;
+  pass_threshold?: number;
+  context_mode?: string;
+  keys?: string[];
+  response_mode?: string;
+  time_limit_sec?: number;
+  patterns?: string[];
+  length_bars?: number;
+  intervals?: string[] | string;
+  direction?: string;
+  meters?: string[];
+  forms?: string[];
+  mode?: string;
+  modes?: string[];
+  options?: QuizOption[];
+  pattern?: string;
+  bpm?: number;
+  bpm_range?: [number, number];
+  tolerance_ms?: number;
+  meter?: string;
+  counting?: string;
+  complexity?: string;
+  rhythm?: string;
+  max_interval?: number;
+  timbres?: string[];
+  sequence_length?: number;
+  domains?: string[];
+}
+
+// Options-based quiz (pre-authored concrete questions)
+export interface OptionsAuralQuizStage {
   type: "aural_quiz";
   prompt: string;
   options: QuizOption[];
@@ -107,13 +144,32 @@ export interface AuralQuizStage {
   show_resolution?: boolean;
 }
 
-export interface TheoryQuizStage {
+// Drill-based quiz (parameterized, generates trials at runtime)
+export interface DrillAuralQuizStage {
+  type: "aural_quiz";
+  prompt: string;
+  drill: DrillConfig;
+  seeds_card?: string;
+}
+
+export type AuralQuizStage = OptionsAuralQuizStage | DrillAuralQuizStage;
+
+export interface OptionsTheoryQuizStage {
   type: "theory_quiz";
   prompt: string;
   options: QuizOption[];
   correct_answer: string;
   seeds_card?: string;
 }
+
+export interface DrillTheoryQuizStage {
+  type: "theory_quiz";
+  prompt: string;
+  drill: DrillConfig;
+  seeds_card?: string;
+}
+
+export type TheoryQuizStage = OptionsTheoryQuizStage | DrillTheoryQuizStage;
 
 export interface RhythmStage {
   type: "rhythm";
@@ -131,24 +187,24 @@ export interface QuizOption {
   degree?: number;
 }
 
+export function isOptionsQuiz(
+  stage: AuralQuizStage | TheoryQuizStage,
+): stage is OptionsAuralQuizStage | OptionsTheoryQuizStage {
+  return "options" in stage;
+}
+
+export function isDrillQuiz(
+  stage: AuralQuizStage | TheoryQuizStage,
+): stage is DrillAuralQuizStage | DrillTheoryQuizStage {
+  return "drill" in stage;
+}
+
 // ─── Rhythm Types ─────────────────────────────────────────────
 
 export interface RhythmEvent {
   beat: number;
   duration: number;
   rest?: boolean;
-}
-
-export interface RhythmTapperProps {
-  events: RhythmEvent[];
-  tempo: number;
-  timeSignature: [number, number];
-  onComplete: (result: RhythmTapResult) => void;
-}
-
-export interface RhythmTapResult {
-  accuracy: number;
-  taps: { time: number; expected: number; delta: number }[];
 }
 
 // ─── Rendering Types ──────────────────────────────────────────

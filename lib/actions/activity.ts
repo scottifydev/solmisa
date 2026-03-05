@@ -27,7 +27,10 @@ export async function logActivity(
   const typeConfig = ACTIVITY_TYPES.find((t) => t.key === activityType);
   if (!typeConfig) throw new Error("Invalid activity type");
 
-  const duration = durationMinutes ?? typeConfig.defaultDuration;
+  const duration = Math.max(
+    1,
+    Math.min(480, durationMinutes ?? typeConfig.defaultDuration),
+  );
 
   // Scale impacts by duration (base impacts are per 30 min)
   const durationMultiplier = Math.max(0.5, duration / 30);
@@ -58,20 +61,22 @@ export async function logActivity(
       .maybeSingle();
 
     if (existing) {
-      await supabase
+      const { error } = await supabase
         .from("skill_axes")
         .update({
           score: (existing.score ?? 0) + points,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
+      if (error) throw new Error(error.message);
     } else {
-      await supabase.from("skill_axes").insert({
+      const { error } = await supabase.from("skill_axes").insert({
         user_id: user.id,
         axis_name: axis,
         score: points,
         source: "activity",
       });
+      if (error) throw new Error(error.message);
     }
   }
 
@@ -93,7 +98,9 @@ export async function getRecentActivities(
 
   const { data } = await supabase
     .from("activity_logs")
-    .select("id, activity_type, duration_minutes, notes, axis_impacts, created_at")
+    .select(
+      "id, activity_type, duration_minutes, notes, axis_impacts, created_at",
+    )
     .eq("user_id", user.id)
     .gte("created_at", weekAgo.toISOString())
     .order("created_at", { ascending: false })
@@ -181,16 +188,22 @@ export async function deleteActivity(activityId: string): Promise<void> {
       .maybeSingle();
 
     if (existing) {
-      await supabase
+      const { error } = await supabase
         .from("skill_axes")
         .update({
           score: Math.max(0, (existing.score ?? 0) - points),
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
+      if (error) throw new Error(error.message);
     }
   }
 
-  await supabase.from("activity_logs").delete().eq("id", activityId).eq("user_id", user.id);
+  const { error: deleteError } = await supabase
+    .from("activity_logs")
+    .delete()
+    .eq("id", activityId)
+    .eq("user_id", user.id);
+  if (deleteError) throw new Error(deleteError.message);
   revalidatePath("/dashboard");
 }

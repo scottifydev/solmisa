@@ -8,10 +8,10 @@ export const brand = {
   silver: "#a09bb3",
   ash: "#65607a",
   shadow: "#3d3852",
-  coral: "#FF6B6B",
-  coralBright: "#FF8A8A",
-  coralDim: "#CC5555",
-  coralGhost: "rgba(255,107,107,0.08)",
+  violet: "#b794f6",
+  violetBright: "#cdb4f8",
+  violetDim: "#9370db",
+  violetGhost: "rgba(183,148,246,0.08)",
   correct: "#4ade80",
   correctDim: "rgba(74,222,128,0.10)",
   warning: "#fbbf24",
@@ -69,28 +69,10 @@ export const srsStages = {
   mastered: { label: "Mastered", color: "#b794f6", icon: "\u{1F451}" },
 } as const;
 
-export const degreeLabels = {
-  1: "Do",
-  2: "Re",
-  3: "Mi",
-  4: "Fa",
-  5: "Sol",
-  6: "La",
-  7: "Ti",
-} as const;
-
 export const type = {
   display: "'Outfit', sans-serif",
   body: "'DM Sans', sans-serif",
   mono: "'IBM Plex Mono', monospace",
-} as const;
-
-export const radii = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 20,
-  pill: 100,
 } as const;
 
 export const semanticColors = {

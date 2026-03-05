@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getProfileData } from "@/lib/actions/profile";
 import { SettingsForm } from "@/components/settings/settings-form";
+
+export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const data = await getProfileData();
