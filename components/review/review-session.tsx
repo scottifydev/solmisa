@@ -113,6 +113,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
           stageBefore: currentCard.srs_stage,
           stageAfter: newStage,
           category: currentCard.card_category,
+          track_slug: currentCard.track_slug,
         },
       ]);
 
