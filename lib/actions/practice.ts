@@ -165,6 +165,116 @@ export async function logDrillSession(
   });
 }
 
+// ─── Focus Practice (weak dimension → drill mapping) ─────
+
+export interface FocusDrill {
+  drillSlug: string;
+  drillTitle: string;
+  dimension: string;
+  dimensionName: string;
+  accuracy: number;
+  reason: string;
+}
+
+const DIMENSION_TO_DRILL_PREFIX: Record<string, string[]> = {
+  degree_recognition: ["degree_recognition"],
+  ear_training: ["interval", "chord"],
+  theory: ["theory", "key_signature", "scale", "roman_numeral"],
+  rhythm: ["rhythm"],
+  sight_reading: ["sight_reading", "note_reading"],
+};
+
+function dimensionGroupToDrillPrefixes(dimSlug: string): string[] {
+  for (const [group, prefixes] of Object.entries(DIMENSION_TO_DRILL_PREFIX)) {
+    if (dimSlug.startsWith(group.split("_")[0] ?? "")) return prefixes;
+  }
+  // Fall back to checking dimension slug prefix directly
+  const prefix = dimSlug.split("_").slice(0, -1).join("_");
+  return prefix ? [prefix] : [];
+}
+
+export async function getFocusPractice(limit = 3): Promise<FocusDrill[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Get radar scores
+  const { data: radarScores } = await supabase
+    .from("radar_cache")
+    .select("dimension, score, total_reviews")
+    .eq("user_id", user.id)
+    .gt("total_reviews", 2)
+    .order("score");
+
+  if (!radarScores || radarScores.length === 0) return [];
+
+  // Get unlocked drill slugs
+  const { data: completedLessons } = await supabase
+    .from("lesson_progress")
+    .select("lessons!inner(unlocks_drills)")
+    .eq("user_id", user.id)
+    .eq("status", "completed");
+
+  const unlockedSlugs = new Set<string>();
+  for (const lp of completedLessons ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const unlocks = ((lp.lessons as any)?.unlocks_drills ?? []) as string[];
+    for (const slug of unlocks) unlockedSlugs.add(slug);
+  }
+
+  if (unlockedSlugs.size === 0) return [];
+
+  // Get all drills
+  const { data: allDrills } = await supabase
+    .from("drills")
+    .select("slug, title");
+
+  const drillMap = new Map<string, string>();
+  for (const d of allDrills ?? []) {
+    if (unlockedSlugs.has(d.slug)) drillMap.set(d.slug, d.title);
+  }
+
+  // Import dimensions map
+  const { DIMENSION_MAP } = await import("@/lib/radar/dimensions");
+
+  const results: FocusDrill[] = [];
+  for (const score of radarScores) {
+    if (results.length >= limit) break;
+    if (score.score >= 0.7) continue; // Not weak enough
+
+    const dimInfo = DIMENSION_MAP.get(score.dimension);
+    if (!dimInfo) continue;
+
+    const prefixes = dimensionGroupToDrillPrefixes(score.dimension);
+    let matchedSlug: string | null = null;
+    let matchedTitle = "";
+
+    for (const [slug, title] of drillMap) {
+      if (prefixes.some((p) => slug.includes(p))) {
+        matchedSlug = slug;
+        matchedTitle = title;
+        break;
+      }
+    }
+
+    if (!matchedSlug) continue;
+
+    const pct = Math.round(score.score * 100);
+    results.push({
+      drillSlug: matchedSlug,
+      drillTitle: matchedTitle,
+      dimension: score.dimension,
+      dimensionName: dimInfo.name,
+      accuracy: score.score,
+      reason: `${dimInfo.name} accuracy is ${pct}% — focused repetition builds this skill.`,
+    });
+  }
+
+  return results;
+}
+
 export interface PracticeRecommendation {
   id: string;
   dimension: string;
