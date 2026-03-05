@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { ReviewQueueItem } from "@/types/srs";
+import type { ReviewQueueItem, ConfidenceRating } from "@/types/srs";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { degreeColors, brand } from "@/lib/tokens";
 import { stageToGroup } from "@/lib/srs/stages";
+import { ConfidencePrompt } from "@/components/review/confidence-prompt";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -12,10 +13,15 @@ interface ReviewCardProps {
   card: ReviewQueueItem;
   index: number;
   total: number;
-  onAnswer: (correct: boolean, responseTimeMs: number) => void;
+  onAnswer: (
+    correct: boolean,
+    responseTimeMs: number,
+    confidence?: ConfidenceRating,
+  ) => void;
   onPlayCadence?: () => Promise<void>;
   onPlayDegree?: (degree: number) => void;
   onPlayResolution?: (degree: number) => Promise<void>;
+  showConfidence?: boolean;
 }
 
 interface OptionData {
@@ -127,9 +133,11 @@ export function ReviewCard({
   onPlayCadence,
   onPlayDegree,
   onPlayResolution,
+  showConfidence = true,
 }: ReviewCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [waitingForConfidence, setWaitingForConfidence] = useState(false);
   const [audiationPaused, setAudiationPaused] = useState(false);
   const [audiationProgress, setAudiationProgress] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -203,42 +211,80 @@ export function ReviewCard({
     setPlaying(false);
   };
 
+  const pendingAnswer = useRef<{
+    isCorrect: boolean;
+    responseTimeMs: number;
+  } | null>(null);
+
   const handleSelect = (optionId: string) => {
-    if (revealed || audiationPaused) return;
+    if (revealed || waitingForConfidence || audiationPaused) return;
     setSelected(optionId);
   };
 
-  const handleCheck = async () => {
-    if (!selected || revealed) return;
-    const isCorrect = selected === correctAnswer;
-    setRevealed(true);
+  const revealAndSubmit = useCallback(
+    async (
+      isCorrect: boolean,
+      responseTimeMs: number,
+      confidence?: ConfidenceRating,
+    ) => {
+      setWaitingForConfidence(false);
+      setRevealed(true);
 
+      if (isPerceptual && onPlayResolution) {
+        const correctOpt = options.find((o) => o.id === correctAnswer);
+        if (correctOpt?.degree) {
+          setResolutionPlaying(true);
+          await onPlayResolution(correctOpt.degree);
+          setResolutionPlaying(false);
+        }
+        setTimeout(
+          () => onAnswer(isCorrect, responseTimeMs, confidence),
+          REVEAL_DELAY_PERCEPTUAL,
+        );
+      } else if (isRhythm) {
+        setTimeout(
+          () => onAnswer(isCorrect, responseTimeMs, confidence),
+          REVEAL_DELAY_RHYTHM,
+        );
+      } else {
+        setTimeout(
+          () => onAnswer(isCorrect, responseTimeMs, confidence),
+          REVEAL_DELAY_DECLARATIVE,
+        );
+      }
+    },
+    [
+      isPerceptual,
+      isRhythm,
+      onPlayResolution,
+      options,
+      correctAnswer,
+      onAnswer,
+    ],
+  );
+
+  const handleConfidence = useCallback(
+    (confidence: ConfidenceRating) => {
+      if (!pendingAnswer.current) return;
+      const { isCorrect, responseTimeMs } = pendingAnswer.current;
+      pendingAnswer.current = null;
+      void revealAndSubmit(isCorrect, responseTimeMs, confidence);
+    },
+    [revealAndSubmit],
+  );
+
+  const handleCheck = async () => {
+    if (!selected || revealed || waitingForConfidence) return;
+    const isCorrect = selected === correctAnswer;
     const responseTimeMs = answerStartTime.current
       ? Date.now() - answerStartTime.current
       : 0;
 
-    // Perceptual: play resolution then callback
-    if (isPerceptual && onPlayResolution) {
-      const correctOpt = options.find((o) => o.id === correctAnswer);
-      if (correctOpt?.degree) {
-        setResolutionPlaying(true);
-        await onPlayResolution(correctOpt.degree);
-        setResolutionPlaying(false);
-      }
-      setTimeout(
-        () => onAnswer(isCorrect, responseTimeMs),
-        REVEAL_DELAY_PERCEPTUAL,
-      );
-    } else if (isRhythm) {
-      setTimeout(
-        () => onAnswer(isCorrect, responseTimeMs),
-        REVEAL_DELAY_RHYTHM,
-      );
+    if (showConfidence) {
+      pendingAnswer.current = { isCorrect, responseTimeMs };
+      setWaitingForConfidence(true);
     } else {
-      setTimeout(
-        () => onAnswer(isCorrect, responseTimeMs),
-        REVEAL_DELAY_DECLARATIVE,
-      );
+      void revealAndSubmit(isCorrect, responseTimeMs);
     }
   };
 
@@ -330,7 +376,7 @@ export function ReviewCard({
       </div>
 
       {/* Check button */}
-      {!revealed && !audiationPaused && (
+      {!revealed && !waitingForConfidence && !audiationPaused && (
         <button
           onClick={() => void handleCheck()}
           disabled={!selected}
@@ -345,6 +391,13 @@ export function ReviewCard({
         >
           Check
         </button>
+      )}
+
+      {/* Confidence prompt */}
+      {waitingForConfidence && (
+        <div className="mt-4">
+          <ConfidencePrompt onSelect={handleConfidence} />
+        </div>
       )}
 
       {/* Resolution indicator */}
