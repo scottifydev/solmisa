@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
-import { getSkillAxes } from "@/lib/actions/skills";
+import { getRadarScores } from "@/lib/actions/radar";
 import { getNextTrickleQuestion } from "@/lib/actions/assessment";
 import { getRecentActivities, getWeeklySummary } from "@/lib/actions/activity";
 import { StatCard } from "@/components/ui/stat-card";
@@ -19,14 +19,14 @@ export default async function DashboardPage() {
   const [
     stats,
     profile,
-    skillAxes,
+    radarScores,
     trickleQuestion,
     recentActivities,
     weeklySummary,
   ] = await Promise.all([
     getDashboardStats(),
     getProfile(),
-    getSkillAxes(),
+    getRadarScores(),
     getNextTrickleQuestion(),
     getRecentActivities(),
     getWeeklySummary(),
@@ -127,7 +127,8 @@ export default async function DashboardPage() {
 
       {/* Skill Radar */}
       <SkillRadar
-        axes={skillAxes}
+        current={radarScores.current}
+        lifetime={radarScores.lifetime}
         emptyMessage="Complete lessons to build your skill profile"
       />
 
