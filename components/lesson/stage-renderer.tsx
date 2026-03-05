@@ -96,25 +96,29 @@ function AuralTeachView({
   const [activeDegree, setActiveDegree] = useState<number | undefined>();
   const hasPlayed = useRef(false);
 
+  const hasPitchContent = stage.audio_degrees.length > 0;
+
   useEffect(() => {
     if (hasPlayed.current) return;
     hasPlayed.current = true;
 
     const play = async () => {
-      const key = (droneKey ?? "C") as NoteName;
-      await drone.start({ key });
-      await drone.playCadence({ key });
+      if (hasPitchContent) {
+        const key = (droneKey ?? "C") as NoteName;
+        await drone.start({ key });
+        await drone.playCadence({ key });
 
-      // Play audio degrees sequence with highlighting
-      for (const deg of stage.audio_degrees) {
-        setActiveDegree(deg);
-        await playback.playDegree({
-          degree: deg as DiatonicDegree,
-          key,
-          duration: 0.8,
-        });
+        // Play audio degrees sequence with highlighting
+        for (const deg of stage.audio_degrees) {
+          setActiveDegree(deg);
+          await playback.playDegree({
+            degree: deg as DiatonicDegree,
+            key,
+            duration: 0.8,
+          });
+        }
+        setActiveDegree(stage.highlight_degree);
       }
-      setActiveDegree(stage.highlight_degree);
 
       // Content appears after audio (Gordon: sound before label)
       setTimeout(() => setContentVisible(true), 300);
@@ -438,19 +442,22 @@ function AuralQuizView({
   const hasPlayed = useRef(false);
 
   const key = (droneKey ?? "C") as NoteName;
+  const hasDegreeOptions = options.some((o) => o.degree !== undefined);
 
   const playSequence = useCallback(async () => {
-    await drone.start({ key });
-    await drone.playCadence({ key });
-    const targetOpt = options.find((o) => o.id === correctAnswer);
-    if (targetOpt?.degree) {
-      await playback.playDegree({
-        degree: targetOpt.degree as DiatonicDegree,
-        key,
-        duration: 1,
-      });
+    if (hasDegreeOptions) {
+      await drone.start({ key });
+      await drone.playCadence({ key });
+      const targetOpt = options.find((o) => o.id === correctAnswer);
+      if (targetOpt?.degree) {
+        await playback.playDegree({
+          degree: targetOpt.degree as DiatonicDegree,
+          key,
+          duration: 1,
+        });
+      }
     }
-  }, [drone, playback, key, options, correctAnswer]);
+  }, [drone, playback, key, options, correctAnswer, hasDegreeOptions]);
 
   useEffect(() => {
     if (hasPlayed.current) return;
@@ -505,12 +512,14 @@ function AuralQuizView({
         {stage.prompt}
       </h2>
 
-      <button
-        onClick={() => void playSequence()}
-        className="text-sm text-violet hover:text-violet/80 transition-colors font-mono"
-      >
-        &#9654; Replay
-      </button>
+      {hasDegreeOptions && (
+        <button
+          onClick={() => void playSequence()}
+          className="text-sm text-violet hover:text-violet/80 transition-colors font-mono"
+        >
+          &#9654; Replay
+        </button>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {options.map((opt) => (
@@ -697,9 +706,31 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
   const [stageIdx, setStageIdx] = useState(0);
   const [quizResults, setQuizResults] = useState<StageQuizResult[]>([]);
 
-  // Start drone on mount if lesson has a drone key, stop all audio on unmount
+  // Check if any stage uses pitch content (degrees or degree-based options)
+  const lessonHasPitchContent = useMemo(
+    () =>
+      lesson.stages.some((s) => {
+        if (
+          "audio_degrees" in s &&
+          Array.isArray(s.audio_degrees) &&
+          s.audio_degrees.length > 0
+        )
+          return true;
+        if (
+          "options" in s &&
+          Array.isArray(s.options) &&
+          s.options.some((o: QuizOption) => o.degree !== undefined)
+        )
+          return true;
+        if ("drill" in s) return true;
+        return false;
+      }),
+    [lesson.stages],
+  );
+
+  // Start drone on mount only if lesson has pitch content, stop all audio on unmount
   useEffect(() => {
-    if (lesson.drone_key) {
+    if (lesson.drone_key && lessonHasPitchContent) {
       void drone.start({ key: lesson.drone_key as NoteName });
     }
     return () => {
