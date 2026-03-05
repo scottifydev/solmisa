@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getProfile } from "@/lib/actions/profile";
 import { getSkillAxes } from "@/lib/actions/skills";
@@ -11,6 +12,8 @@ import { ActivityFeed } from "@/components/activity/activity-feed";
 import { LogActivityButton } from "@/components/activity/log-activity-button";
 import { colors } from "@/lib/tokens";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const [

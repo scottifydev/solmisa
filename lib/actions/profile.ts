@@ -40,7 +40,8 @@ export async function getProfileData() {
       .eq("status", "completed"),
     supabase
       .from("review_records")
-      .select("id", { count: "exact", head: true }),
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
     supabase
       .from("user_card_state")
       .select("id", { count: "exact", head: true })

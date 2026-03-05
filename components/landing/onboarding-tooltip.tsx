@@ -40,6 +40,7 @@ export function OnboardingTooltip({
       <div className="relative bg-obsidian border border-coral/30 rounded-lg px-3.5 py-2.5 shadow-lg">
         <p className="text-ivory text-xs font-body leading-relaxed">{text}</p>
         <button
+          aria-label="Dismiss tooltip"
           className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-steel text-silver hover:text-ivory flex items-center justify-center text-[10px]"
           onClick={(e) => {
             e.stopPropagation();

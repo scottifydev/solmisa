@@ -177,6 +177,12 @@ export function AudioPlayer({
       <PlayIcon />
     );
   const displayLabel = ended && showReplay ? "Replay" : label;
+  const ariaLabel =
+    ended && showReplay
+      ? "Replay audio"
+      : isPlaying
+        ? "Stop audio"
+        : `Play: ${label}`;
 
   // ─── Standalone ─────────────────────────────────────────
 
@@ -184,6 +190,7 @@ export function AudioPlayer({
     return (
       <button
         onClick={handleClick}
+        aria-label={ariaLabel}
         className={`
           flex items-center gap-3 rounded-[10px] p-3.5 px-[18px] transition-all
           ${
@@ -216,6 +223,7 @@ export function AudioPlayer({
     return (
       <button
         onClick={handleClick}
+        aria-label={ariaLabel}
         className={`
           w-full flex items-center gap-3 py-[14px] px-[18px] rounded-[10px] transition-all
           ${
@@ -251,6 +259,7 @@ export function AudioPlayer({
   return (
     <button
       onClick={handleClick}
+      aria-label={ariaLabel}
       className={`
         w-full flex items-center gap-3 py-2.5 px-[18px] rounded-[10px] transition-all
         ${

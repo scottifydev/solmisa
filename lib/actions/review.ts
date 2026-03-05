@@ -14,9 +14,7 @@ import type {
   CardCategory,
 } from "@/types/srs";
 
-export async function getReviewQueue(
-  limit = 20
-): Promise<ReviewQueueResponse> {
+export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,7 +47,7 @@ export async function getReviewQueue(
         )
       )
     `,
-      { count: "exact" }
+      { count: "exact" },
     )
     .eq("user_id", user.id)
     .neq("srs_stage", "mastered")
@@ -74,7 +72,19 @@ export async function getReviewQueue(
       srs_stage: card.srs_stage as SrsStageKey,
       difficulty_tier: card.difficulty_tier,
       playback: template?.playback ?? null,
-      feedback: template?.feedback ?? { correct: { text: "Correct!", show_answer: true, play_confirmation: false }, incorrect: { text: "Incorrect.", show_answer: true, play_correct: false, delay_ms: 1500 } },
+      feedback: template?.feedback ?? {
+        correct: {
+          text: "Correct!",
+          show_answer: true,
+          play_confirmation: false,
+        },
+        incorrect: {
+          text: "Incorrect.",
+          show_answer: true,
+          play_correct: false,
+          delay_ms: 1500,
+        },
+      },
       dimensions: template?.dimensions ?? [],
     };
   });
@@ -91,7 +101,13 @@ export async function getReviewQueue(
     groupCounts[stageToGroup(item.srs_stage)]++;
   }
   const stage_breakdown = (
-    ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
+    [
+      "apprentice",
+      "journeyman",
+      "adept",
+      "virtuoso",
+      "mastered",
+    ] as SrsStageGroup[]
   ).map((group) => ({ group, count: groupCounts[group] }));
 
   return {
@@ -106,7 +122,7 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function submitReview(
-  req: ReviewAnswerRequest
+  req: ReviewAnswerRequest,
 ): Promise<ReviewAnswerResponse> {
   const supabase = await createClient();
   const {
@@ -156,7 +172,7 @@ export async function submitReview(
   });
 
   // Use RPC to atomically update state + create review record
-  await supabase.rpc("process_review_answer", {
+  const { error: rpcError } = await supabase.rpc("process_review_answer", {
     p_user_card_state_id: req.user_card_state_id,
     p_response: req.response,
     p_correct: req.correct,
@@ -167,6 +183,7 @@ export async function submitReview(
     p_next_review_at: result.next_review_at,
     p_new_difficulty_tier: result.new_difficulty_tier,
   });
+  if (rpcError) throw new Error("Failed to process review");
 
   return {
     new_stage: result.new_stage,
@@ -222,22 +239,17 @@ export async function getReviewStats(): Promise<ReviewStatsResponse> {
       .eq("user_id", user.id)
       .neq("srs_stage", "mastered")
       .lte("next_review_at", new Date().toISOString()),
-    supabase
-      .from("user_card_state")
-      .select("srs_stage")
-      .eq("user_id", user.id),
-    supabase
-      .from("profiles")
-      .select("streak_days")
-      .eq("id", user.id)
-      .single(),
+    supabase.from("user_card_state").select("srs_stage").eq("user_id", user.id),
+    supabase.from("profiles").select("streak_days").eq("id", user.id).single(),
     supabase
       .from("review_records")
       .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
       .gte("created_at", todayStart.toISOString()),
     supabase
       .from("review_records")
       .select("correct")
+      .eq("user_id", user.id)
       .gte("created_at", weekAgo.toISOString()),
   ]);
 
@@ -253,7 +265,13 @@ export async function getReviewStats(): Promise<ReviewStatsResponse> {
     groupCounts[stageToGroup(row.srs_stage as SrsStageKey)]++;
   }
   const byStage = (
-    ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
+    [
+      "apprentice",
+      "journeyman",
+      "adept",
+      "virtuoso",
+      "mastered",
+    ] as SrsStageGroup[]
   ).map((stage) => ({ stage, count: groupCounts[stage] }));
 
   const weekTotal = weekReviews?.length ?? 0;

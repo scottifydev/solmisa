@@ -4,6 +4,33 @@ import { createClient } from "@/lib/supabase/server";
 import type { ReviewStatsResponse, SrsStageGroup } from "@/types/srs";
 import { stageToGroup } from "@/lib/srs/stages";
 
+export async function getNavStats(): Promise<{
+  streak: number;
+  reviewCount: number;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { streak: 0, reviewCount: 0 };
+
+  const now = new Date().toISOString();
+  const [{ count: dueToday }, { data: profile }] = await Promise.all([
+    supabase
+      .from("user_card_state")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .neq("srs_stage", "mastered")
+      .lte("next_review_at", now),
+    supabase.from("profiles").select("streak_days").eq("id", user.id).single(),
+  ]);
+
+  return {
+    streak: profile?.streak_days ?? 0,
+    reviewCount: dueToday ?? 0,
+  };
+}
+
 export async function getDashboardStats(): Promise<ReviewStatsResponse> {
   const supabase = await createClient();
   const {
@@ -35,22 +62,17 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
       .eq("user_id", user.id)
       .neq("srs_stage", "mastered")
       .lte("next_review_at", now),
-    supabase
-      .from("user_card_state")
-      .select("srs_stage")
-      .eq("user_id", user.id),
+    supabase.from("user_card_state").select("srs_stage").eq("user_id", user.id),
     supabase
       .from("review_records")
       .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
       .gte("created_at", todayStart.toISOString()),
-    supabase
-      .from("profiles")
-      .select("streak_days")
-      .eq("id", user.id)
-      .single(),
+    supabase.from("profiles").select("streak_days").eq("id", user.id).single(),
     supabase
       .from("review_records")
       .select("correct")
+      .eq("user_id", user.id)
       .gte("created_at", weekAgo.toISOString()),
   ]);
 
@@ -70,7 +92,13 @@ export async function getDashboardStats(): Promise<ReviewStatsResponse> {
   }
 
   const byStage = (
-    ["apprentice", "journeyman", "adept", "virtuoso", "mastered"] as SrsStageGroup[]
+    [
+      "apprentice",
+      "journeyman",
+      "adept",
+      "virtuoso",
+      "mastered",
+    ] as SrsStageGroup[]
   ).map((stage) => ({
     stage,
     count: groupCounts[stage],

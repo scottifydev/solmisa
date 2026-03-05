@@ -259,6 +259,7 @@ function LearningSection({
             <button
               type="button"
               onClick={() => setSystem("numbers")}
+              aria-pressed={system === "numbers"}
               className={`
                 flex-1 py-2.5 rounded-md text-sm font-mono transition-colors
                 ${
@@ -273,6 +274,7 @@ function LearningSection({
             <button
               type="button"
               onClick={() => setSystem("moveable_do")}
+              aria-pressed={system === "moveable_do"}
               className={`
                 flex-1 py-2.5 rounded-md text-sm font-mono transition-colors
                 ${
@@ -295,6 +297,7 @@ function LearningSection({
                 key={goal}
                 type="button"
                 onClick={() => toggleGoal(goal)}
+                aria-pressed={selectedGoals.includes(goal)}
                 className={`
                   px-3 py-1.5 rounded-md text-sm transition-colors
                   ${

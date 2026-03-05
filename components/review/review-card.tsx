@@ -69,6 +69,7 @@ function AudioPlayerButton({
   return (
     <button
       onClick={onPlay}
+      aria-label={playing ? "Audio playing" : "Replay audio"}
       className={`
         w-full py-3 px-4 mb-6 rounded-md border flex items-center gap-3 transition-all
         ${

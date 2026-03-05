@@ -1,13 +1,21 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getModuleWithLessons } from "@/lib/actions/lessons";
 import { LessonListItem } from "@/components/learn/lesson-list-item";
 import Link from "next/link";
 
-export default async function ModulePage({
-  params,
-}: {
+interface Props {
   params: Promise<{ moduleId: string }>;
-}) {
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { moduleId } = await params;
+  const data = await getModuleWithLessons(moduleId);
+  if (!data) return { title: "Module" };
+  return { title: data.module.title };
+}
+
+export default async function ModulePage({ params }: Props) {
   const { moduleId } = await params;
   const data = await getModuleWithLessons(moduleId);
 
@@ -33,7 +41,9 @@ export default async function ModulePage({
         <div className="text-[10px] font-mono text-ash uppercase tracking-wider mb-1">
           Module {mod.module_order}
         </div>
-        <h1 className="font-display text-2xl font-bold text-ivory">{mod.title}</h1>
+        <h1 className="font-display text-2xl font-bold text-ivory">
+          {mod.title}
+        </h1>
         {mod.description && (
           <p className="text-silver text-sm mt-1">{mod.description}</p>
         )}

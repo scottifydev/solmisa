@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { getModulesWithLessons } from "@/lib/actions/lessons";
 import { ModuleCard } from "@/components/learn/module-card";
 import { EmptyState } from "@/components/ui/empty-state";
+
+export const metadata: Metadata = { title: "Learn" };
 
 export default async function LearnPage() {
   const modules = await getModulesWithLessons();
