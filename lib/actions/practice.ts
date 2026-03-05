@@ -108,3 +108,59 @@ export async function getPracticeData(
 
   return { drills: drillItems, trackSlug: trackFilter.slug };
 }
+
+export interface DrillConfig {
+  id: string;
+  slug: string;
+  title: string;
+  drill_type: string;
+  config: Record<string, unknown>;
+}
+
+export async function getDrillConfig(
+  drillSlug: string,
+): Promise<DrillConfig | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: drill } = await supabase
+    .from("drills")
+    .select("id, slug, title, drill_type, config")
+    .eq("slug", drillSlug)
+    .single();
+
+  if (!drill) return null;
+
+  return {
+    id: drill.id,
+    slug: drill.slug,
+    title: drill.title,
+    drill_type: drill.drill_type,
+    config: (drill.config ?? {}) as Record<string, unknown>,
+  };
+}
+
+export async function logDrillSession(
+  drillSlug: string,
+  durationMinutes: number,
+  itemsAttempted: number,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("activity_logs").insert({
+    user_id: user.id,
+    activity_type: "drill_session",
+    duration_minutes: durationMinutes,
+    notes: JSON.stringify({
+      drill_slug: drillSlug,
+      items_attempted: itemsAttempted,
+    }),
+  });
+}
