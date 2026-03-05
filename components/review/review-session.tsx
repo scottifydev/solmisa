@@ -105,10 +105,14 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
       // Submit answer
       let stageChanged = false;
       let newStage = currentCard.srs_stage;
+      let tierPromoted = false;
+      let newTier: string | undefined;
       try {
         const result = await submitReview(req);
         stageChanged = result.stage_changed;
         newStage = result.new_stage;
+        tierPromoted = result.tier_promoted;
+        newTier = result.new_difficulty_tier;
       } catch {
         // Don't block the session on network errors
       }
@@ -122,6 +126,8 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
           stageAfter: newStage,
           category: currentCard.card_category,
           track_slug: currentCard.track_slug,
+          tierPromoted,
+          newTier,
         },
       ]);
 

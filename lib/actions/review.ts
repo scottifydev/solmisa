@@ -224,6 +224,10 @@ export async function submitReview(
     new_interval_days: result.new_interval_days,
     next_review_at: result.next_review_at,
     stage_changed: result.new_stage !== cardState.srs_stage,
+    tier_promoted: result.tier_promoted,
+    new_difficulty_tier: result.tier_promoted
+      ? result.new_difficulty_tier
+      : undefined,
   };
 }
 

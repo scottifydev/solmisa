@@ -184,6 +184,7 @@ export interface SchedulerResult {
   new_interval_days: number;
   next_review_at: string;
   new_difficulty_tier: DifficultyTier;
+  tier_promoted: boolean;
 }
 
 // ─── Review Queue Types (API) ─────────────────────────────────
@@ -226,6 +227,8 @@ export interface ReviewAnswerResponse {
   new_interval_days: number;
   next_review_at: string;
   stage_changed: boolean;
+  tier_promoted: boolean;
+  new_difficulty_tier?: DifficultyTier;
 }
 
 export interface ReviewStatsResponse {
