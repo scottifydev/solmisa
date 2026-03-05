@@ -21,7 +21,7 @@
   }
 
   ::selection {
-    @apply bg-coral/30 text-ivory;
+    @apply bg-violet/30 text-ivory;
   }
 }
 

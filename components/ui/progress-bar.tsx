@@ -11,7 +11,7 @@ interface ProgressBarProps {
 export function ProgressBar({
   value,
   max = 100,
-  color = colors.coral,
+  color = colors.violet,
   showLabel = false,
   size = "md",
 }: ProgressBarProps) {
@@ -26,7 +26,9 @@ export function ProgressBar({
           <span>{max}</span>
         </div>
       )}
-      <div className={`w-full ${heightClass} bg-steel rounded-full overflow-hidden`}>
+      <div
+        className={`w-full ${heightClass} bg-steel rounded-full overflow-hidden`}
+      >
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{ width: `${percentage}%`, backgroundColor: color }}

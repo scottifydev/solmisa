@@ -88,7 +88,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                   onClick={() => setSelectedType(type.key)}
                   className={`rounded-lg border p-3 text-center transition-colors ${
                     selectedType === type.key
-                      ? "border-coral bg-coral/10"
+                      ? "border-violet bg-violet/10"
                       : "border-steel bg-slate hover:border-silver"
                   }`}
                 >
@@ -116,7 +116,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     placeholder={`${typeConfig?.defaultDuration ?? 30}`}
-                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-coral/50"
+                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-violet/50"
                     min={1}
                     max={480}
                   />
@@ -137,7 +137,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="What did you work on?"
                     maxLength={500}
-                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-coral/50"
+                    className="w-full rounded-lg border border-steel bg-night px-3 py-2 text-ivory text-sm placeholder:text-silver/30 focus:outline-none focus:ring-2 focus:ring-violet/50"
                   />
                 </div>
 

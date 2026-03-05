@@ -27,7 +27,7 @@ export default async function ReviewPage() {
         <div className="mt-4 text-center">
           <Link
             href="/learn"
-            className="text-coral text-sm hover:text-coral/80 transition-colors"
+            className="text-violet text-sm hover:text-violet/80 transition-colors"
           >
             ← Back to learning
           </Link>

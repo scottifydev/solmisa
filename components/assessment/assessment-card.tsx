@@ -47,7 +47,7 @@ export function AssessmentCard({
             disabled={pending}
             className={`w-full rounded-lg border p-3 text-left text-sm transition-colors ${
               selected === i
-                ? "border-coral bg-coral/10 text-ivory"
+                ? "border-violet bg-violet/10 text-ivory"
                 : "border-steel bg-obsidian text-silver hover:border-silver"
             } ${pending ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
           >

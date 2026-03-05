@@ -83,9 +83,9 @@ function Section({
 // ─── Input Styles ───────────────────────────────────────────
 
 const inputClass =
-  "w-full bg-obsidian border border-steel text-ivory rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-coral/50 placeholder:text-silver/50";
+  "w-full bg-obsidian border border-steel text-ivory rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet/50 placeholder:text-silver/50";
 const selectClass =
-  "w-full bg-obsidian border border-steel text-ivory rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-coral/50";
+  "w-full bg-obsidian border border-steel text-ivory rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet/50";
 const labelClass = "block text-sm text-silver mb-1.5";
 
 // ─── Main Form ──────────────────────────────────────────────
@@ -261,7 +261,7 @@ function LearningSection({
                 flex-1 py-2.5 rounded-md text-sm font-mono transition-colors
                 ${
                   system === "numbers"
-                    ? "bg-coral text-white"
+                    ? "bg-violet text-white"
                     : "bg-obsidian border border-steel text-silver hover:text-ivory"
                 }
               `}
@@ -276,7 +276,7 @@ function LearningSection({
                 flex-1 py-2.5 rounded-md text-sm font-mono transition-colors
                 ${
                   system === "moveable_do"
-                    ? "bg-coral text-white"
+                    ? "bg-violet text-white"
                     : "bg-obsidian border border-steel text-silver hover:text-ivory"
                 }
               `}
@@ -299,7 +299,7 @@ function LearningSection({
                   px-3 py-1.5 rounded-md text-sm transition-colors
                   ${
                     selectedGoals.includes(goal)
-                      ? "bg-coral/20 text-coral border border-coral/40"
+                      ? "bg-violet/20 text-violet border border-violet/40"
                       : "bg-obsidian border border-steel text-silver hover:text-ivory"
                   }
                 `}

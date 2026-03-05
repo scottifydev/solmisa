@@ -66,14 +66,14 @@ export function LandingDashboard() {
               setShowDashboardTip(false);
               setView("review");
             }}
-            className="w-full p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-warning/5 hover:from-coral/15 hover:to-warning/10 transition-all cursor-pointer text-left flex items-center gap-3"
+            className="w-full p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all cursor-pointer text-left flex items-center gap-3"
           >
             <span className="text-2xl shrink-0">&#x1F504;</span>
             <div>
               <div className="text-[15px] font-bold text-ivory font-body">
                 Start Reviews
               </div>
-              <div className="text-[12px] text-coral font-mono">
+              <div className="text-[12px] text-violet font-mono">
                 {DEMO_STATS.dueToday} items due now
               </div>
             </div>
@@ -86,14 +86,14 @@ export function LandingDashboard() {
         </div>
         <button
           onClick={() => setView("lesson")}
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/10 bg-gradient-to-br from-coral/4 to-transparent hover:from-coral/8 transition-all cursor-pointer text-left flex items-center gap-3"
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/10 bg-gradient-to-br from-violet/4 to-transparent hover:from-violet/8 transition-all cursor-pointer text-left flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F4D6;</span>
           <div>
             <div className="text-[15px] font-bold text-ivory font-body">
               Start Lesson
             </div>
-            <div className="text-[12px] text-coral/70 font-mono">
+            <div className="text-[12px] text-violet/70 font-mono">
               Meet Do &mdash; your first degree
             </div>
           </div>
@@ -106,7 +106,7 @@ export function LandingDashboard() {
           label="Reviews Today"
           value={DEMO_STATS.reviewsToday}
           sub={`${DEMO_STATS.dueToday} due`}
-          color={colors.coral}
+          color={colors.violet}
         />
         <StatCard
           label="7-Day Accuracy"
@@ -118,7 +118,7 @@ export function LandingDashboard() {
           label="Items Mastered"
           value="1"
           sub={`of ${DEMO_STATS.totalCards} total`}
-          color={colors.coral}
+          color={colors.violet}
         />
         <StatCard
           label="Streak"
@@ -148,7 +148,7 @@ export function LandingDashboard() {
       {/* Signup CTA */}
       <Link
         href="/signup"
-        className="block rounded-xl border border-coral/20 bg-gradient-to-r from-coral/5 to-warning/5 hover:from-coral/10 hover:to-warning/10 transition-colors p-6 text-center"
+        className="block rounded-xl border border-violet/20 bg-gradient-to-r from-violet/5 to-warning/5 hover:from-violet/10 hover:to-warning/10 transition-colors p-6 text-center"
       >
         <h2 className="font-display text-lg font-bold text-ivory">
           Sign up free to save your progress

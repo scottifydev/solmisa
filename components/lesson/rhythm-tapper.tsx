@@ -90,8 +90,8 @@ function BeatMarker({
   let scale = 1;
 
   if (isActive) {
-    fill = brand.coral;
-    stroke = brand.coral;
+    fill = brand.violet;
+    stroke = brand.violet;
     scale = 1.2;
   } else if (result === "correct") {
     fill = semanticColors.correct;
@@ -103,8 +103,8 @@ function BeatMarker({
     fill = semanticColors.warning;
     stroke = semanticColors.warning;
   } else if (isTapped) {
-    fill = brand.coral;
-    stroke = brand.coral;
+    fill = brand.violet;
+    stroke = brand.violet;
     scale = 1.1;
   }
 
@@ -432,12 +432,12 @@ export function RhythmTapper({
         </span>
         <span className="text-silver text-sm font-mono">{bpm} BPM</span>
         {phase === "counting" && (
-          <span className="text-coral text-sm font-mono animate-pulse">
+          <span className="text-violet text-sm font-mono animate-pulse">
             Count in... {countInBeat + 1}
           </span>
         )}
         {phase === "recording" && (
-          <span className="text-coral text-sm font-mono animate-pulse">
+          <span className="text-violet text-sm font-mono animate-pulse">
             Tap!
           </span>
         )}
@@ -518,7 +518,7 @@ export function RhythmTapper({
         {isIdle && (
           <button
             onClick={() => void handleStart()}
-            className="flex-1 py-2 rounded-lg font-body font-medium text-sm bg-coral text-white hover:bg-coral/90 transition-colors"
+            className="flex-1 py-2 rounded-lg font-body font-medium text-sm bg-violet text-white hover:bg-violet/90 transition-colors"
           >
             {phase === "results"
               ? "Retry"

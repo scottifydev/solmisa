@@ -45,7 +45,7 @@ function WaveformBars({
           style={{
             width: config.width,
             height: h,
-            backgroundColor: brand.coral,
+            backgroundColor: brand.violet,
             opacity: 0.6,
             animation: `wave ${config.duration} ease-in-out infinite alternate`,
             animationDelay: `${i * config.stagger}s`,
@@ -195,7 +195,7 @@ export function AudioPlayer({
           flex items-center gap-3 rounded-[10px] p-3.5 px-[18px] transition-all
           ${
             isPlaying
-              ? "border border-coral/40 bg-gradient-to-r from-coral/[0.08] to-info/[0.08]"
+              ? "border border-violet/40 bg-gradient-to-r from-violet/[0.08] to-info/[0.08]"
               : "border-[1.5px] border-steel bg-obsidian hover:bg-graphite/30"
           }
         `}
@@ -203,7 +203,7 @@ export function AudioPlayer({
         <div
           className={`
             w-8 h-8 rounded-full flex items-center justify-center shrink-0
-            ${isPlaying ? "bg-coral text-night" : "bg-graphite text-ivory"}
+            ${isPlaying ? "bg-violet text-night" : "bg-graphite text-ivory"}
           `}
         >
           {buttonIcon}
@@ -228,7 +228,7 @@ export function AudioPlayer({
           w-full flex items-center gap-3 py-[14px] px-[18px] rounded-[10px] transition-all
           ${
             isPlaying
-              ? "border border-coral/40 bg-gradient-to-br from-coral/[0.08] to-correct/[0.08]"
+              ? "border border-violet/40 bg-gradient-to-br from-violet/[0.08] to-correct/[0.08]"
               : "border border-steel bg-obsidian hover:bg-graphite/30"
           }
         `}
@@ -236,7 +236,7 @@ export function AudioPlayer({
         <div
           className={`
             w-10 h-10 rounded-full flex items-center justify-center shrink-0
-            ${isPlaying ? "bg-gradient-to-r from-coral to-correct text-night" : "bg-graphite text-ivory"}
+            ${isPlaying ? "bg-gradient-to-r from-violet to-correct text-night" : "bg-graphite text-ivory"}
           `}
         >
           {buttonIcon}
@@ -264,7 +264,7 @@ export function AudioPlayer({
         w-full flex items-center gap-3 py-2.5 px-[18px] rounded-[10px] transition-all
         ${
           isPlaying
-            ? "border border-coral/40 bg-gradient-to-br from-coral/[0.08] to-info/[0.08]"
+            ? "border border-violet/40 bg-gradient-to-br from-violet/[0.08] to-info/[0.08]"
             : "border border-steel bg-obsidian hover:bg-graphite/30"
         }
       `}
@@ -272,7 +272,7 @@ export function AudioPlayer({
       <div
         className={`
           w-8 h-8 rounded-full flex items-center justify-center shrink-0
-          ${isPlaying ? "bg-coral text-night" : "bg-graphite text-ivory"}
+          ${isPlaying ? "bg-violet text-night" : "bg-graphite text-ivory"}
         `}
       >
         {buttonIcon}

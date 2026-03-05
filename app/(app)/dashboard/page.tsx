@@ -58,14 +58,14 @@ export default async function DashboardPage() {
         {stats.dueToday > 0 ? (
           <Link
             href="/review"
-            className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-warning/5 hover:from-coral/15 hover:to-warning/10 transition-all flex items-center gap-3"
+            className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all flex items-center gap-3"
           >
             <span className="text-2xl shrink-0">&#x1F504;</span>
             <div>
               <div className="text-[15px] font-bold text-ivory font-body">
                 Start Reviews
               </div>
-              <div className="text-[12px] text-coral font-mono">
+              <div className="text-[12px] text-violet font-mono">
                 {stats.dueToday} items due now
               </div>
             </div>
@@ -85,14 +85,14 @@ export default async function DashboardPage() {
         )}
         <Link
           href="/learn"
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/10 bg-gradient-to-br from-coral/4 to-transparent hover:from-coral/8 transition-all flex items-center gap-3"
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/10 bg-gradient-to-br from-violet/4 to-transparent hover:from-violet/8 transition-all flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F4D6;</span>
           <div>
             <div className="text-[15px] font-bold text-ivory font-body">
               Continue Lesson
             </div>
-            <div className="text-[12px] text-coral/70 font-mono">
+            <div className="text-[12px] text-violet/70 font-mono">
               Pick up where you left off
             </div>
           </div>
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           label="Reviews Today"
           value={stats.reviewsToday}
           sub={`${stats.dueToday} due`}
-          color={colors.coral}
+          color={colors.violet}
         />
         <StatCard
           label="7-Day Accuracy"
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
           label="Items Mastered"
           value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}
           sub={`of ${stats.totalCards} total`}
-          color={colors.coral}
+          color={colors.violet}
         />
         <StatCard
           label="Streak"

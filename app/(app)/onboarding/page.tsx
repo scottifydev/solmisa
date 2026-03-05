@@ -191,7 +191,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
-                i <= step ? "bg-coral" : "bg-steel"
+                i <= step ? "bg-violet" : "bg-steel"
               }`}
             />
           ))}
@@ -228,7 +228,7 @@ export default function OnboardingPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your first name"
-              className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-coral/50"
+              className="w-full rounded-lg border border-steel bg-obsidian px-3 py-2 text-ivory placeholder:text-silver/50 focus:outline-none focus:ring-2 focus:ring-violet/50"
               autoFocus
             />
             <div className="flex gap-3">
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                   onClick={() => setInstrument(inst)}
                   className={`rounded-lg border p-3 text-sm font-body transition-colors ${
                     instrument === inst
-                      ? "border-coral bg-coral/10 text-ivory"
+                      ? "border-violet bg-violet/10 text-ivory"
                       : "border-steel bg-obsidian text-silver hover:border-silver"
                   }`}
                 >
@@ -295,7 +295,7 @@ export default function OnboardingPage() {
                   onClick={() => setExperience(level.value)}
                   className={`w-full rounded-lg border p-4 text-left transition-colors ${
                     experience === level.value
-                      ? "border-coral bg-coral/10"
+                      ? "border-violet bg-violet/10"
                       : "border-steel bg-obsidian hover:border-silver"
                   }`}
                 >
@@ -332,7 +332,7 @@ export default function OnboardingPage() {
                   onClick={() => setBackground(opt.value)}
                   className={`w-full rounded-lg border p-4 text-left transition-colors ${
                     background === opt.value
-                      ? "border-coral bg-coral/10"
+                      ? "border-violet bg-violet/10"
                       : "border-steel bg-obsidian hover:border-silver"
                   }`}
                 >
@@ -366,7 +366,7 @@ export default function OnboardingPage() {
                   onClick={() => toggleGoal(goal)}
                   className={`w-full rounded-lg border p-3 text-left text-sm transition-colors ${
                     goals.includes(goal)
-                      ? "border-coral bg-coral/10 text-ivory"
+                      ? "border-violet bg-violet/10 text-ivory"
                       : "border-steel bg-obsidian text-silver hover:border-silver"
                   }`}
                 >
@@ -413,7 +413,7 @@ export default function OnboardingPage() {
                   onClick={() => setSolfege(opt.value)}
                   className={`w-full rounded-lg border p-4 text-left transition-colors ${
                     solfege === opt.value
-                      ? "border-coral bg-coral/10"
+                      ? "border-violet bg-violet/10"
                       : "border-steel bg-obsidian hover:border-silver"
                   }`}
                 >
@@ -423,7 +423,7 @@ export default function OnboardingPage() {
                   <div className="text-silver text-xs mt-1">
                     {opt.description}
                   </div>
-                  <div className="text-coral/70 text-xs mt-1 font-mono">
+                  <div className="text-violet/70 text-xs mt-1 font-mono">
                     {opt.demo.join(" \u2013 ")}
                   </div>
                 </button>

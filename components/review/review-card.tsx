@@ -43,7 +43,7 @@ function WaveformBars() {
       {WAVEFORM_HEIGHTS.map((h, i) => (
         <div
           key={i}
-          className="w-[2.5px] rounded-sm bg-coral opacity-60"
+          className="w-[2.5px] rounded-sm bg-violet opacity-60"
           style={{
             height: h,
             animation: `wave 0.6s ease-in-out infinite alternate`,
@@ -72,7 +72,7 @@ function AudioPlayerButton({
         w-full py-3 px-4 mb-6 rounded-md border flex items-center gap-3 transition-all
         ${
           playing
-            ? "bg-gradient-to-br from-coral/10 to-info/10 border-coral/40"
+            ? "bg-gradient-to-br from-violet/10 to-info/10 border-violet/40"
             : "bg-obsidian border-steel hover:border-silver"
         }
       `}
@@ -80,7 +80,7 @@ function AudioPlayerButton({
       <div
         className={`
           w-8 h-8 rounded-full flex items-center justify-center shrink-0
-          ${playing ? "bg-coral text-night" : "bg-graphite text-ivory"}
+          ${playing ? "bg-violet text-night" : "bg-graphite text-ivory"}
         `}
       >
         {playing ? (
@@ -95,7 +95,7 @@ function AudioPlayerButton({
         )}
       </div>
       <span
-        className={`font-mono text-xs ${playing ? "text-coral" : "text-silver"}`}
+        className={`font-mono text-xs ${playing ? "text-violet" : "text-silver"}`}
       >
         {playing ? "Playing..." : "Replay"}
       </span>
@@ -255,7 +255,7 @@ export function ReviewCard({
       "bg-obsidian border-ash text-ivory hover:border-silver cursor-pointer",
     paused: "bg-obsidian border-ash text-ivory opacity-50 cursor-not-allowed",
     selected:
-      "bg-coral/10 border-coral text-ivory ring-1 ring-coral/30 cursor-pointer",
+      "bg-violet/10 border-violet text-ivory ring-1 ring-violet/30 cursor-pointer",
     correct: "bg-correct/10 border-correct text-correct",
     incorrect: "bg-incorrect/10 border-incorrect text-incorrect",
     dimmed: "border-steel/50 text-shadow",
@@ -295,7 +295,7 @@ export function ReviewCard({
               className="h-full rounded-sm transition-none"
               style={{
                 width: `${audiationProgress * 100}%`,
-                backgroundColor: brand.coral,
+                backgroundColor: brand.violet,
               }}
             />
           </div>
@@ -338,7 +338,7 @@ export function ReviewCard({
             w-full mt-4 py-2 rounded-lg font-body font-medium text-base transition-colors
             ${
               selected
-                ? "bg-coral text-white hover:bg-coral/90"
+                ? "bg-violet text-white hover:bg-violet/90"
                 : "bg-steel text-silver cursor-not-allowed"
             }
           `}

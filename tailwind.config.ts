@@ -22,12 +22,12 @@ const config: Config = {
         ash: "#65607a",
         shadow: "#3d3852",
 
-        // Coral system (primary accent — override of spec's violet)
-        coral: {
-          DEFAULT: "#FF6B6B",
-          bright: "#FF8A8A",
-          dim: "#CC5555",
-          ghost: "rgba(255,107,107,0.08)",
+        // Violet system (primary accent)
+        violet: {
+          DEFAULT: "#b794f6",
+          bright: "#cdb4f8",
+          dim: "#9370db",
+          ghost: "rgba(183,148,246,0.08)",
         },
 
         // Semantic (full + dim variants for backgrounds)

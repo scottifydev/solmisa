@@ -74,7 +74,7 @@ export function OnboardingAssessment({
       <div className="flex items-center gap-3">
         <div className="flex-1 h-1.5 bg-steel rounded-full overflow-hidden">
           <div
-            className="h-full bg-coral rounded-full transition-all duration-300"
+            className="h-full bg-violet rounded-full transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>

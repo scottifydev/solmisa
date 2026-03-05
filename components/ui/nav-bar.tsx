@@ -257,7 +257,7 @@ export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
               href={tab.href}
               className={`
                 relative flex flex-col items-center justify-center gap-0.5 py-2 px-3 text-xs font-body
-                ${active ? "text-coral" : "text-ash"}
+                ${active ? "text-violet" : "text-ash"}
               `}
             >
               {Icon && <Icon aria-hidden="true" />}

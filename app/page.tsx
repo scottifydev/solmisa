@@ -17,7 +17,7 @@ export default function Home() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex items-center px-4 py-1.5 rounded-lg bg-coral text-white text-sm font-body font-medium hover:bg-coral/90 transition-colors"
+            className="inline-flex items-center px-4 py-1.5 rounded-lg bg-violet text-white text-sm font-body font-medium hover:bg-violet/90 transition-colors"
           >
             Sign up free
           </Link>

@@ -67,8 +67,8 @@ export function SkillRadar({ axes, emptyMessage }: SkillRadarProps) {
             />
             <Radar
               dataKey="score"
-              stroke={brand.coral}
-              fill={brand.coral}
+              stroke={brand.violet}
+              fill={brand.violet}
               fillOpacity={0.15}
               strokeWidth={2}
             />

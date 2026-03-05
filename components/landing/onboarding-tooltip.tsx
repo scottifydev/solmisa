@@ -37,7 +37,7 @@ export function OnboardingTooltip({
         onDismiss();
       }}
     >
-      <div className="relative bg-obsidian border border-coral/30 rounded-lg px-3.5 py-2.5 shadow-lg">
+      <div className="relative bg-obsidian border border-violet/30 rounded-lg px-3.5 py-2.5 shadow-lg">
         <p className="text-ivory text-xs font-body leading-relaxed">{text}</p>
         <button
           aria-label="Dismiss tooltip"
@@ -51,7 +51,7 @@ export function OnboardingTooltip({
         </button>
         {/* Arrow */}
         <div
-          className={`absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-obsidian border-coral/30 rotate-45 ${
+          className={`absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-obsidian border-violet/30 rotate-45 ${
             position === "top"
               ? "bottom-[-5px] border-r border-b"
               : "top-[-5px] border-l border-t"

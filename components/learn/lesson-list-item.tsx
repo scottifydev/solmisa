@@ -23,7 +23,17 @@ function StatusIndicator({
   if (status === "completed") {
     return (
       <div className="w-6 h-6 rounded-full bg-correct/20 flex items-center justify-center">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-correct">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-correct"
+        >
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
@@ -31,16 +41,16 @@ function StatusIndicator({
   }
   if (status === "in_progress") {
     return (
-      <div className="w-6 h-6 rounded-full border-2 border-coral flex items-center justify-center">
-        <div className="w-2 h-2 rounded-full bg-coral" />
+      <div className="w-6 h-6 rounded-full border-2 border-violet flex items-center justify-center">
+        <div className="w-2 h-2 rounded-full bg-violet" />
       </div>
     );
   }
   // not_started
   if (isNext) {
     return (
-      <div className="w-6 h-6 rounded-full bg-coral/20 flex items-center justify-center">
-        <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
+      <div className="w-6 h-6 rounded-full bg-violet/20 flex items-center justify-center">
+        <div className="w-2 h-2 rounded-full bg-violet animate-pulse" />
       </div>
     );
   }
@@ -63,14 +73,14 @@ function ActionChip({
   }
   if (status === "in_progress") {
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-graphite text-coral font-mono">
+      <span className="text-xs px-2 py-0.5 rounded-full bg-graphite text-violet font-mono">
         Continue
       </span>
     );
   }
   if (isNext) {
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-coral text-night font-mono">
+      <span className="text-xs px-2 py-0.5 rounded-full bg-violet text-night font-mono">
         Start
       </span>
     );
@@ -85,7 +95,8 @@ export function LessonListItem({
   score,
   isNext,
 }: LessonListItemProps) {
-  const textColor = status === "not_started" && !isNext ? "text-silver" : "text-ivory";
+  const textColor =
+    status === "not_started" && !isNext ? "text-silver" : "text-ivory";
 
   return (
     <Link

@@ -36,7 +36,7 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-coral"
+            className="text-violet"
           >
             <path d="M21.5 2v6h-6" />
             <path d="M2.5 12a10 10 0 0 1 16.6-7.5L21.5 2" />
@@ -49,7 +49,7 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
         <h1 className="font-display text-xl text-ivory">Reviews Due</h1>
 
         {/* Large count */}
-        <div className="font-display text-5xl text-coral font-bold">
+        <div className="font-display text-5xl text-violet font-bold">
           {totalDue}
         </div>
 
@@ -57,7 +57,12 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
         {nonZeroStages.length > 0 && (
           <div className="flex gap-2 justify-center flex-wrap">
             {nonZeroStages.map((s) => (
-              <SrsBadge key={s.group} stage={s.group} count={s.count} size="sm" />
+              <SrsBadge
+                key={s.group}
+                stage={s.group}
+                count={s.count}
+                size="sm"
+              />
             ))}
           </div>
         )}
@@ -76,9 +81,10 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
                 onClick={() => setSelectedSize(size)}
                 className={`
                   px-3 py-1.5 rounded-md text-sm font-mono transition-colors
-                  ${selectedSize === size
-                    ? "bg-graphite text-ivory"
-                    : "text-silver hover:text-ivory hover:bg-steel/30"
+                  ${
+                    selectedSize === size
+                      ? "bg-graphite text-ivory"
+                      : "text-silver hover:text-ivory hover:bg-steel/30"
                   }
                 `}
               >
@@ -89,9 +95,10 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
               onClick={() => setSelectedSize(totalDue)}
               className={`
                 px-3 py-1.5 rounded-md text-sm font-mono transition-colors
-                ${selectedSize === totalDue
-                  ? "bg-graphite text-ivory"
-                  : "text-silver hover:text-ivory hover:bg-steel/30"
+                ${
+                  selectedSize === totalDue
+                    ? "bg-graphite text-ivory"
+                    : "text-silver hover:text-ivory hover:bg-steel/30"
                 }
               `}
             >
@@ -104,7 +111,9 @@ export function PreSession({ queue, onStart }: PreSessionProps) {
         <Button
           fullWidth
           size="lg"
-          onClick={() => onStart(selectedSize === totalDue ? undefined : selectedSize)}
+          onClick={() =>
+            onStart(selectedSize === totalDue ? undefined : selectedSize)
+          }
         >
           Start Session
         </Button>

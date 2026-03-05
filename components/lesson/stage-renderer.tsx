@@ -53,7 +53,7 @@ function StagePill({
   }
 
   const styles: Record<LessonStageType, string> = {
-    aural_teach: "bg-coral/10 text-coral border border-coral/40",
+    aural_teach: "bg-violet/10 text-violet border border-violet/40",
     aural_quiz: "bg-warning/10 text-warning border border-warning/30",
     theory_teach: "bg-info/10 text-info border border-info/30",
     theory_quiz: "bg-warning/10 text-warning border border-warning/30",
@@ -507,7 +507,7 @@ function AuralQuizView({
 
       <button
         onClick={() => void playSequence()}
-        className="text-sm text-coral hover:text-coral/80 transition-colors font-mono"
+        className="text-sm text-violet hover:text-violet/80 transition-colors font-mono"
       >
         &#9654; Replay
       </button>
@@ -737,7 +737,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
       <div className="space-y-3">
         <div
           className="font-mono text-[11px] tracking-widest uppercase"
-          style={{ color: brand.coral }}
+          style={{ color: brand.violet }}
         >
           {lesson.module_title} &mdash; Lesson {lesson.lesson_num} of{" "}
           {lesson.total_lessons}
@@ -750,7 +750,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
         <div className="w-full h-[3px] bg-steel rounded-sm overflow-hidden">
           <div
             className="h-full rounded-sm transition-all duration-400"
-            style={{ width: `${progress}%`, backgroundColor: brand.coral }}
+            style={{ width: `${progress}%`, backgroundColor: brand.violet }}
           />
         </div>
 
