@@ -134,14 +134,21 @@ export interface TheoryTeachStage {
 
 // ─── v2 Stage Types ─────────────────────────────────────────
 
+export type InteractiveType =
+  | "degree_circle_explore"
+  | "keyboard_explore"
+  | "timbre_compare"
+  | "chord_quality_explore"
+  | "custom";
+
 export interface InteractiveStage {
   type: "interactive";
   title: string;
   instructions: string;
-  component: string;
+  interactive_type: InteractiveType;
   config: Record<string, unknown>;
-  audio_degrees?: number[];
-  show_degree_circle?: boolean;
+  min_interactions?: number;
+  drone_key?: string;
 }
 
 export interface GuidedPracticeStage {

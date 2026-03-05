@@ -9,6 +9,7 @@ import type {
   AuralQuizStage,
   TheoryQuizStage,
   RhythmStage,
+  InteractiveStage,
   StageQuizResult,
   LessonStageType,
   DrillConfig,
@@ -24,6 +25,7 @@ import { usePlayback } from "@/hooks/use-playback";
 import { brand } from "@/lib/tokens";
 import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
 import { useMetronome } from "@/hooks/use-metronome";
+import { InteractiveStageView } from "@/components/lesson/stages/interactive-stage";
 
 // ─── Stage Pill ─────────────────────────────────────────────
 
@@ -887,6 +889,17 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           stage={currentStage}
           stageIndex={stageIdx}
           onComplete={(r) => advanceStage(r)}
+        />
+      )}
+      {currentStage.type === "interactive" && (
+        <InteractiveStageView
+          key={stageIdx}
+          stage={currentStage}
+          stageIndex={stageIdx}
+          droneKey={lesson.drone_key}
+          drone={drone}
+          playback={playback}
+          onComplete={() => advanceStage(null)}
         />
       )}
       {currentStage.type === "rhythm" && (
