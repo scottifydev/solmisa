@@ -158,16 +158,6 @@ export function LandingDashboard() {
           automatically.
         </p>
       </Link>
-
-      {/* Framework link */}
-      <div className="text-center">
-        <Link
-          href="/framework"
-          className="text-coral/70 text-sm hover:text-coral transition-colors font-body"
-        >
-          For the music teachers and theory nerds &rarr;
-        </Link>
-      </div>
     </main>
   );
 }
