@@ -4,17 +4,20 @@ import {
   getProfileData,
   getReviewSessionCap,
   getFeelingStatesEnabled,
+  getAccessibilityPreferences,
 } from "@/lib/actions/profile";
 import { SettingsForm } from "@/components/settings/settings-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const [data, sessionCap, feelingStates] = await Promise.all([
-    getProfileData(),
-    getReviewSessionCap(),
-    getFeelingStatesEnabled(),
-  ]);
+  const [data, sessionCap, feelingStates, accessibilityPrefs] =
+    await Promise.all([
+      getProfileData(),
+      getReviewSessionCap(),
+      getFeelingStatesEnabled(),
+      getAccessibilityPreferences(),
+    ]);
   if (!data) redirect("/login");
 
   const { profile, email } = data;
@@ -33,6 +36,7 @@ export default async function SettingsPage() {
         email={email}
         reviewSessionCap={sessionCap}
         feelingStatesEnabled={feelingStates}
+        accessibilityPreferences={accessibilityPrefs}
       />
     </div>
   );

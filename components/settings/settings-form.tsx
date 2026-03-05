@@ -7,6 +7,8 @@ import {
   updateLearningPreferences,
   updateReviewSessionCap,
   updateFeelingStates,
+  updateAccessibilityPreferences,
+  type AccessibilityPreferences,
   requestPasswordReset,
   deleteAccount,
   signOut,
@@ -103,6 +105,7 @@ interface SettingsFormProps {
   email: string;
   reviewSessionCap?: number | null;
   feelingStatesEnabled?: boolean;
+  accessibilityPreferences?: AccessibilityPreferences;
 }
 
 export function SettingsForm({
@@ -110,6 +113,7 @@ export function SettingsForm({
   email,
   reviewSessionCap,
   feelingStatesEnabled = true,
+  accessibilityPreferences = {},
 }: SettingsFormProps) {
   const [toast, setToast] = useState<string | null>(null);
 
@@ -134,6 +138,10 @@ export function SettingsForm({
       <DisplaySection
         feelingStates={feelingStatesEnabled}
         onSaved={() => showToast("Display settings updated")}
+      />
+      <AccessibilitySection
+        prefs={accessibilityPreferences}
+        onSaved={() => showToast("Accessibility settings updated")}
       />
       <ReviewSection
         sessionCap={reviewSessionCap ?? 20}
@@ -384,6 +392,118 @@ function DisplaySection({
             `}
           />
         </button>
+      </div>
+    </Section>
+  );
+}
+
+// ─── Accessibility Section ──────────────────────────────────
+
+const TOLERANCE_OPTIONS = [
+  { value: 60, label: "Tight (60ms)" },
+  { value: 80, label: "Default (80ms)" },
+  { value: 100, label: "Relaxed (100ms)" },
+  { value: 150, label: "Wide (150ms)" },
+  { value: 200, label: "Very wide (200ms)" },
+] as const;
+
+function AccessibilitySection({
+  prefs,
+  onSaved,
+}: {
+  prefs: AccessibilityPreferences;
+  onSaved: () => void;
+}) {
+  const [highContrast, setHighContrast] = useState(
+    prefs.high_contrast ?? false,
+  );
+  const [tolerance, setTolerance] = useState(prefs.rhythm_tolerance_ms ?? 80);
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggleContrast = () => {
+    const next = !highContrast;
+    setHighContrast(next);
+    startTransition(async () => {
+      await updateAccessibilityPreferences({
+        ...prefs,
+        high_contrast: next,
+        rhythm_tolerance_ms: tolerance,
+      });
+      onSaved();
+    });
+  };
+
+  const handleSaveTolerance = () => {
+    startTransition(async () => {
+      await updateAccessibilityPreferences({
+        ...prefs,
+        high_contrast: highContrast,
+        rhythm_tolerance_ms: tolerance,
+      });
+      onSaved();
+    });
+  };
+
+  return (
+    <Section title="Accessibility">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-ivory">High contrast mode</span>
+            <p className="text-xs text-ash mt-0.5">
+              Increases contrast for all UI elements
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={highContrast}
+            onClick={handleToggleContrast}
+            disabled={isPending}
+            className={`
+              relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors
+              ${highContrast ? "bg-violet" : "bg-steel"}
+              ${isPending ? "opacity-50" : ""}
+            `}
+          >
+            <span
+              className={`
+                pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform
+                ${highContrast ? "translate-x-5" : "translate-x-0"}
+              `}
+            />
+          </button>
+        </div>
+
+        <div>
+          <label className={labelClass}>Rhythm tap tolerance</label>
+          <p className="text-xs text-ash mb-2">
+            How close your taps need to be to count as correct
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {TOLERANCE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTolerance(opt.value)}
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-mono transition-colors
+                  ${
+                    tolerance === opt.value
+                      ? "bg-violet text-white"
+                      : "bg-obsidian border border-steel text-silver hover:text-ivory"
+                  }
+                `}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Button onClick={handleSaveTolerance} loading={isPending}>
+          Save accessibility settings
+        </Button>
       </div>
     </Section>
   );

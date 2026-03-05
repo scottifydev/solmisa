@@ -51,9 +51,15 @@ function groupScores(scores: RadarScore[]): GroupedScore[] {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "#50C878";
-  if (score >= 50) return "#E8A838";
-  return "#999";
+  if (score >= 80) return "#60a5fa"; // blue — mastered (color-blind safe)
+  if (score >= 50) return "#fbbf24"; // amber — developing
+  return "#9ca3af"; // gray — needs work
+}
+
+function scoreIndicator(score: number): string {
+  if (score >= 80) return "\u2713"; // checkmark — mastered
+  if (score >= 50) return "\u2192"; // arrow — developing
+  return "\u25CB"; // circle — needs work
 }
 
 function CustomTooltip({
@@ -94,6 +100,12 @@ function DimensionDetail({ dimensions }: { dimensions: RadarScore[] }) {
             />
           </div>
           <Sparkline history={dim.scoreHistory} />
+          <span
+            className="text-xs font-mono w-4 text-center"
+            style={{ color: scoreColor(dim.score) }}
+          >
+            {scoreIndicator(dim.score)}
+          </span>
           <span
             className="text-xs font-mono w-8 text-right"
             style={{ color: scoreColor(dim.score) }}
@@ -201,7 +213,7 @@ export function SkillRadar({
                   className="text-xs font-mono"
                   style={{ color: scoreColor(g.score) }}
                 >
-                  {g.score}
+                  {scoreIndicator(g.score)} {g.score}
                 </span>
                 <svg
                   width="12"

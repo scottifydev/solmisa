@@ -577,6 +577,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          accessibility_preferences: Json | null;
           cat_state: Json | null;
           created_at: string | null;
           experience_level: string | null;
@@ -593,6 +594,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          accessibility_preferences?: Json | null;
           cat_state?: Json | null;
           created_at?: string | null;
           experience_level?: string | null;
@@ -609,6 +611,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          accessibility_preferences?: Json | null;
           cat_state?: Json | null;
           created_at?: string | null;
           experience_level?: string | null;

@@ -175,6 +175,43 @@ export async function updateFeelingStates(enabled: boolean) {
   if (error) throw new Error(error.message);
 }
 
+export interface AccessibilityPreferences {
+  high_contrast?: boolean;
+  rhythm_tolerance_ms?: number;
+}
+
+export async function getAccessibilityPreferences(): Promise<AccessibilityPreferences> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("accessibility_preferences")
+    .eq("id", user.id)
+    .single();
+
+  return (data?.accessibility_preferences as AccessibilityPreferences) ?? {};
+}
+
+export async function updateAccessibilityPreferences(
+  prefs: AccessibilityPreferences,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ accessibility_preferences: prefs as Record<string, unknown> })
+    .eq("id", user.id);
+  if (error) throw new Error(error.message);
+}
+
 export async function requestPasswordReset() {
   const supabase = await createClient();
   const {
