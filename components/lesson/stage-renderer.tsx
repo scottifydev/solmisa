@@ -7,6 +7,7 @@ import type {
   AuralTeachStage,
   TheoryTeachStage,
   RhythmStage,
+  RealMusicExampleStage,
   LessonStageType,
 } from "@/types/lesson";
 import type { NoteName, DiatonicDegree } from "@/types/audio";
@@ -19,6 +20,7 @@ import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
 import { useMetronome } from "@/hooks/use-metronome";
 import { InteractiveStageView } from "@/components/lesson/stages/interactive-stage";
 import { GuidedPracticeStageView } from "@/components/lesson/stages/guided-practice-stage";
+import { RealMusicExampleStageView } from "@/components/lesson/stages/real-music-example-stage";
 import { useRef } from "react";
 import { useState as useStateAlias } from "react";
 
@@ -58,6 +60,7 @@ function StagePill({
     rhythm: "bg-correct/10 text-correct border border-correct/30",
     interactive: "bg-violet/10 text-violet border border-violet/40",
     guided_practice: "bg-info/10 text-info border border-info/30",
+    real_music_example: "bg-violet/10 text-violet border border-violet/40",
   };
 
   const labels: Record<LessonStageType, string> = {
@@ -68,6 +71,7 @@ function StagePill({
     rhythm: "rhythm",
     interactive: "interact",
     guided_practice: "practice",
+    real_music_example: "example",
   };
 
   return (
@@ -449,6 +453,13 @@ export function StageRenderer({
         <RhythmView
           key={stageIdx}
           stage={currentStage}
+          onComplete={advanceStage}
+        />
+      )}
+      {currentStage.type === "real_music_example" && (
+        <RealMusicExampleStageView
+          key={stageIdx}
+          stage={currentStage as RealMusicExampleStage}
           onComplete={advanceStage}
         />
       )}

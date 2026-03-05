@@ -98,6 +98,7 @@ export type LessonStageType =
   | "interactive"
   | "guided_practice"
   | "rhythm"
+  | "real_music_example"
   // v1 compat — removed once lesson content is migrated (Phase 3)
   | "aural_quiz"
   | "theory_quiz";
@@ -108,6 +109,7 @@ export type LessonStage =
   | InteractiveStage
   | GuidedPracticeStage
   | RhythmStage
+  | RealMusicExampleStage
   // v1 compat — removed once lesson content is migrated (Phase 3)
   | AuralQuizStage
   | TheoryQuizStage;
@@ -166,6 +168,16 @@ export interface GuidedPracticeStage {
   reveal_delay_ms: number;
   show_resolution: boolean;
   drone_key?: string;
+}
+
+export interface RealMusicExampleStage {
+  type: "real_music_example";
+  title: string;
+  concept_text: string;
+  follow_up_text: string;
+  clip_url: string;
+  highlight_start_ms?: number;
+  highlight_end_ms?: number;
 }
 
 // ─── Drill Config (parameterized quiz generation) ────────────
