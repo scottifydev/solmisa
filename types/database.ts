@@ -626,6 +626,7 @@ export type Database = {
           dimension: string;
           id: string;
           score: number;
+          score_history: { score: number; date: string }[] | null;
           total_reviews: number | null;
           user_id: string;
         };
@@ -634,6 +635,7 @@ export type Database = {
           dimension: string;
           id?: string;
           score?: number;
+          score_history?: { score: number; date: string }[] | null;
           total_reviews?: number | null;
           user_id: string;
         };
@@ -642,6 +644,7 @@ export type Database = {
           dimension?: string;
           id?: string;
           score?: number;
+          score_history?: { score: number; date: string }[] | null;
           total_reviews?: number | null;
           user_id?: string;
         };
