@@ -1,5 +1,4 @@
 import type {
-  CardCategory,
   DifficultyTier,
   SrsSchedulerInput,
   SchedulerResult,
@@ -17,7 +16,7 @@ import { getNextStage, getIntervalHours, canAdvanceSrs } from "./stages";
  *   (pass session accuracy via input.session_accuracy, correct = sessionAccuracy >= 0.8).
  */
 export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
-  const { item, correct, card_category } = input;
+  const { item, correct } = input;
 
   // Ease factor adjustment
   const easeDelta = correct
@@ -50,7 +49,7 @@ export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
       : new Date(Date.now() + intervalDays * 24 * 60 * 60 * 1000).toISOString();
 
   // Difficulty tier promotion/demotion
-  const newTier = computeTierChange(item, correct, card_category);
+  const newTier = computeTierChange(item, correct);
 
   return {
     new_stage: newStage,
@@ -66,7 +65,6 @@ export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
 function computeTierChange(
   item: SrsSchedulerInput["item"],
   correct: boolean,
-  _cardCategory: CardCategory,
 ): DifficultyTier {
   const currentTier = item.difficulty_tier;
 
@@ -98,69 +96,6 @@ function computeTierChange(
   }
 
   return currentTier;
-}
-
-// ─── Perceptual Session Scheduling ──────────────────────────
-
-export interface PerceptualSessionResult {
-  accuracy: number;
-  itemCount: number;
-  shouldPromote: boolean;
-  shouldDemote: boolean;
-  shouldReplayLesson: boolean;
-}
-
-/**
- * Evaluate a perceptual session for a skill group.
- * Called at end of session with aggregate accuracy.
- */
-export function evaluatePerceptualSession(
-  accuracy: number,
-  itemCount: number,
-): PerceptualSessionResult {
-  return {
-    accuracy,
-    itemCount,
-    shouldPromote: accuracy >= 0.9,
-    shouldDemote: accuracy < 0.7,
-    shouldReplayLesson: accuracy < 0.5 && itemCount >= 3,
-  };
-}
-
-// ─── Session Assembly ───────────────────────────────────────
-
-export interface SessionConfig {
-  batchSize: number;
-  maxBatchSize: number;
-  maxNewCards: number;
-  mixRatio: { new: number; review: number };
-}
-
-export const DEFAULT_SESSION_CONFIG: SessionConfig = {
-  batchSize: 20,
-  maxBatchSize: 25,
-  maxNewCards: 5,
-  mixRatio: { new: 0.85, review: 0.15 },
-};
-
-/**
- * Calculate how many new vs review cards to include in a lesson session.
- */
-export function computeSessionMix(
-  totalNewAvailable: number,
-  totalReviewDue: number,
-  config: SessionConfig = DEFAULT_SESSION_CONFIG,
-): { newCount: number; reviewCount: number } {
-  const total = Math.min(config.batchSize, totalNewAvailable + totalReviewDue);
-
-  if (total === 0) return { newCount: 0, reviewCount: 0 };
-
-  const maxNew = Math.min(totalNewAvailable, config.maxNewCards);
-  const idealNew = Math.round(total * config.mixRatio.new);
-  const newCount = Math.min(maxNew, idealNew);
-  const reviewCount = Math.min(totalReviewDue, total - newCount);
-
-  return { newCount, reviewCount };
 }
 
 // ─── Utilities ──────────────────────────────────────────────

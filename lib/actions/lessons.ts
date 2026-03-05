@@ -267,7 +267,7 @@ export async function completeLesson(lessonId: string) {
   if (!user) throw new Error("Not authenticated");
   if (!UUID_RE.test(lessonId)) throw new Error("Invalid lesson ID");
 
-  await supabase.from("lesson_progress").upsert(
+  const { error } = await supabase.from("lesson_progress").upsert(
     {
       user_id: user.id,
       lesson_id: lessonId,
@@ -276,4 +276,5 @@ export async function completeLesson(lessonId: string) {
     },
     { onConflict: "user_id,lesson_id" },
   );
+  if (error) throw new Error(error.message);
 }

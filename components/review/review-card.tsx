@@ -16,7 +16,6 @@ interface ReviewCardProps {
   onPlayCadence?: () => Promise<void>;
   onPlayDegree?: (degree: number) => void;
   onPlayResolution?: (degree: number) => Promise<void>;
-  solfegeMode?: "numbers" | "solfege";
 }
 
 interface OptionData {
@@ -129,7 +128,6 @@ export function ReviewCard({
   onPlayCadence,
   onPlayDegree,
   onPlayResolution,
-  solfegeMode: _solfegeMode = "numbers",
 }: ReviewCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -148,11 +146,6 @@ export function ReviewCard({
     ?.correct_answer;
   const isPerceptual = card.card_category === "perceptual";
   const isRhythm = card.card_category === "rhythm";
-  const _pauseDuration = isPerceptual
-    ? PERCEPTUAL_PAUSE_MS
-    : isRhythm
-      ? RHYTHM_PAUSE_MS
-      : 0;
 
   // Start audiation pause countdown
   const startAudiationPause = useCallback((durationMs: number) => {

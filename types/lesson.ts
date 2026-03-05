@@ -207,18 +207,6 @@ export interface RhythmEvent {
   rest?: boolean;
 }
 
-export interface RhythmTapperProps {
-  events: RhythmEvent[];
-  tempo: number;
-  timeSignature: [number, number];
-  onComplete: (result: RhythmTapResult) => void;
-}
-
-export interface RhythmTapResult {
-  accuracy: number;
-  taps: { time: number; expected: number; delta: number }[];
-}
-
 // ─── Rendering Types ──────────────────────────────────────────
 
 export interface StageRendererProps {

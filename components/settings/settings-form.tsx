@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   updateProfile,
@@ -103,7 +102,6 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ profile, email }: SettingsFormProps) {
-  const router = useRouter();
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -127,7 +125,6 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
       <AccountSection
         email={email}
         onPasswordReset={() => showToast("Password reset email sent")}
-        onSignOut={() => router.push("/login")}
       />
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </div>
@@ -326,11 +323,9 @@ function LearningSection({
 function AccountSection({
   email,
   onPasswordReset,
-  onSignOut: _onSignOut,
 }: {
   email: string;
   onPasswordReset: () => void;
-  onSignOut: () => void;
 }) {
   const [isPendingPw, startPwTransition] = useTransition();
   const [isPendingDelete, startDeleteTransition] = useTransition();

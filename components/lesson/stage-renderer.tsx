@@ -262,13 +262,6 @@ const CHORD_QUALITIES: QuizOption[] = [
   { id: "augmented", label: "Augmented", sublabel: "1–3–#5" },
 ];
 
-const _SEVENTH_CHORD_QUALITIES: QuizOption[] = [
-  { id: "maj7", label: "Major 7th", sublabel: "1–3–5–7" },
-  { id: "dom7", label: "Dominant 7th", sublabel: "1–3–5–b7" },
-  { id: "min7", label: "Minor 7th", sublabel: "1–b3–5–b7" },
-  { id: "hdim7", label: "Half-dim 7th", sublabel: "1–b3–b5–b7" },
-];
-
 const METER_PRESETS: Record<string, QuizOption> = {
   "2/4": { id: "2/4", label: "2/4", sublabel: "simple duple" },
   "3/4": { id: "3/4", label: "3/4", sublabel: "simple triple" },
@@ -284,16 +277,6 @@ const MINOR_FORMS: QuizOption[] = [
   { id: "harmonic", label: "Harmonic Minor", sublabel: "raised 7th" },
   { id: "melodic_asc", label: "Melodic Minor", sublabel: "raised 6th & 7th" },
 ];
-
-const _MODE_PRESETS: Record<string, QuizOption> = {
-  ionian: { id: "ionian", label: "Ionian", sublabel: "major" },
-  dorian: { id: "dorian", label: "Dorian", sublabel: "b3, b7" },
-  phrygian: { id: "phrygian", label: "Phrygian", sublabel: "b2, b3, b6, b7" },
-  lydian: { id: "lydian", label: "Lydian", sublabel: "#4" },
-  mixolydian: { id: "mixolydian", label: "Mixolydian", sublabel: "b7" },
-  aeolian: { id: "aeolian", label: "Aeolian", sublabel: "natural minor" },
-  locrian: { id: "locrian", label: "Locrian", sublabel: "b2, b3, b5, b6, b7" },
-};
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;

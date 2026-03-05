@@ -118,14 +118,17 @@ export async function submitAssessmentAnswer(
     : {};
 
   // Upsert the response
-  await supabase.from("assessment_responses").upsert(
-    {
-      user_id: user.id,
-      question_id: questionId,
-      selected_option: selectedOption,
-    },
-    { onConflict: "user_id,question_id" },
-  );
+  const { error: upsertError } = await supabase
+    .from("assessment_responses")
+    .upsert(
+      {
+        user_id: user.id,
+        question_id: questionId,
+        selected_option: selectedOption,
+      },
+      { onConflict: "user_id,question_id" },
+    );
+  if (upsertError) throw new Error(upsertError.message);
 
   // Calculate weight deltas (new weights minus old weights)
   const allAxes = [
