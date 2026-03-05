@@ -118,10 +118,23 @@ const PLAYBACK_DEFAULTS: Required<PlaybackEffectsConfig> = {
   reverbDecay: 1.5,
 };
 
+// ─── Piano-like FM Synth Config ─────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PIANO_SYNTH_OPTIONS: Record<string, any> = {
+  harmonicity: 3,
+  modulationIndex: 1.5,
+  oscillator: { type: "sine" },
+  envelope: { attack: 0.005, decay: 0.6, sustain: 0.08, release: 1.4 },
+  modulation: { type: "square" },
+  modulationEnvelope: { attack: 0.002, decay: 0.15, sustain: 0, release: 0.2 },
+  volume: -3,
+};
+
 // ─── Playback Engine ────────────────────────────────────────
 
 export class PlaybackEngine {
-  private synth: Tone.Synth | null = null;
+  private synth: Tone.FMSynth | null = null;
   private polySynth: Tone.PolySynth | null = null;
   private filter: Tone.Filter;
   private reverb: Tone.Reverb;
@@ -149,24 +162,19 @@ export class PlaybackEngine {
     return this.isActive;
   }
 
-  private getSynth(): Tone.Synth {
+  private getSynth(): Tone.FMSynth {
     if (!this.synth) {
-      this.synth = new Tone.Synth({
-        oscillator: { type: "fmtriangle" },
-        envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.6 },
-        volume: -3,
-      }).connect(this.filter);
+      this.synth = new Tone.FMSynth(PIANO_SYNTH_OPTIONS).connect(this.filter);
     }
     return this.synth;
   }
 
   private getPolySynth(): Tone.PolySynth {
     if (!this.polySynth) {
-      this.polySynth = new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: "fmtriangle" },
-        envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.6 },
-        volume: -3,
-      }).connect(this.filter);
+      this.polySynth = new Tone.PolySynth(
+        Tone.FMSynth,
+        PIANO_SYNTH_OPTIONS,
+      ).connect(this.filter);
     }
     return this.polySynth;
   }
