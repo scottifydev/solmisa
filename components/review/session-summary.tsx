@@ -1,11 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { CardCategory } from "@/types/srs";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { semanticColors } from "@/lib/tokens";
+import {
+  checkCalibration,
+  type CalibrationSuggestion,
+} from "@/lib/actions/calibration";
+import { CalibrationSuggestions } from "@/components/review/calibration-suggestion";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -124,6 +130,15 @@ export function SessionSummary({
   remainingDue = 0,
 }: SessionSummaryProps) {
   const router = useRouter();
+  const [calibrationSuggestions, setCalibrationSuggestions] = useState<
+    CalibrationSuggestion[]
+  >([]);
+
+  useEffect(() => {
+    void checkCalibration().then((result) => {
+      setCalibrationSuggestions(result.suggestions);
+    });
+  }, []);
 
   const total = results.length;
   const correct = results.filter((r) => r.correct).length;
@@ -257,6 +272,11 @@ export function SessionSummary({
                 : `Day ${streakDays} streak!`}
             </span>
           </div>
+        )}
+
+        {/* Calibration suggestions */}
+        {calibrationSuggestions.length > 0 && (
+          <CalibrationSuggestions suggestions={calibrationSuggestions} />
         )}
 
         {/* CTAs */}
