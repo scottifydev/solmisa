@@ -1,5 +1,6 @@
 import type {
   DifficultyTier,
+  SrsStageKey,
   SrsSchedulerInput,
   SchedulerResult,
 } from "@/types/srs";
@@ -52,36 +53,73 @@ export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
       : new Date(Date.now() + intervalDays * 24 * 60 * 60 * 1000).toISOString();
 
   // Difficulty tier promotion/demotion
-  const newTier = computeTierChange(item, correct);
+  const tierResult = computeTierChange(item, correct, newStage);
+
+  // If tier promoted, reset stage to apprentice_1 with a shortened interval
+  if (tierResult.promoted) {
+    const promotedIntervalHours = 2; // Shortened: proven ability at lower tier
+    const promotedIntervalDays =
+      (promotedIntervalHours * FSRS_DEFAULTS.defaultEase) / 24;
+    const promotedNextReview = new Date(
+      Date.now() + promotedIntervalDays * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    return {
+      new_stage: "apprentice_1",
+      new_ease_factor: FSRS_DEFAULTS.defaultEase,
+      new_interval_days: promotedIntervalDays,
+      next_review_at: promotedNextReview,
+      new_difficulty_tier: tierResult.tier,
+      tier_promoted: true,
+    };
+  }
 
   return {
     new_stage: newStage,
     new_ease_factor: newEase,
     new_interval_days: intervalDays === Infinity ? 0 : intervalDays,
     next_review_at: nextReviewAt,
-    new_difficulty_tier: newTier,
+    new_difficulty_tier: tierResult.tier,
+    tier_promoted: false,
   };
 }
 
 // ─── Difficulty Tier Promotion/Demotion ─────────────────────
 
+const TIER_PROMOTION_MIN_REVIEWS = 10;
+const TIER_PROMOTION_ACCURACY = 0.9;
+const TIER_PROMOTION_STAGES: SrsStageKey[] = [
+  "journeyman_2",
+  "adept_1",
+  "adept_2",
+  "virtuoso_1",
+  "virtuoso_2",
+  "mastered",
+];
+
 function computeTierChange(
   item: SrsSchedulerInput["item"],
   correct: boolean,
-): DifficultyTier {
+  newStage: SrsStageKey,
+): { tier: DifficultyTier; promoted: boolean } {
   const currentTier = item.difficulty_tier;
 
   if (correct) {
-    // Promote after N correct in a row at current tier
-    const newStreak = item.correct_streak + 1;
-    if (newStreak >= TIER_RULES.promotionStreak) {
-      if (currentTier === "intro") return "core";
-      if (currentTier === "core") return "stretch";
+    // Promote when reaching journeyman_2+ AND 90%+ accuracy over sufficient reviews
+    if (
+      currentTier !== "stretch" &&
+      TIER_PROMOTION_STAGES.includes(newStage) &&
+      item.total_reviews >= TIER_PROMOTION_MIN_REVIEWS
+    ) {
+      const accuracy = item.total_correct / item.total_reviews;
+      if (accuracy >= TIER_PROMOTION_ACCURACY) {
+        const nextTier: DifficultyTier =
+          currentTier === "intro" ? "core" : "stretch";
+        return { tier: nextTier, promoted: true };
+      }
     }
   } else {
     // Demote if 2 wrong in last 5
-    // We track this via total_reviews and total_correct
-    // Simplified: if streak is 0 and recent accuracy is bad, demote
     const recentReviews = Math.min(
       item.total_reviews,
       TIER_RULES.demotionThreshold.outOf,
@@ -93,12 +131,12 @@ function computeTierChange(
       recentWrong >= TIER_RULES.demotionThreshold.wrong &&
       recentReviews >= TIER_RULES.demotionThreshold.outOf
     ) {
-      if (currentTier === "stretch") return "core";
-      if (currentTier === "core") return "intro";
+      if (currentTier === "stretch") return { tier: "core", promoted: false };
+      if (currentTier === "core") return { tier: "intro", promoted: false };
     }
   }
 
-  return currentTier;
+  return { tier: currentTier, promoted: false };
 }
 
 // ─── Utilities ──────────────────────────────────────────────

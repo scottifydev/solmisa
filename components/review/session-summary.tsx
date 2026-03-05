@@ -16,6 +16,8 @@ export interface SessionResultItem {
   stageAfter: string;
   category: CardCategory;
   track_slug: string;
+  tierPromoted?: boolean;
+  newTier?: string;
 }
 
 export interface SessionSummaryProps {
@@ -134,6 +136,9 @@ export function SessionSummary({
   const demoted = results.filter((r) => r.stageChanged && !r.correct).length;
   const hasStageChanges = promoted > 0 || demoted > 0;
 
+  // Tier promotions
+  const tierPromotions = results.filter((r) => r.tierPromoted);
+
   // Per-track breakdown
   const byTrack = new Map<
     string,
@@ -199,6 +204,17 @@ export function SessionSummary({
                 {"\u2193"} {demoted} item{demoted !== 1 ? "s" : ""} regressed
               </div>
             )}
+          </div>
+        )}
+
+        {/* Tier promotions */}
+        {tierPromotions.length > 0 && (
+          <div className="bg-violet/10 border border-violet/20 rounded-md p-4 space-y-1">
+            {tierPromotions.map((r, i) => (
+              <div key={i} className="text-sm text-violet font-medium">
+                Difficulty increased to {r.newTier}
+              </div>
+            ))}
           </div>
         )}
 
