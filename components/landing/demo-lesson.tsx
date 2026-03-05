@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AnswerCard } from "@/components/ui/answer-card";
+import { useDrone } from "@/hooks/use-drone";
+import { usePlayback } from "@/hooks/use-playback";
+import type { NoteName, DiatonicDegree } from "@/types/audio";
 
 interface DemoLessonProps {
   onBack: () => void;
@@ -91,6 +94,27 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
   const [quizCorrect, setQuizCorrect] = useState(0);
   const [quizTotal, setQuizTotal] = useState(0);
 
+  const drone = useDrone();
+  const playback = usePlayback();
+
+  // Start drone on mount, play degree 1 after it settles
+  useEffect(() => {
+    void drone.start({ key: "C" as NoteName }).then(() => {
+      setTimeout(() => {
+        void playback.playDegree({
+          degree: 1 as DiatonicDegree,
+          key: "C" as NoteName,
+          duration: 1.2,
+        });
+      }, 1200);
+    });
+    return () => {
+      drone.stop();
+      playback.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stage = STAGES[stageIndex]!;
   const totalStages = STAGES.length;
   const progress = ((stageIndex + 1) / totalStages) * 100;
@@ -105,12 +129,20 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
     }
   };
 
+  const handleExit = () => {
+    drone.stop();
+    playback.stop();
+    onBack();
+  };
+
   const advance = () => {
     if (stageIndex < totalStages - 1) {
       setStageIndex((i) => i + 1);
       setSelected(null);
       setRevealed(false);
     } else {
+      drone.stop();
+      playback.stop();
       onComplete();
     }
   };
@@ -128,7 +160,7 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
       {/* Header */}
       <div className="w-full flex items-center justify-between">
         <button
-          onClick={onBack}
+          onClick={handleExit}
           className="text-silver hover:text-ivory transition-colors text-sm font-mono"
         >
           &larr; Exit
@@ -157,6 +189,22 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
         <p className="text-ivory/90 font-body text-[16px] leading-relaxed mb-6">
           {stage.body}
         </p>
+
+        {stage.type === "teach" && stageIndex <= 2 && (
+          <button
+            onClick={() => {
+              void playback.playDegree({
+                degree: 1 as DiatonicDegree,
+                key: "C" as NoteName,
+                duration: 1.2,
+              });
+            }}
+            disabled={playback.isPlaying}
+            className="mb-4 px-4 py-2 rounded-lg border border-violet/30 text-violet text-sm font-mono hover:bg-violet/10 transition-colors disabled:opacity-40"
+          >
+            {playback.isPlaying ? "Playing..." : "Listen to Do"}
+          </button>
+        )}
 
         {stage.type === "quiz" && stage.options && (
           <>
