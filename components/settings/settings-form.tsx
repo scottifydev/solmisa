@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   updateProfile,
   updateLearningPreferences,
+  updateReviewSessionCap,
   requestPasswordReset,
   deleteAccount,
   signOut,
@@ -99,9 +100,14 @@ interface SettingsFormProps {
     goals: string[] | null;
   };
   email: string;
+  reviewSessionCap?: number | null;
 }
 
-export function SettingsForm({ profile, email }: SettingsFormProps) {
+export function SettingsForm({
+  profile,
+  email,
+  reviewSessionCap,
+}: SettingsFormProps) {
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -121,6 +127,10 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
         solfegeSystem={profile.primary_solfege_system}
         goals={profile.goals}
         onSaved={() => showToast("Preferences updated")}
+      />
+      <ReviewSection
+        sessionCap={reviewSessionCap ?? 20}
+        onSaved={() => showToast("Review settings updated")}
       />
       <AccountSection
         email={email}
@@ -312,6 +322,63 @@ function LearningSection({
 
         <Button onClick={handleSave} loading={isPending}>
           Save preferences
+        </Button>
+      </div>
+    </Section>
+  );
+}
+
+// ─── Review Section ─────────────────────────────────────────
+
+const CAP_OPTIONS = [10, 15, 20, 25, 30, 40, 50] as const;
+
+function ReviewSection({
+  sessionCap,
+  onSaved,
+}: {
+  sessionCap: number;
+  onSaved: () => void;
+}) {
+  const [cap, setCap] = useState(sessionCap);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSave = () => {
+    startTransition(async () => {
+      await updateReviewSessionCap(cap);
+      onSaved();
+    });
+  };
+
+  return (
+    <Section title="Review">
+      <div className="space-y-4">
+        <div>
+          <label className={labelClass}>Max reviews per session</label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {CAP_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setCap(opt)}
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-mono transition-colors
+                  ${
+                    cap === opt
+                      ? "bg-violet text-white"
+                      : "bg-obsidian border border-steel text-silver hover:text-ivory"
+                  }
+                `}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-ash mt-2">
+            When more cards are due, the most overdue will be prioritized.
+          </p>
+        </div>
+        <Button onClick={handleSave} loading={isPending}>
+          Save review settings
         </Button>
       </div>
     </Section>

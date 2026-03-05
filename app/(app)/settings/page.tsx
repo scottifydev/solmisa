@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getProfileData } from "@/lib/actions/profile";
+import { getProfileData, getReviewSessionCap } from "@/lib/actions/profile";
 import { SettingsForm } from "@/components/settings/settings-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const data = await getProfileData();
+  const [data, sessionCap] = await Promise.all([
+    getProfileData(),
+    getReviewSessionCap(),
+  ]);
   if (!data) redirect("/login");
 
   const { profile, email } = data;
@@ -23,6 +26,7 @@ export default async function SettingsPage() {
           goals: profile?.goals ?? null,
         }}
         email={email}
+        reviewSessionCap={sessionCap}
       />
     </div>
   );
