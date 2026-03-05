@@ -164,3 +164,71 @@ export async function logDrillSession(
     }),
   });
 }
+
+export interface PracticeRecommendation {
+  id: string;
+  dimension: string;
+  tool_type: string;
+  tool_name: string;
+  tool_url: string | null;
+  description: string | null;
+}
+
+const ACCURACY_THRESHOLD = 0.7;
+
+export async function getRecommendations(
+  limit = 3,
+): Promise<PracticeRecommendation[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Get per-dimension accuracy from review records
+  const { data: records } = await supabase
+    .from("review_records")
+    .select("correct, radar_dimensions, user_card_state!inner(user_id)")
+    .eq("user_card_state.user_id", user.id);
+
+  const dimStats = new Map<string, { total: number; correct: number }>();
+  for (const record of records ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dims = (record as any).radar_dimensions as string[] | null;
+    if (!dims) continue;
+    for (const dim of dims) {
+      const stats = dimStats.get(dim) ?? { total: 0, correct: 0 };
+      stats.total++;
+      if (record.correct) stats.correct++;
+      dimStats.set(dim, stats);
+    }
+  }
+
+  // Find weak dimensions
+  const weakDimensions: string[] = [];
+  for (const [dim, stats] of dimStats) {
+    if (stats.total >= 3 && stats.correct / stats.total < ACCURACY_THRESHOLD) {
+      weakDimensions.push(dim);
+    }
+  }
+
+  if (weakDimensions.length === 0) {
+    // No weak dimensions — return general recommendations
+    const { data: recs } = await supabase
+      .from("practice_recommendations")
+      .select("id, dimension, tool_type, tool_name, tool_url, description")
+      .order("display_order")
+      .limit(limit);
+    return (recs ?? []) as PracticeRecommendation[];
+  }
+
+  // Fetch recommendations matching weak dimensions
+  const { data: recs } = await supabase
+    .from("practice_recommendations")
+    .select("id, dimension, tool_type, tool_name, tool_url, description")
+    .in("dimension", weakDimensions)
+    .order("display_order")
+    .limit(limit);
+
+  return (recs ?? []) as PracticeRecommendation[];
+}
