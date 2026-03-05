@@ -196,8 +196,6 @@ export interface ReviewQueueItem {
   playback: PlaybackConfig | null;
   feedback: FeedbackConfig;
   dimensions: string[];
-  skill_group?: string;
-  drone_key?: string;
 }
 
 export interface ReviewQueueResponse {

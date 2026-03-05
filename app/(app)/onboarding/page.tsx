@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,26 @@ const instruments = [
 ];
 
 const experienceLevels = [
-  { value: "beginner", label: "Beginner", description: "Just starting out with music" },
-  { value: "intermediate", label: "Intermediate", description: "Some musical training or experience" },
-  { value: "advanced", label: "Advanced", description: "Years of formal training or practice" },
-  { value: "professional", label: "Professional", description: "Music is your career or serious pursuit" },
+  {
+    value: "beginner",
+    label: "Beginner",
+    description: "Just starting out with music",
+  },
+  {
+    value: "intermediate",
+    label: "Intermediate",
+    description: "Some musical training or experience",
+  },
+  {
+    value: "advanced",
+    label: "Advanced",
+    description: "Years of formal training or practice",
+  },
+  {
+    value: "professional",
+    label: "Professional",
+    description: "Music is your career or serious pursuit",
+  },
 ] as const;
 
 const backgroundOptions = [
@@ -51,13 +67,15 @@ const solfegeOptions = [
   {
     value: "numbers",
     label: "Scale degree numbers (1, 2, 3...)",
-    description: "Quick to learn, familiar notation. Best if you think analytically.",
+    description:
+      "Quick to learn, familiar notation. Best if you think analytically.",
     demo: ["1", "3", "5"],
   },
   {
     value: "moveable_do",
     label: "Movable-do solfege (Do, Re, Mi...)",
-    description: "Easier to sing, vowels encode tendency. The traditional method.",
+    description:
+      "Easier to sing, vowels encode tendency. The traditional method.",
     demo: ["Do", "Mi", "Sol"],
   },
 ] as const;
@@ -77,17 +95,23 @@ export default function OnboardingPage() {
   const [solfege, setSolfege] = useState<SolfegeSystem>("moveable_do");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [assessmentQuestions, setAssessmentQuestions] = useState<AssessmentQuestion[]>([]);
+  const [assessmentQuestions, setAssessmentQuestions] = useState<
+    AssessmentQuestion[]
+  >([]);
 
   useEffect(() => {
     if (step === 7 && assessmentQuestions.length === 0) {
-      getOnboardingQuestions().then(setAssessmentQuestions).catch(() => {});
+      getOnboardingQuestions()
+        .then(setAssessmentQuestions)
+        .catch(() => {});
     }
   }, [step, assessmentQuestions.length]);
 
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const playDemoArpeggio = () => {
     try {
-      const ctx = new AudioContext();
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      const ctx = audioCtxRef.current;
       const freqs = [261.63, 329.63, 392.0]; // C4, E4, G4
       freqs.forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -95,7 +119,10 @@ export default function OnboardingPage() {
         osc.type = "sine";
         osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.4);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.4 + 0.35);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          ctx.currentTime + i * 0.4 + 0.35,
+        );
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(ctx.currentTime + i * 0.4);
@@ -108,7 +135,7 @@ export default function OnboardingPage() {
 
   const toggleGoal = (goal: string) => {
     setGoals((prev) =>
-      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
+      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal],
     );
   };
 
@@ -330,9 +357,7 @@ export default function OnboardingPage() {
               <h2 className="font-display text-2xl font-bold text-ivory">
                 What are your goals?
               </h2>
-              <p className="text-silver text-sm mt-1">
-                Select all that apply
-              </p>
+              <p className="text-silver text-sm mt-1">Select all that apply</p>
             </div>
             <div className="space-y-2">
               {goalOptions.map((goal) => (
@@ -367,7 +392,8 @@ export default function OnboardingPage() {
                 Solfege preference
               </h2>
               <p className="text-silver text-sm mt-1">
-                How would you like to label scale degrees? You can change this later.
+                How would you like to label scale degrees? You can change this
+                later.
               </p>
             </div>
 
@@ -376,7 +402,8 @@ export default function OnboardingPage() {
               onClick={playDemoArpeggio}
               className="w-full rounded-lg border border-steel bg-obsidian p-3 text-center text-sm text-silver hover:border-silver transition-colors"
             >
-              <span className="mr-2">&#x1F50A;</span> Listen to C &ndash; E &ndash; G
+              <span className="mr-2">&#x1F50A;</span> Listen to C &ndash; E
+              &ndash; G
             </button>
 
             <div className="space-y-3">
@@ -390,8 +417,12 @@ export default function OnboardingPage() {
                       : "border-steel bg-obsidian hover:border-silver"
                   }`}
                 >
-                  <div className="text-ivory font-medium text-sm">{opt.label}</div>
-                  <div className="text-silver text-xs mt-1">{opt.description}</div>
+                  <div className="text-ivory font-medium text-sm">
+                    {opt.label}
+                  </div>
+                  <div className="text-silver text-xs mt-1">
+                    {opt.description}
+                  </div>
                   <div className="text-coral/70 text-xs mt-1 font-mono">
                     {opt.demo.join(" \u2013 ")}
                   </div>
@@ -409,8 +440,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {step === 7 && (
-          assessmentQuestions.length > 0 ? (
+        {step === 7 &&
+          (assessmentQuestions.length > 0 ? (
             <OnboardingAssessment
               questions={assessmentQuestions}
               onComplete={next}
@@ -432,17 +463,14 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {step === 8 && (
           <div className="text-center space-y-6">
             <h2 className="font-display text-2xl font-bold text-ivory">
               You&apos;re ready to start hearing music differently.
             </h2>
-            {error && (
-              <p className="text-incorrect text-sm">{error}</p>
-            )}
+            {error && <p className="text-incorrect text-sm">{error}</p>}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={back}>
                 Back

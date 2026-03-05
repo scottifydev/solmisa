@@ -13,7 +13,10 @@ import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import { ReviewCard } from "@/components/review/review-card";
 import { PreSession } from "@/components/review/pre-session";
-import { SessionSummary, type SessionResultItem } from "@/components/review/session-summary";
+import {
+  SessionSummary,
+  type SessionResultItem,
+} from "@/components/review/session-summary";
 import { ProgressBar } from "@/components/ui/progress-bar";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -39,7 +42,6 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
   const [results, setResults] = useState<SessionResultItem[]>([]);
   const [changingKey, setChangingKey] = useState(false);
   const startTimeRef = useRef(0);
-  const groupTrackerRef = useRef(new Map<string, { correct: number; total: number }>());
 
   const drone = useDrone();
   const playback = usePlayback();
@@ -47,15 +49,10 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
   const currentCard = queue[currentIndex];
   const total = queue.length;
 
-  // Determine the drone key for a given card
-  const getCardKey = useCallback(
-    (card: ReviewQueueItem): NoteName => {
-      return (card.drone_key as NoteName) ??
-        (card.playback?.drone_key as NoteName) ??
-        DEFAULT_DRONE_KEY;
-    },
-    [],
-  );
+  // Determine the drone key for a given card (from template playback JSONB)
+  const getCardKey = useCallback((card: ReviewQueueItem): NoteName => {
+    return (card.playback?.drone_key as NoteName) ?? DEFAULT_DRONE_KEY;
+  }, []);
 
   // Clean up drone on unmount or navigate away
   useEffect(() => {
@@ -66,20 +63,23 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
   }, []);
 
   // Handle Start button — initializes audio with user gesture
-  const handleStart = useCallback(async (limit?: number) => {
-    // If user selected a smaller session size, trim the queue
-    if (limit !== undefined && limit < queue.length) {
-      setQueue((q) => q.slice(0, limit));
-    }
+  const handleStart = useCallback(
+    async (limit?: number) => {
+      // If user selected a smaller session size, trim the queue
+      if (limit !== undefined && limit < queue.length) {
+        setQueue((q) => q.slice(0, limit));
+      }
 
-    startTimeRef.current = Date.now();
-    const firstCard = queue[0];
-    if (firstCard) {
-      const key = getCardKey(firstCard);
-      await drone.start({ key, octave: 4 });
-    }
-    setPhase("active");
-  }, [queue, drone, getCardKey]);
+      startTimeRef.current = Date.now();
+      const firstCard = queue[0];
+      if (firstCard) {
+        const key = getCardKey(firstCard);
+        await drone.start({ key, octave: 4 });
+      }
+      setPhase("active");
+    },
+    [queue, drone, getCardKey],
+  );
 
   // Handle answer from ReviewCard
   const handleAnswer = useCallback(
@@ -93,22 +93,6 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         correct,
         response_time_ms: responseTimeMs,
       };
-
-      // Track perceptual group accuracy
-      if (currentCard.skill_group) {
-        const tracker = groupTrackerRef.current;
-        const group = tracker.get(currentCard.skill_group) ?? { correct: 0, total: 0 };
-        group.total++;
-        if (correct) group.correct++;
-        tracker.set(currentCard.skill_group, group);
-
-        // If last in group, attach session accuracy
-        const nextItem = queue[currentIndex + 1];
-        const isLastInGroup = !nextItem || nextItem.skill_group !== currentCard.skill_group;
-        if (isLastInGroup && group.total > 0) {
-          req.session_accuracy = group.correct / group.total;
-        }
-      }
 
       // Submit answer
       let stageChanged = false;
@@ -147,9 +131,12 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         const nextKey = getCardKey(nextCard);
         if (nextKey !== currentKey) {
           setChangingKey(true);
-          await drone.changeKey(nextKey);
-          await new Promise((r) => setTimeout(r, KEY_CHANGE_DELAY_MS));
-          setChangingKey(false);
+          try {
+            await drone.changeKey(nextKey);
+            await new Promise((r) => setTimeout(r, KEY_CHANGE_DELAY_MS));
+          } finally {
+            setChangingKey(false);
+          }
         }
       }
 
@@ -193,11 +180,18 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
   // ─── Render ─────────────────────────────────────────────────
 
   if (phase === "pre_session") {
-    return <PreSession queue={initialQueue} onStart={(limit) => void handleStart(limit)} />;
+    return (
+      <PreSession
+        queue={initialQueue}
+        onStart={(limit) => void handleStart(limit)}
+      />
+    );
   }
 
   if (phase === "summary") {
-    return <SessionSummary results={results} startTime={startTimeRef.current} />;
+    return (
+      <SessionSummary results={results} startTime={startTimeRef.current} />
+    );
   }
 
   // Active phase
@@ -250,8 +244,12 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
 
       {/* Score tally */}
       <div className="flex justify-center gap-6 text-sm font-mono">
-        <span className="text-correct">{"\u2713"} {correctCount}</span>
-        <span className="text-incorrect">{"\u2717"} {reviewed - correctCount}</span>
+        <span className="text-correct">
+          {"\u2713"} {correctCount}
+        </span>
+        <span className="text-incorrect">
+          {"\u2717"} {reviewed - correctCount}
+        </span>
       </div>
     </div>
   );
