@@ -85,7 +85,7 @@ export default async function DashboardPage() {
         )}
         <Link
           href="/learn"
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/10 bg-gradient-to-br from-violet/4 to-transparent hover:from-violet/8 transition-all flex items-center gap-3"
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15 transition-all flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F4D6;</span>
           <div>
