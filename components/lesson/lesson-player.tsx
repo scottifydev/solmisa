@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Lesson } from "@/types/lesson";
 import type { StageQuizResult } from "@/types/lesson";
@@ -9,7 +9,6 @@ import { StatCard } from "@/components/ui/stat-card";
 import { semanticColors } from "@/lib/tokens";
 import { completeLesson } from "@/lib/actions/lessons";
 import { seedCardsFromLesson } from "@/lib/lessons/seed-cards";
-import { useDrone } from "@/hooks/use-drone";
 import { StageRenderer } from "./stage-renderer";
 
 interface LessonPlayerProps {
@@ -19,21 +18,16 @@ interface LessonPlayerProps {
   userId?: string;
 }
 
-export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1, userId }: LessonPlayerProps) {
+export function LessonPlayer({
+  lesson,
+  moduleTitle = "Module",
+  totalLessons = 1,
+  userId,
+}: LessonPlayerProps) {
   const router = useRouter();
-  const drone = useDrone();
   const [results, setResults] = useState<StageQuizResult[] | null>(null);
   const [saving, setSaving] = useState(false);
-  const [cardsSeeded, setCardsSeeded] = useState(0);
-
-  // Start drone on mount, stop on unmount
-  useEffect(() => {
-    if (lesson.drone_key) {
-      void drone.start({ key: lesson.drone_key as Parameters<typeof drone.start>[0]["key"] });
-    }
-    return () => { drone.stop(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [, setCardsSeeded] = useState(0);
 
   const handleComplete = useCallback((quizResults: StageQuizResult[]) => {
     setResults(quizResults);
@@ -64,15 +58,22 @@ export function LessonPlayer({ lesson, moduleTitle = "Module", totalLessons = 1,
   if (results !== null) {
     const quizCount = results.length;
     const correctCount = results.filter((r) => r.correct).length;
-    const accuracy = quizCount > 0 ? Math.round((correctCount / quizCount) * 100) : 100;
+    const accuracy =
+      quizCount > 0 ? Math.round((correctCount / quizCount) * 100) : 100;
 
     return (
       <div className="max-w-lg mx-auto p-6 text-center space-y-6">
-        <h1 className="font-display text-2xl font-bold text-ivory">Lesson Complete</h1>
+        <h1 className="font-display text-2xl font-bold text-ivory">
+          Lesson Complete
+        </h1>
         <p className="text-silver">{lesson.title}</p>
 
         <div className="grid grid-cols-2 gap-4">
-          <StatCard label="Accuracy" value={`${accuracy}%`} color={semanticColors.correct} />
+          <StatCard
+            label="Accuracy"
+            value={`${accuracy}%`}
+            color={semanticColors.correct}
+          />
           <StatCard label="Questions" value={`${correctCount}/${quizCount}`} />
         </div>
 

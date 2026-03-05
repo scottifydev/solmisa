@@ -13,7 +13,14 @@ import { colors } from "@/lib/tokens";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const [stats, profile, skillAxes, trickleQuestion, recentActivities, weeklySummary] = await Promise.all([
+  const [
+    stats,
+    profile,
+    skillAxes,
+    trickleQuestion,
+    recentActivities,
+    weeklySummary,
+  ] = await Promise.all([
     getDashboardStats(),
     getProfile(),
     getSkillAxes(),
@@ -48,7 +55,7 @@ export default async function DashboardPage() {
         {stats.dueToday > 0 ? (
           <Link
             href="/review"
-            className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-amber/5 hover:from-coral/15 hover:to-amber/10 transition-all flex items-center gap-3"
+            className="flex-1 p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-warning/5 hover:from-coral/15 hover:to-warning/10 transition-all flex items-center gap-3"
           >
             <span className="text-2xl shrink-0">&#x1F504;</span>
             <div>
@@ -97,7 +104,11 @@ export default async function DashboardPage() {
           sub={`${stats.dueToday} due`}
           color={colors.coral}
         />
-        <StatCard label="7-Day Accuracy" value={accuracy} color={colors.correct} />
+        <StatCard
+          label="7-Day Accuracy"
+          value={accuracy}
+          color={colors.correct}
+        />
         <StatCard
           label="Items Mastered"
           value={stats.byStage.find((s) => s.stage === "mastered")?.count ?? 0}
@@ -112,7 +123,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Skill Radar */}
-      <SkillRadar axes={skillAxes} emptyMessage="Complete lessons to build your skill profile" />
+      <SkillRadar
+        axes={skillAxes}
+        emptyMessage="Complete lessons to build your skill profile"
+      />
 
       {/* Trickle assessment question */}
       {trickleQuestion && <TrickleQuestion question={trickleQuestion} />}
@@ -155,11 +169,15 @@ export default async function DashboardPage() {
         {weeklySummary.activityCount > 0 ? (
           <div className="flex gap-4 mb-4 text-sm">
             <div>
-              <span className="text-ivory font-bold">{weeklySummary.totalMinutes}</span>
+              <span className="text-ivory font-bold">
+                {weeklySummary.totalMinutes}
+              </span>
               <span className="text-silver/60 ml-1">min</span>
             </div>
             <div>
-              <span className="text-ivory font-bold">{weeklySummary.activityCount}</span>
+              <span className="text-ivory font-bold">
+                {weeklySummary.activityCount}
+              </span>
               <span className="text-silver/60 ml-1">activities</span>
             </div>
           </div>

@@ -323,7 +323,7 @@ function LearningSection({
 function AccountSection({
   email,
   onPasswordReset,
-  onSignOut,
+  onSignOut: _onSignOut,
 }: {
   email: string;
   onPasswordReset: () => void;

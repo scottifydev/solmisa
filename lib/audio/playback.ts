@@ -4,7 +4,6 @@ import type {
   DiatonicDegree,
   IntervalName,
   ChordQuality,
-  ChordInversion,
   PlayDegreeOptions,
   ResolutionOptions,
   PlayIntervalOptions,
@@ -14,21 +13,64 @@ import type {
 // ─── Music Theory Maps ──────────────────────────────────────
 
 const NOTE_SEMITONES: Record<string, number> = {
-  C: 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, F: 5,
-  "F#": 6, Gb: 6, G: 7, "G#": 8, Ab: 8, A: 9, "A#": 10, Bb: 10, B: 11,
+  C: 0,
+  "C#": 1,
+  Db: 1,
+  D: 2,
+  "D#": 3,
+  Eb: 3,
+  E: 4,
+  F: 5,
+  "F#": 6,
+  Gb: 6,
+  G: 7,
+  "G#": 8,
+  Ab: 8,
+  A: 9,
+  "A#": 10,
+  Bb: 10,
+  B: 11,
 };
 
 const SEMITONE_TO_NOTE: string[] = [
-  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
 ];
 
 const DEGREE_SEMITONES: Record<DiatonicDegree, number> = {
-  1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11,
+  1: 0,
+  2: 2,
+  3: 4,
+  4: 5,
+  5: 7,
+  6: 9,
+  7: 11,
 };
 
 const INTERVAL_SEMITONES: Record<IntervalName, number> = {
-  P1: 0, m2: 1, M2: 2, m3: 3, M3: 4, P4: 5,
-  TT: 6, P5: 7, m6: 8, M6: 9, m7: 10, M7: 11, P8: 12,
+  P1: 0,
+  m2: 1,
+  M2: 2,
+  m3: 3,
+  M3: 4,
+  P4: 5,
+  TT: 6,
+  P5: 7,
+  m6: 8,
+  M6: 9,
+  m7: 10,
+  M7: 11,
+  P8: 12,
 };
 
 const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
@@ -53,18 +95,55 @@ function midiToNoteName(midi: number): string {
   return `${note}${octave}`;
 }
 
-function degreeToNote(key: NoteName, degree: DiatonicDegree, octave: number): string {
+function degreeToNote(
+  key: NoteName,
+  degree: DiatonicDegree,
+  octave: number,
+): string {
   const rootMidi = noteToMidi(key, octave);
   return midiToNoteName(rootMidi + DEGREE_SEMITONES[degree]);
 }
+
+// ─── Playback Effects ───────────────────────────────────────
+
+export interface PlaybackEffectsConfig {
+  filterCutoff?: number; // Hz, default 2000
+  reverbWet?: number; // 0-1, default 0.12
+  reverbDecay?: number; // seconds, default 1.5
+}
+
+const PLAYBACK_DEFAULTS: Required<PlaybackEffectsConfig> = {
+  filterCutoff: 2000,
+  reverbWet: 0.12,
+  reverbDecay: 1.5,
+};
 
 // ─── Playback Engine ────────────────────────────────────────
 
 export class PlaybackEngine {
   private synth: Tone.Synth | null = null;
   private polySynth: Tone.PolySynth | null = null;
+  private filter: Tone.Filter;
+  private reverb: Tone.Reverb;
   private isActive = false;
   private stopRequested = false;
+
+  constructor(effects?: PlaybackEffectsConfig) {
+    const config = { ...PLAYBACK_DEFAULTS, ...effects };
+
+    // Chain: synths → filter → reverb → destination
+    this.reverb = new Tone.Reverb({
+      decay: config.reverbDecay,
+      wet: config.reverbWet,
+      preDelay: 0.01,
+    }).toDestination();
+    this.filter = new Tone.Filter({
+      type: "lowpass",
+      frequency: config.filterCutoff,
+      rolloff: -12,
+      Q: 0.5,
+    }).connect(this.reverb);
+  }
 
   get playing(): boolean {
     return this.isActive;
@@ -74,9 +153,9 @@ export class PlaybackEngine {
     if (!this.synth) {
       this.synth = new Tone.Synth({
         oscillator: { type: "fmtriangle" },
-        envelope: { attack: 0.03, decay: 0.2, sustain: 0.5, release: 0.5 },
+        envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.6 },
         volume: -3,
-      }).toDestination();
+      }).connect(this.filter);
     }
     return this.synth;
   }
@@ -85,9 +164,9 @@ export class PlaybackEngine {
     if (!this.polySynth) {
       this.polySynth = new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: "fmtriangle" },
-        envelope: { attack: 0.03, decay: 0.2, sustain: 0.5, release: 0.5 },
+        envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.6 },
         volume: -3,
-      }).toDestination();
+      }).connect(this.filter);
     }
     return this.polySynth;
   }
@@ -128,7 +207,7 @@ export class PlaybackEngine {
   }
 
   async playResolution(options: ResolutionOptions): Promise<void> {
-    const { fromDegree, key, timbre: _timbre } = options;
+    const { fromDegree, key } = options;
     if (fromDegree === 1) return; // already at tonic
 
     // Build stepwise path to tonic using shortest direction
@@ -162,7 +241,8 @@ export class PlaybackEngine {
       const dur = isLast ? stepDuration * 1.5 : stepDuration; // final tonic rings longer
 
       // If resolving upward and we've wrapped to degree 1, play octave above
-      const octave = (fromDegree > 4 && degree === 1) ? baseOctave + 1 : baseOctave;
+      const octave =
+        fromDegree > 4 && degree === 1 ? baseOctave + 1 : baseOctave;
       const note = degreeToNote(key, degree, octave);
       synth.triggerAttackRelease(note, dur, now + i * (stepDuration - overlap));
     }
@@ -172,7 +252,14 @@ export class PlaybackEngine {
   }
 
   async playInterval(options: PlayIntervalOptions): Promise<void> {
-    const { interval, key, mode = "melodic", octave = 4, duration = 0.8, gap = 0.4 } = options;
+    const {
+      interval,
+      key,
+      mode = "melodic",
+      octave = 4,
+      duration = 0.8,
+      gap = 0.4,
+    } = options;
     const baseDegree = options.baseDegree ?? 1;
     const rootMidi = noteToMidi(key, octave) + DEGREE_SEMITONES[baseDegree];
     const topMidi = rootMidi + INTERVAL_SEMITONES[interval];
@@ -198,7 +285,14 @@ export class PlaybackEngine {
   }
 
   async playChord(options: PlayChordOptions): Promise<void> {
-    const { quality, root, inversion = "root", mode = "block", octave = 4, duration = 1.2 } = options;
+    const {
+      quality,
+      root,
+      inversion = "root",
+      mode = "block",
+      octave = 4,
+      duration = 1.2,
+    } = options;
     const intervals = CHORD_INTERVALS[quality];
     if (!intervals) throw new Error(`Unknown chord quality: ${quality}`);
 
@@ -208,11 +302,21 @@ export class PlaybackEngine {
     // Apply inversions
     if (inversion === "first" && midiNotes.length >= 2) {
       midiNotes[0] = midiNotes[0]! + 12; // raise root octave
-      midiNotes = [midiNotes[1]!, midiNotes[2]!, ...midiNotes.slice(3), midiNotes[0]!];
+      midiNotes = [
+        midiNotes[1]!,
+        midiNotes[2]!,
+        ...midiNotes.slice(3),
+        midiNotes[0]!,
+      ];
     } else if (inversion === "second" && midiNotes.length >= 3) {
       midiNotes[0] = midiNotes[0]! + 12;
       midiNotes[1] = midiNotes[1]! + 12;
-      midiNotes = [midiNotes[2]!, ...midiNotes.slice(3), midiNotes[0]!, midiNotes[1]!];
+      midiNotes = [
+        midiNotes[2]!,
+        ...midiNotes.slice(3),
+        midiNotes[0]!,
+        midiNotes[1]!,
+      ];
     }
 
     const notes = midiNotes.map(midiToNoteName);
@@ -259,6 +363,8 @@ export class PlaybackEngine {
     this.synth = null;
     this.polySynth?.dispose();
     this.polySynth = null;
+    this.filter.dispose();
+    this.reverb.dispose();
   }
 
   private wait(ms: number): Promise<void> {

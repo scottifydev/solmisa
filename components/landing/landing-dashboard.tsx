@@ -4,7 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { StatCard } from "@/components/ui/stat-card";
 import { colors } from "@/lib/tokens";
-import { DEMO_STATS, DEMO_REVIEW_CARDS, DEMO_SKILL_AXES } from "@/lib/data/demo-data";
+import {
+  DEMO_STATS,
+  DEMO_REVIEW_CARDS,
+  DEMO_SKILL_AXES,
+} from "@/lib/data/demo-data";
 import { SrsBar } from "./srs-bar";
 import { AnonymousReviewSession } from "./anonymous-review-session";
 import { DemoLesson } from "./demo-lesson";
@@ -62,7 +66,7 @@ export function LandingDashboard() {
               setShowDashboardTip(false);
               setView("review");
             }}
-            className="w-full p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-amber/5 hover:from-coral/15 hover:to-amber/10 transition-all cursor-pointer text-left flex items-center gap-3"
+            className="w-full p-4 sm:p-5 rounded-xl border border-coral/20 bg-gradient-to-br from-coral/8 to-warning/5 hover:from-coral/15 hover:to-warning/10 transition-all cursor-pointer text-left flex items-center gap-3"
           >
             <span className="text-2xl shrink-0">&#x1F504;</span>
             <div>
@@ -144,13 +148,14 @@ export function LandingDashboard() {
       {/* Signup CTA */}
       <Link
         href="/signup"
-        className="block rounded-xl border border-coral/20 bg-gradient-to-r from-coral/5 to-amber/5 hover:from-coral/10 hover:to-amber/10 transition-colors p-6 text-center"
+        className="block rounded-xl border border-coral/20 bg-gradient-to-r from-coral/5 to-warning/5 hover:from-coral/10 hover:to-warning/10 transition-colors p-6 text-center"
       >
         <h2 className="font-display text-lg font-bold text-ivory">
           Sign up free to save your progress
         </h2>
         <p className="text-silver text-sm mt-1">
-          Your review stats, streak, and mastery &mdash; all saved automatically.
+          Your review stats, streak, and mastery &mdash; all saved
+          automatically.
         </p>
       </Link>
 

@@ -126,7 +126,8 @@ export async function deleteAccount() {
   if (!user) throw new Error("Not authenticated");
 
   // Delete profile (cascades to related data via FK)
-  await supabase.from("profiles").delete().eq("id", user.id);
+  const { error } = await supabase.from("profiles").delete().eq("id", user.id);
+  if (error) throw new Error("Failed to delete account");
   await supabase.auth.signOut();
   redirect("/login");
 }

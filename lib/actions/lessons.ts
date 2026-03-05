@@ -49,13 +49,13 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
   const completedIds = new Set(
     (progress ?? [])
       .filter((p) => p.status === "completed")
-      .map((p) => p.lesson_id)
+      .map((p) => p.lesson_id),
   );
 
   const inProgressIds = new Set(
     (progress ?? [])
       .filter((p) => p.status === "in_progress")
-      .map((p) => p.lesson_id)
+      .map((p) => p.lesson_id),
   );
 
   const lessonsByModule = new Map<string, typeof allLessons>();
@@ -101,7 +101,7 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
           title: l.title,
           lesson_order: l.lesson_order,
           isCompleted: completedIds.has(l.id),
-        })
+        }),
       ),
     };
   });
@@ -111,6 +111,10 @@ export async function getLesson(lessonId: string): Promise<Lesson | null> {
   if (!UUID_RE.test(lessonId)) return null;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
   const { data: lesson } = await supabase
     .from("lessons")
@@ -138,10 +142,16 @@ export interface LessonWithContext {
   allowedKeys: string[];
 }
 
-export async function getLessonWithContext(lessonId: string): Promise<LessonWithContext | null> {
+export async function getLessonWithContext(
+  lessonId: string,
+): Promise<LessonWithContext | null> {
   if (!UUID_RE.test(lessonId)) return null;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
   const { data: lesson } = await supabase
     .from("lessons")
@@ -153,8 +163,15 @@ export async function getLessonWithContext(lessonId: string): Promise<LessonWith
 
   // Fetch module info + sibling count
   const [{ data: module }, { count }] = await Promise.all([
-    supabase.from("modules").select("title").eq("id", lesson.module_id).single(),
-    supabase.from("lessons").select("id", { count: "exact", head: true }).eq("module_id", lesson.module_id),
+    supabase
+      .from("modules")
+      .select("title")
+      .eq("id", lesson.module_id)
+      .single(),
+    supabase
+      .from("lessons")
+      .select("id", { count: "exact", head: true })
+      .eq("module_id", lesson.module_id),
   ]);
 
   return {
@@ -190,7 +207,7 @@ export interface ModuleWithLessons {
 }
 
 export async function getModuleWithLessons(
-  moduleId: string
+  moduleId: string,
 ): Promise<ModuleWithLessons | null> {
   if (!UUID_RE.test(moduleId)) return null;
 
@@ -218,9 +235,7 @@ export async function getModuleWithLessons(
     .eq("user_id", user.id)
     .in("lesson_id", lessonIds);
 
-  const progressMap = new Map(
-    (progress ?? []).map((p) => [p.lesson_id, p])
-  );
+  const progressMap = new Map((progress ?? []).map((p) => [p.lesson_id, p]));
 
   return {
     module: {
@@ -235,7 +250,9 @@ export async function getModuleWithLessons(
         id: l.id,
         title: l.title,
         lesson_order: l.lesson_order,
-        status: (p?.status as "not_started" | "in_progress" | "completed") ?? "not_started",
+        status:
+          (p?.status as "not_started" | "in_progress" | "completed") ??
+          "not_started",
         score: p?.score ?? null,
       };
     }),
@@ -257,6 +274,6 @@ export async function completeLesson(lessonId: string) {
       status: "completed",
       completed_at: new Date().toISOString(),
     },
-    { onConflict: "user_id,lesson_id" }
+    { onConflict: "user_id,lesson_id" },
   );
 }

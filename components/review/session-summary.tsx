@@ -5,7 +5,7 @@ import type { CardCategory } from "@/types/srs";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { semanticColors, colors } from "@/lib/tokens";
+import { semanticColors } from "@/lib/tokens";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -47,7 +47,12 @@ function accuracyColor(accuracy: number): string {
 function AnimatedCheckmark() {
   return (
     <div className="flex justify-center mb-6">
-      <svg width="72" height="72" viewBox="0 0 72 72" className="animated-check">
+      <svg
+        width="72"
+        height="72"
+        viewBox="0 0 72 72"
+        className="animated-check"
+      >
         <circle
           cx="36"
           cy="36"
@@ -109,9 +114,16 @@ function CategoryRow({
         {label}
       </span>
       <div className="flex-1">
-        <ProgressBar value={pct} max={100} color={accuracyColor(accuracy)} size="sm" />
+        <ProgressBar
+          value={pct}
+          max={100}
+          color={accuracyColor(accuracy)}
+          size="sm"
+        />
       </div>
-      <span className="text-xs font-mono text-silver w-10 text-right">{pct}%</span>
+      <span className="text-xs font-mono text-silver w-10 text-right">
+        {pct}%
+      </span>
     </div>
   );
 }
@@ -138,7 +150,10 @@ export function SessionSummary({
   const hasStageChanges = promoted > 0 || demoted > 0;
 
   // Category breakdown
-  const byCategory = new Map<CardCategory, { reviewed: number; correct: number }>();
+  const byCategory = new Map<
+    CardCategory,
+    { reviewed: number; correct: number }
+  >();
   for (const r of results) {
     const cat = byCategory.get(r.category) ?? { reviewed: 0, correct: 0 };
     cat.reviewed++;
@@ -212,17 +227,16 @@ export function SessionSummary({
         {streakIsNew && streakDays !== undefined && (
           <div className="bg-warning/10 border border-warning/20 rounded-md p-4">
             <span className="text-warning font-display">
-              {streakDays <= 1 ? "Streak started!" : `Day ${streakDays} streak!`}
+              {streakDays <= 1
+                ? "Streak started!"
+                : `Day ${streakDays} streak!`}
             </span>
           </div>
         )}
 
         {/* CTAs */}
         <div className="space-y-2">
-          <Button
-            fullWidth
-            onClick={() => router.push("/dashboard")}
-          >
+          <Button fullWidth onClick={() => router.push("/dashboard")}>
             Back to Dashboard
           </Button>
           <Button
