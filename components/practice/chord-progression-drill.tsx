@@ -8,6 +8,7 @@ import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import type { NoteName, ChordQuality } from "@/types/audio";
 import { Button } from "@/components/ui/button";
+import { DrillTimer } from "@/components/practice/drill-timer";
 
 // ─── Constants ──────────────────────────────────────────────
 
@@ -296,9 +297,7 @@ export function ChordProgressionDrill({ drill }: ChordProgressionDrillProps) {
         >
           &larr; Done
         </button>
-        <span className="text-[10px] font-mono text-ash uppercase tracking-wider">
-          Practice
-        </span>
+        <DrillTimer />
         <span className="text-xs font-mono text-ash">{itemCount} played</span>
       </div>
 

@@ -8,6 +8,7 @@ import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import type { NoteName, DiatonicDegree } from "@/types/audio";
 import { Button } from "@/components/ui/button";
+import { DrillTimer } from "@/components/practice/drill-timer";
 
 const DEGREE_LABELS = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Ti"];
 const ALL_KEYS: NoteName[] = [
@@ -176,9 +177,7 @@ export function DrillRunner({ drill }: DrillRunnerProps) {
         >
           &larr; Done
         </button>
-        <span className="text-[10px] font-mono text-ash uppercase tracking-wider">
-          Practice
-        </span>
+        <DrillTimer />
         <span className="text-xs font-mono text-ash">{itemCount} played</span>
       </div>
 
