@@ -13,6 +13,7 @@ import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import { ReviewCard } from "@/components/review/review-card";
 import { TapRhythmCard } from "@/components/review/tap-rhythm-card";
+import { SingSelfAssessCard } from "@/components/review/sing-self-assess-card";
 import { PreSession } from "@/components/review/pre-session";
 import {
   SessionSummary,
@@ -240,8 +241,8 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
           onAnswer={handleAnswer}
         />
       )}
-      {!changingKey && currentCard.response_type !== "tap_rhythm" && (
-        <ReviewCard
+      {!changingKey && currentCard.response_type === "sing_self_assess" && (
+        <SingSelfAssessCard
           key={currentCard.card_instance_id}
           card={currentCard}
           index={currentIndex}
@@ -249,9 +250,22 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
           onAnswer={handleAnswer}
           onPlayCadence={handlePlayCadence}
           onPlayDegree={handlePlayDegree}
-          onPlayResolution={handlePlayResolution}
         />
       )}
+      {!changingKey &&
+        currentCard.response_type !== "tap_rhythm" &&
+        currentCard.response_type !== "sing_self_assess" && (
+          <ReviewCard
+            key={currentCard.card_instance_id}
+            card={currentCard}
+            index={currentIndex}
+            total={total}
+            onAnswer={handleAnswer}
+            onPlayCadence={handlePlayCadence}
+            onPlayDegree={handlePlayDegree}
+            onPlayResolution={handlePlayResolution}
+          />
+        )}
 
       {/* Score tally */}
       <div className="flex justify-center gap-6 text-sm font-mono">
