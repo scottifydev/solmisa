@@ -15,6 +15,7 @@ export interface SessionResultItem {
   stageBefore: string;
   stageAfter: string;
   category: CardCategory;
+  track_slug: string;
 }
 
 export interface SessionSummaryProps {
@@ -22,6 +23,7 @@ export interface SessionSummaryProps {
   startTime: number;
   streakDays?: number;
   streakIsNew?: boolean;
+  remainingDue?: number;
 }
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -117,6 +119,7 @@ export function SessionSummary({
   startTime,
   streakDays,
   streakIsNew,
+  remainingDue = 0,
 }: SessionSummaryProps) {
   const router = useRouter();
 
@@ -131,24 +134,32 @@ export function SessionSummary({
   const demoted = results.filter((r) => r.stageChanged && !r.correct).length;
   const hasStageChanges = promoted > 0 || demoted > 0;
 
-  // Category breakdown
-  const byCategory = new Map<
-    CardCategory,
-    { reviewed: number; correct: number }
+  // Per-track breakdown
+  const byTrack = new Map<
+    string,
+    { reviewed: number; correct: number; promoted: number; demoted: number }
   >();
   for (const r of results) {
-    const cat = byCategory.get(r.category) ?? { reviewed: 0, correct: 0 };
-    cat.reviewed++;
-    if (r.correct) cat.correct++;
-    byCategory.set(r.category, cat);
+    const track = byTrack.get(r.track_slug) ?? {
+      reviewed: 0,
+      correct: 0,
+      promoted: 0,
+      demoted: 0,
+    };
+    track.reviewed++;
+    if (r.correct) track.correct++;
+    if (r.stageChanged && r.correct) track.promoted++;
+    if (r.stageChanged && !r.correct) track.demoted++;
+    byTrack.set(r.track_slug, track);
   }
-  const categoryEntries = Array.from(byCategory.entries());
-  const showCategories = categoryEntries.length > 1;
+  const trackEntries = Array.from(byTrack.entries());
+  const showTracks = trackEntries.length > 1;
 
-  const categoryLabels: Record<CardCategory, string> = {
-    perceptual: "Ear Training",
-    declarative: "Theory",
+  const trackLabels: Record<string, string> = {
+    ear_training: "Ear Training",
+    theory: "Theory",
     rhythm: "Rhythm",
+    sight_reading: "Sight Reading",
   };
 
   return (
@@ -191,16 +202,32 @@ export function SessionSummary({
           </div>
         )}
 
-        {/* Category breakdown */}
-        {showCategories && (
-          <div className="space-y-2 text-left">
-            {categoryEntries.map(([cat, data]) => (
-              <CategoryRow
-                key={cat}
-                label={categoryLabels[cat]}
-                reviewed={data.reviewed}
-                correct={data.correct}
-              />
+        {/* Per-track breakdown */}
+        {showTracks && (
+          <div className="space-y-3 text-left">
+            <h2 className="text-[10px] font-mono uppercase tracking-wider text-ash">
+              By Track
+            </h2>
+            {trackEntries.map(([slug, data]) => (
+              <div key={slug} className="space-y-1">
+                <CategoryRow
+                  label={trackLabels[slug] ?? slug}
+                  reviewed={data.reviewed}
+                  correct={data.correct}
+                />
+                <div className="flex gap-3 pl-24 text-[10px] font-mono">
+                  {data.promoted > 0 && (
+                    <span className="text-correct">
+                      {"\u2191"} {data.promoted}
+                    </span>
+                  )}
+                  {data.demoted > 0 && (
+                    <span className="text-incorrect">
+                      {"\u2193"} {data.demoted}
+                    </span>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -218,15 +245,21 @@ export function SessionSummary({
 
         {/* CTAs */}
         <div className="space-y-2">
-          <Button fullWidth onClick={() => router.push("/dashboard")}>
-            Back to Dashboard
-          </Button>
+          {remainingDue > 0 ? (
+            <Button fullWidth onClick={() => router.push("/review")}>
+              {remainingDue} more review{remainingDue !== 1 ? "s" : ""} due
+            </Button>
+          ) : (
+            <Button fullWidth onClick={() => router.push("/learn")}>
+              Continue Learning
+            </Button>
+          )}
           <Button
             variant="ghost"
             fullWidth
-            onClick={() => router.push("/learn")}
+            onClick={() => router.push("/dashboard")}
           >
-            Start Lessons
+            Back to Dashboard
           </Button>
         </div>
       </div>
