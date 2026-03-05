@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState, useRef, useCallback } from "react";
 import { degreeColors, chromaticDegreeColors, brand } from "@/lib/tokens";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -15,6 +15,7 @@ interface DegreeCircleProps {
   labelMode?: "numbers" | "solfege";
   tonality?: "major" | "minor" | "dorian" | "mixolydian" | string;
   showResolutionArrows?: boolean;
+  showFeelingStates?: boolean;
 }
 
 type DegreeState = "locked" | "unlocked" | "active";
@@ -54,6 +55,26 @@ const CHROMATIC_SOLFEGE_LABELS = [
 
 // Map chromatic index to degree number for click callbacks
 const CHROMATIC_DEGREE_MAP = [1, -2, 2, -3, 3, 4, -4.5, 5, -6, 6, -7, 7];
+
+// ─── Feeling-State Labels ────────────────────────────────────
+
+const FEELING_STATES: Record<number, string> = {
+  1: "Home. Stable. Complete.",
+  2: "Stepping out. Wants to move.",
+  3: "Bright. Warm. Settled.",
+  4: "Leaning down. Restless.",
+  5: "Strong anchor. Wants to return home.",
+  6: "Bittersweet. Gentle tension.",
+  7: "Urgent. Pulling hard toward home.",
+};
+
+const CHROMATIC_FEELING_STATES: Record<number, string> = {
+  ...FEELING_STATES,
+  [-2]: "Darkened. Somber.",
+  [-3]: "Darkened. Somber.",
+  [-6]: "Shadowed. Heavy.",
+  [-7]: "Relaxed pull. Less urgent than Ti.",
+};
 
 // ─── Color Helpers ──────────────────────────────────────────
 
@@ -96,10 +117,29 @@ export function DegreeCircle({
   labelMode = "numbers",
   tonality = "major",
   showResolutionArrows = false,
+  showFeelingStates = false,
 }: DegreeCircleProps) {
   const filterId = useId();
   const glowId = `glow-${filterId}`;
   const gradientId = `bg-${filterId}`;
+
+  const [feelingDegree, setFeelingDegree] = useState<number | null>(null);
+  const [feelingOpacity, setFeelingOpacity] = useState(0);
+  const feelingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showFeeling = useCallback(
+    (degree: number) => {
+      if (!showFeelingStates) return;
+      if (feelingTimerRef.current) clearTimeout(feelingTimerRef.current);
+      setFeelingDegree(degree);
+      setFeelingOpacity(1);
+      feelingTimerRef.current = setTimeout(() => {
+        setFeelingOpacity(0);
+        setTimeout(() => setFeelingDegree(null), 300);
+      }, 3000);
+    },
+    [showFeelingStates],
+  );
 
   const nodeCount = showChromatic ? 12 : 7;
   const cx = size / 2;
@@ -210,7 +250,9 @@ export function DegreeCircle({
     if (!interactive) return;
     const state = getState(index);
     if (state === "locked") return;
-    onDegreeClick?.(getDegreeNumber(index));
+    const deg = getDegreeNumber(index);
+    onDegreeClick?.(deg);
+    showFeeling(deg);
   }
 
   return (
@@ -354,6 +396,31 @@ export function DegreeCircle({
           </g>
         );
       })}
+
+      {/* Layer 8: Feeling-state label */}
+      {feelingDegree !== null &&
+        (() => {
+          const stateMap = showChromatic
+            ? CHROMATIC_FEELING_STATES
+            : FEELING_STATES;
+          const text = stateMap[feelingDegree];
+          if (!text) return null;
+          return (
+            <text
+              x={cx}
+              y={cy + 16}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontFamily="'DM Sans', sans-serif"
+              fontSize={10}
+              fill={brand.silver}
+              opacity={feelingOpacity}
+              style={{ transition: "opacity 0.3s ease" }}
+            >
+              {text}
+            </text>
+          );
+        })()}
     </svg>
   );
 }

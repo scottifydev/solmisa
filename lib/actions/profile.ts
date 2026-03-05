@@ -145,6 +145,36 @@ export async function updateReviewSessionCap(cap: number | null) {
   if (error) throw new Error(error.message);
 }
 
+export async function getFeelingStatesEnabled(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return true;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("show_feeling_states")
+    .eq("id", user.id)
+    .single();
+
+  return data?.show_feeling_states ?? true;
+}
+
+export async function updateFeelingStates(enabled: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ show_feeling_states: enabled })
+    .eq("id", user.id);
+  if (error) throw new Error(error.message);
+}
+
 export async function requestPasswordReset() {
   const supabase = await createClient();
   const {

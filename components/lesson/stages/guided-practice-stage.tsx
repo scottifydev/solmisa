@@ -26,6 +26,7 @@ interface GuidedPracticeStageProps {
   playback: ReturnType<typeof usePlayback>;
   onComplete: () => void;
   onEngagement?: (engaged: boolean, tappedCorrectly: boolean) => void;
+  showFeelingStates?: boolean;
 }
 
 export function GuidedPracticeStageView({

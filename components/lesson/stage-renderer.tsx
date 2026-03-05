@@ -87,12 +87,14 @@ function AuralTeachView({
   drone,
   playback,
   onComplete,
+  showFeelingStates = false,
 }: {
   stage: AuralTeachStage;
   droneKey: string | null;
   drone: ReturnType<typeof useDrone>;
   playback: ReturnType<typeof usePlayback>;
   onComplete: () => void;
+  showFeelingStates?: boolean;
 }) {
   const [contentVisible, setContentVisible] = useStateAlias(false);
   const [activeDegree, setActiveDegree] = useStateAlias<number | undefined>();
@@ -166,6 +168,7 @@ function AuralTeachView({
             onDegreeClick={(d) => void handleDegreeClick(d)}
             size={260}
             interactive
+            showFeelingStates={showFeelingStates}
           />
         </div>
       )}
@@ -296,7 +299,11 @@ function RhythmView({
 
 // ─── Main Stage Renderer ────────────────────────────────────
 
-export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
+export function StageRenderer({
+  lesson,
+  onComplete,
+  showFeelingStates = false,
+}: StageRendererProps) {
   const drone = useDrone();
   const playback = usePlayback();
   const metronome = useMetronome();
@@ -404,6 +411,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           drone={drone}
           playback={playback}
           onComplete={advanceStage}
+          showFeelingStates={showFeelingStates}
         />
       )}
       {currentStage.type === "theory_teach" && (
@@ -422,6 +430,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           drone={drone}
           playback={playback}
           onComplete={advanceStage}
+          showFeelingStates={showFeelingStates}
         />
       )}
       {currentStage.type === "guided_practice" && (
@@ -433,6 +442,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           drone={drone}
           playback={playback}
           onComplete={advanceStage}
+          showFeelingStates={showFeelingStates}
         />
       )}
       {currentStage.type === "rhythm" && (

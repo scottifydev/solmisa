@@ -284,6 +284,7 @@ export interface RhythmEvent {
 export interface StageRendererProps {
   lesson: LessonRenderData;
   onComplete: (stagesCompleted: number) => void;
+  showFeelingStates?: boolean;
 }
 
 export interface LessonRenderData {
