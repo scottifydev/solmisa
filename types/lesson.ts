@@ -151,15 +151,23 @@ export interface InteractiveStage {
   drone_key?: string;
 }
 
+export type GuidedPracticeType =
+  | "degree"
+  | "interval"
+  | "chord_quality"
+  | "rhythm";
+
 export interface GuidedPracticeStage {
   type: "guided_practice";
   title: string;
   instructions: string;
-  component: string;
-  config: Record<string, unknown>;
-  trials?: number;
-  pass_threshold?: number;
-  engagement_weight?: number;
+  practice_type: GuidedPracticeType;
+  audio_degrees: number[];
+  options: (string | number)[];
+  correct_answer: string | number;
+  reveal_delay_ms: number;
+  show_resolution: boolean;
+  drone_key?: string;
 }
 
 // ─── Drill Config (parameterized quiz generation) ────────────

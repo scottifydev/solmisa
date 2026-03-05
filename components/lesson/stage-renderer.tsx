@@ -10,6 +10,7 @@ import type {
   TheoryQuizStage,
   RhythmStage,
   InteractiveStage,
+  GuidedPracticeStage,
   StageQuizResult,
   LessonStageType,
   DrillConfig,
@@ -26,6 +27,7 @@ import { brand } from "@/lib/tokens";
 import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
 import { useMetronome } from "@/hooks/use-metronome";
 import { InteractiveStageView } from "@/components/lesson/stages/interactive-stage";
+import { GuidedPracticeStageView } from "@/components/lesson/stages/guided-practice-stage";
 
 // ─── Stage Pill ─────────────────────────────────────────────
 
@@ -762,9 +764,11 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
         if (
           "options" in s &&
           Array.isArray(s.options) &&
+          s.type !== "guided_practice" &&
           s.options.some((o: QuizOption) => o.degree !== undefined)
         )
           return true;
+        if (s.type === "guided_practice") return true;
         if ("drill" in s) return true;
         return false;
       }),
@@ -893,6 +897,17 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
       )}
       {currentStage.type === "interactive" && (
         <InteractiveStageView
+          key={stageIdx}
+          stage={currentStage}
+          stageIndex={stageIdx}
+          droneKey={lesson.drone_key}
+          drone={drone}
+          playback={playback}
+          onComplete={() => advanceStage(null)}
+        />
+      )}
+      {currentStage.type === "guided_practice" && (
+        <GuidedPracticeStageView
           key={stageIdx}
           stage={currentStage}
           stageIndex={stageIdx}
