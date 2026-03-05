@@ -10,7 +10,7 @@ import { CATResults } from "@/components/cat/cat-results";
 import { savePlacementResults } from "@/lib/actions/cat";
 import type { PlacementResult } from "@/lib/cat/types";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 const instruments = [
   "Piano",
@@ -98,6 +98,9 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [placementResult, setPlacementResult] =
     useState<PlacementResult | null>(null);
+  const [audioReady, setAudioReady] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+  const [goodEnvironment, setGoodEnvironment] = useState<boolean | null>(null);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const playDemoArpeggio = () => {
@@ -122,6 +125,29 @@ export default function OnboardingPage() {
       });
     } catch {
       // Audio not available
+    }
+  };
+
+  const playTestTone = async () => {
+    try {
+      setAudioError(false);
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") await ctx.resume();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 261.63; // Middle C
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1);
+      setAudioReady(true);
+    } catch {
+      setAudioError(true);
     }
   };
 
@@ -450,14 +476,107 @@ export default function OnboardingPage() {
         )}
 
         {step === 7 && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="font-display text-2xl font-bold text-ivory">
+                Before we test your ears
+              </h2>
+              <p className="text-silver text-sm mt-2 leading-relaxed">
+                The placement test uses audio. For the best experience, use
+                headphones and find a quiet spot.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-steel bg-obsidian p-4 space-y-3">
+              <p className="text-ivory text-sm font-medium">
+                Headphones recommended
+              </p>
+              <p className="text-silver text-xs leading-relaxed">
+                Ear training works much better when the sound is clear and
+                isolated. If you have headphones nearby, put them on now.
+              </p>
+            </div>
+
+            <button
+              onClick={playTestTone}
+              className={`w-full rounded-lg border p-4 text-center transition-colors ${
+                audioReady
+                  ? "border-correct/40 bg-correct/5 text-correct"
+                  : "border-violet bg-violet/10 text-ivory hover:bg-violet/20"
+              }`}
+            >
+              {audioReady ? "Sound working" : "Test Sound"}
+            </button>
+
+            {audioError && (
+              <div className="rounded-lg border border-incorrect/30 bg-incorrect/5 p-3 space-y-2">
+                <p className="text-incorrect text-sm font-medium">No sound?</p>
+                <ul className="text-silver text-xs space-y-1 list-disc pl-4">
+                  <li>Make sure your device isn&apos;t muted</li>
+                  <li>On iPhone, check the silent switch on the side</li>
+                  <li>Check that volume is turned up</li>
+                  <li>Try tapping &quot;Test Sound&quot; again</li>
+                </ul>
+              </div>
+            )}
+
+            {audioReady && (
+              <div className="space-y-3">
+                <p className="text-ivory text-sm">
+                  Are you in a good listening environment?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setGoodEnvironment(true)}
+                    className={`flex-1 rounded-lg border p-3 text-sm transition-colors ${
+                      goodEnvironment === true
+                        ? "border-violet bg-violet/10 text-ivory"
+                        : "border-steel bg-obsidian text-silver hover:border-silver"
+                    }`}
+                  >
+                    Yes, it&apos;s quiet
+                  </button>
+                  <button
+                    onClick={() => setGoodEnvironment(false)}
+                    className={`flex-1 rounded-lg border p-3 text-sm transition-colors ${
+                      goodEnvironment === false
+                        ? "border-violet bg-violet/10 text-ivory"
+                        : "border-steel bg-obsidian text-silver hover:border-silver"
+                    }`}
+                  >
+                    It&apos;s a bit noisy
+                  </button>
+                </div>
+                {goodEnvironment === false && (
+                  <p className="text-silver text-xs">
+                    No problem. Audio questions will be weighted a bit less in
+                    your placement.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button variant="ghost" onClick={back}>
+                Back
+              </Button>
+              <Button fullWidth onClick={next} disabled={!audioReady}>
+                {audioReady ? "Continue to placement" : "Tap Test Sound first"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 8 && (
           <CATPlacementTest
             onComplete={handleCATComplete}
             onSkipAll={handleSkipCAT}
             onBack={back}
+            quietEnvironment={goodEnvironment === false}
           />
         )}
 
-        {step === 8 &&
+        {step === 9 &&
           (placementResult ? (
             <div className="space-y-6">
               <CATResults
