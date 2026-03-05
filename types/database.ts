@@ -479,6 +479,7 @@ export type Database = {
       };
       onboarding_results: {
         Row: {
+          calibration_complete: boolean | null;
           confidence: number | null;
           created_at: string | null;
           dimension: string;
@@ -489,6 +490,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          calibration_complete?: boolean | null;
           confidence?: number | null;
           created_at?: string | null;
           dimension: string;
@@ -499,6 +501,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          calibration_complete?: boolean | null;
           confidence?: number | null;
           created_at?: string | null;
           dimension?: string;
