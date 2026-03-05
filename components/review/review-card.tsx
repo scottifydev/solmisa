@@ -363,11 +363,17 @@ export function ReviewCard({
               `}
             >
               {opt.degree && <DegreeDot degree={opt.degree} />}
-              <span>{opt.label}</span>
+              <span className="flex-1">{opt.label}</span>
               {opt.sublabel && (
                 <span className="ml-1 text-xs font-normal text-silver">
                   {opt.sublabel}
                 </span>
+              )}
+              {state === "correct" && (
+                <span className="text-correct ml-2 shrink-0">&#x2713;</span>
+              )}
+              {state === "incorrect" && (
+                <span className="text-incorrect ml-2 shrink-0">&#x2717;</span>
               )}
             </button>
           );

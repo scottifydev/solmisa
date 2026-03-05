@@ -18,6 +18,7 @@ interface RhythmTapperProps {
   onComplete?: (accuracy: number) => void;
   showNotation?: boolean;
   countIn?: boolean;
+  toleranceMs?: number;
 }
 
 interface TapMark {
@@ -138,6 +139,7 @@ export function RhythmTapper({
   mode,
   onComplete,
   countIn = true,
+  toleranceMs: toleranceOverride,
 }: RhythmTapperProps) {
   const { ensureStarted } = useAudioContext();
 
@@ -162,7 +164,8 @@ export function RhythmTapper({
   const totalBeats = beatsPerMeasure * measureCount;
   const beatDurationMs = (60 / bpm) * 1000;
   const toleranceMs =
-    bpm >= FAST_BPM_THRESHOLD ? TOLERANCE_FAST_MS : TOLERANCE_BASE_MS;
+    toleranceOverride ??
+    (bpm >= FAST_BPM_THRESHOLD ? TOLERANCE_FAST_MS : TOLERANCE_BASE_MS);
 
   // Build target beat positions for the pattern
   const targetBeats = targetPattern.filter((e) => !e.rest).map((e) => e.beat);
@@ -501,13 +504,14 @@ export function RhythmTapper({
           </div>
           <div className="flex gap-4 text-xs font-mono">
             <span className="text-correct">
-              {beatResults.filter((r) => r.hit).length} hits
+              &#x2713; {beatResults.filter((r) => r.hit).length} hits
             </span>
             <span className="text-incorrect">
-              {beatResults.filter((r) => !r.hit && !r.extra).length} missed
+              &#x2717; {beatResults.filter((r) => !r.hit && !r.extra).length}{" "}
+              missed
             </span>
             <span className="text-warning">
-              {beatResults.filter((r) => r.extra).length} extra
+              &#x25CB; {beatResults.filter((r) => r.extra).length} extra
             </span>
           </div>
         </div>
