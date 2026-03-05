@@ -1,25 +1,16 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type {
   StageRendererProps,
   LessonStage,
   AuralTeachStage,
   TheoryTeachStage,
-  AuralQuizStage,
-  TheoryQuizStage,
   RhythmStage,
-  InteractiveStage,
-  GuidedPracticeStage,
-  StageQuizResult,
   LessonStageType,
-  DrillConfig,
-  QuizOption,
 } from "@/types/lesson";
-import { isOptionsQuiz } from "@/types/lesson";
 import type { NoteName, DiatonicDegree } from "@/types/audio";
 import { Button } from "@/components/ui/button";
-import { AnswerCard } from "@/components/ui/answer-card";
 import { DegreeCircle } from "@/components/lesson/degree-circle";
 import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
@@ -28,6 +19,8 @@ import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
 import { useMetronome } from "@/hooks/use-metronome";
 import { InteractiveStageView } from "@/components/lesson/stages/interactive-stage";
 import { GuidedPracticeStageView } from "@/components/lesson/stages/guided-practice-stage";
+import { useRef } from "react";
+import { useState as useStateAlias } from "react";
 
 // ─── Stage Pill ─────────────────────────────────────────────
 
@@ -101,8 +94,8 @@ function AuralTeachView({
   playback: ReturnType<typeof usePlayback>;
   onComplete: () => void;
 }) {
-  const [contentVisible, setContentVisible] = useState(false);
-  const [activeDegree, setActiveDegree] = useState<number | undefined>();
+  const [contentVisible, setContentVisible] = useStateAlias(false);
+  const [activeDegree, setActiveDegree] = useStateAlias<number | undefined>();
   const hasPlayed = useRef(false);
 
   const hasPitchContent = stage.audio_degrees.length > 0;
@@ -220,440 +213,14 @@ function TheoryTeachView({
   );
 }
 
-// ─── Drill Helpers ──────────────────────────────────────────
-
-const SOLFEGE: Record<number | string, { label: string; sublabel: string }> = {
-  1: { label: "Do", sublabel: "degree 1" },
-  2: { label: "Re", sublabel: "degree 2" },
-  3: { label: "Mi", sublabel: "degree 3" },
-  4: { label: "Fa", sublabel: "degree 4" },
-  5: { label: "Sol", sublabel: "degree 5" },
-  6: { label: "La", sublabel: "degree 6" },
-  7: { label: "Ti", sublabel: "degree 7" },
-  b3: { label: "Me", sublabel: "flat 3" },
-  b6: { label: "Le", sublabel: "flat 6" },
-  b7: { label: "Te", sublabel: "flat 7" },
-};
-
-const INTERVALS: Record<string, { label: string; sublabel: string }> = {
-  P1: { label: "Unison", sublabel: "P1" },
-  m2: { label: "Minor 2nd", sublabel: "m2" },
-  M2: { label: "Major 2nd", sublabel: "M2" },
-  m3: { label: "Minor 3rd", sublabel: "m3" },
-  M3: { label: "Major 3rd", sublabel: "M3" },
-  P4: { label: "Perfect 4th", sublabel: "P4" },
-  TT: { label: "Tritone", sublabel: "TT" },
-  P5: { label: "Perfect 5th", sublabel: "P5" },
-  m6: { label: "Minor 6th", sublabel: "m6" },
-  M6: { label: "Major 6th", sublabel: "M6" },
-  m7: { label: "Minor 7th", sublabel: "m7" },
-  M7: { label: "Major 7th", sublabel: "M7" },
-  P8: { label: "Octave", sublabel: "P8" },
-};
-
-const ALL_13_INTERVALS = [
-  "m2",
-  "M2",
-  "m3",
-  "M3",
-  "P4",
-  "TT",
-  "P5",
-  "m6",
-  "M6",
-  "m7",
-  "M7",
-  "P8",
-  "P1",
-];
-
-const CHORD_QUALITIES: QuizOption[] = [
-  { id: "major", label: "Major", sublabel: "1–3–5" },
-  { id: "minor", label: "Minor", sublabel: "1–b3–5" },
-  { id: "diminished", label: "Diminished", sublabel: "1–b3–b5" },
-  { id: "augmented", label: "Augmented", sublabel: "1–3–#5" },
-];
-
-const METER_PRESETS: Record<string, QuizOption> = {
-  "2/4": { id: "2/4", label: "2/4", sublabel: "simple duple" },
-  "3/4": { id: "3/4", label: "3/4", sublabel: "simple triple" },
-  "4/4": { id: "4/4", label: "4/4", sublabel: "simple quadruple" },
-  "5/4": { id: "5/4", label: "5/4", sublabel: "asymmetric" },
-  "6/8": { id: "6/8", label: "6/8", sublabel: "compound duple" },
-  "7/8": { id: "7/8", label: "7/8", sublabel: "asymmetric" },
-  "5/8": { id: "5/8", label: "5/8", sublabel: "asymmetric" },
-};
-
-const MINOR_FORMS: QuizOption[] = [
-  { id: "natural", label: "Natural Minor", sublabel: "aeolian" },
-  { id: "harmonic", label: "Harmonic Minor", sublabel: "raised 7th" },
-  { id: "melodic_asc", label: "Melodic Minor", sublabel: "raised 6th & 7th" },
-];
-
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!;
-}
-
-function generateOptionsForDrill(drill: DrillConfig): {
-  options: QuizOption[];
-  correctAnswer: string;
-} {
-  switch (drill.type) {
-    case "degree_id":
-    case "select_degree":
-    case "minor_degree_id":
-    case "degree_sequence": {
-      const degrees = Array.isArray(drill.degrees) ? drill.degrees : [1, 3, 5];
-      const target = pickRandom(degrees);
-      const options: QuizOption[] = degrees.map((d) => ({
-        id: String(d),
-        label: SOLFEGE[d]?.label ?? `Degree ${d}`,
-        sublabel: SOLFEGE[d]?.sublabel ?? `degree ${d}`,
-        degree: typeof d === "number" ? d : undefined,
-      }));
-      return { options, correctAnswer: String(target) };
-    }
-
-    case "interval_id": {
-      const intervals =
-        drill.intervals === "all_13"
-          ? ALL_13_INTERVALS
-          : Array.isArray(drill.intervals)
-            ? drill.intervals
-            : ["P5", "P8"];
-      const target = pickRandom(intervals);
-      const options: QuizOption[] = intervals.map((iv) => ({
-        id: iv,
-        label: INTERVALS[iv]?.label ?? iv,
-        sublabel: INTERVALS[iv]?.sublabel ?? iv,
-      }));
-      return { options, correctAnswer: target };
-    }
-
-    case "degree_discrimination": {
-      const pair = drill.pair ?? [3, 4];
-      const target = pickRandom(pair);
-      const options: QuizOption[] = pair.map((p) => ({
-        id: String(p),
-        label: typeof p === "string" ? p : (SOLFEGE[p]?.label ?? `Degree ${p}`),
-        sublabel:
-          typeof p === "string" ? "" : (SOLFEGE[p]?.sublabel ?? `degree ${p}`),
-        degree: typeof p === "number" ? p : undefined,
-      }));
-      return { options, correctAnswer: String(target) };
-    }
-
-    case "select_chord": {
-      const target = pickRandom(CHORD_QUALITIES);
-      return { options: CHORD_QUALITIES, correctAnswer: target.id };
-    }
-
-    case "meter_id": {
-      const meters = drill.meters ?? ["3/4", "6/8"];
-      const target = pickRandom(meters);
-      const options: QuizOption[] = meters.map(
-        (m) => METER_PRESETS[m] ?? { id: m, label: m, sublabel: "meter" },
-      );
-      return { options, correctAnswer: target };
-    }
-
-    case "mode_form_id":
-    case "minor_form_id": {
-      const forms = drill.forms ?? ["natural", "harmonic", "melodic_asc"];
-      const target = pickRandom(forms);
-      const options: QuizOption[] = forms.map((f) => {
-        const preset = MINOR_FORMS.find((mf) => mf.id === f);
-        return preset ?? { id: f, label: f, sublabel: "" };
-      });
-      return { options, correctAnswer: target };
-    }
-
-    case "select_one":
-    case "theory_recall":
-    case "integration":
-    case "mixed":
-    case "rhythm_mixed": {
-      if (drill.options && drill.options.length > 0) {
-        const target = pickRandom(drill.options);
-        return { options: drill.options, correctAnswer: target.id };
-      }
-      // Fallback: generic Yes/No if no options configured
-      const fallbackOpts: QuizOption[] = [
-        { id: "a", label: "Option A", sublabel: "" },
-        { id: "b", label: "Option B", sublabel: "" },
-      ];
-      return { options: fallbackOpts, correctAnswer: "a" };
-    }
-
-    default: {
-      // For any unhandled type with degrees, use degree options
-      if (Array.isArray(drill.degrees) && drill.degrees.length > 0) {
-        const degrees = drill.degrees;
-        const target = pickRandom(degrees);
-        const options: QuizOption[] = degrees.map((d) => ({
-          id: String(d),
-          label: SOLFEGE[d]?.label ?? `Degree ${d}`,
-          sublabel: SOLFEGE[d]?.sublabel ?? `degree ${d}`,
-          degree: typeof d === "number" ? d : undefined,
-        }));
-        return { options, correctAnswer: String(target) };
-      }
-      // Last resort fallback
-      const fallback: QuizOption[] = [
-        { id: "1", label: "Do", sublabel: "degree 1", degree: 1 },
-        { id: "3", label: "Mi", sublabel: "degree 3", degree: 3 },
-        { id: "5", label: "Sol", sublabel: "degree 5", degree: 5 },
-      ];
-      return { options: fallback, correctAnswer: "1" };
-    }
-  }
-}
-
-// ─── Aural Quiz Stage ───────────────────────────────────────
-
-function AuralQuizView({
-  stage,
-  stageIndex,
-  droneKey,
-  drone,
-  playback,
-  onComplete,
-}: {
-  stage: AuralQuizStage;
-  stageIndex: number;
-  droneKey: string | null;
-  drone: ReturnType<typeof useDrone>;
-  playback: ReturnType<typeof usePlayback>;
-  onComplete: (result: StageQuizResult) => void;
-}) {
-  const optionsMode = isOptionsQuiz(stage);
-
-  // For drill mode, generate options and target on mount
-  const drillState = useRef(
-    !optionsMode && "drill" in stage
-      ? generateOptionsForDrill(stage.drill)
-      : null,
-  );
-
-  const options = useMemo(
-    () => (optionsMode ? stage.options : (drillState.current?.options ?? [])),
-    [optionsMode, stage],
-  );
-  const correctAnswer = optionsMode
-    ? stage.correct_answer
-    : (drillState.current?.correctAnswer ?? "1");
-  const showResolution = optionsMode ? stage.show_resolution : true;
-
-  const [selected, setSelected] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [startTime] = useState(Date.now());
-  const hasPlayed = useRef(false);
-
-  const key = (droneKey ?? "C") as NoteName;
-  const hasDegreeOptions = options.some((o) => o.degree !== undefined);
-
-  const playSequence = useCallback(async () => {
-    if (hasDegreeOptions) {
-      await drone.start({ key });
-      await drone.playCadence({ key });
-      const targetOpt = options.find((o) => o.id === correctAnswer);
-      if (targetOpt?.degree) {
-        await playback.playDegree({
-          degree: targetOpt.degree as DiatonicDegree,
-          key,
-          duration: 1,
-        });
-      }
-    }
-  }, [drone, playback, key, options, correctAnswer, hasDegreeOptions]);
-
-  useEffect(() => {
-    if (hasPlayed.current) return;
-    hasPlayed.current = true;
-    const timer = setTimeout(() => void playSequence(), 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleSelect = (optionId: string) => {
-    if (revealed) return;
-    setSelected(optionId);
-  };
-
-  const handleCheck = async () => {
-    if (!selected) return;
-    const isCorrect = selected === correctAnswer;
-    setRevealed(true);
-
-    if (showResolution) {
-      const correctOpt = options.find((o) => o.id === correctAnswer);
-      if (correctOpt?.degree) {
-        await playback.playResolution({
-          fromDegree: correctOpt.degree as DiatonicDegree,
-          key,
-        });
-      }
-    }
-
-    const result: StageQuizResult = {
-      stage_index: stageIndex,
-      stage_type: "aural_quiz",
-      correct: isCorrect,
-      response_time_ms: Date.now() - startTime,
-      seeds_card: stage.seeds_card ?? null,
-      card_category: "perceptual",
-    };
-
-    setTimeout(() => onComplete(result), 1200);
-  };
-
-  const getCardState = (optionId: string) => {
-    if (!revealed) return selected === optionId ? "selected" : "default";
-    if (optionId === correctAnswer) return "correct";
-    if (optionId === selected) return "incorrect";
-    return "disabled";
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="font-display text-lg font-bold text-ivory">
-        {stage.prompt}
-      </h2>
-
-      {hasDegreeOptions && (
-        <button
-          onClick={() => void playSequence()}
-          className="text-sm text-violet hover:text-violet/80 transition-colors font-mono"
-        >
-          &#9654; Replay
-        </button>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        {options.map((opt) => (
-          <AnswerCard
-            key={opt.id}
-            label={opt.label}
-            sublabel={opt.sublabel}
-            state={getCardState(opt.id)}
-            degreeColor={opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined}
-            onClick={() => handleSelect(opt.id)}
-            disabled={revealed}
-          />
-        ))}
-      </div>
-
-      {!revealed && (
-        <Button
-          fullWidth
-          disabled={!selected}
-          onClick={() => void handleCheck()}
-        >
-          Check
-        </Button>
-      )}
-    </div>
-  );
-}
-
-// ─── Theory Quiz Stage ──────────────────────────────────────
-
-function TheoryQuizView({
-  stage,
-  stageIndex,
-  onComplete,
-}: {
-  stage: TheoryQuizStage;
-  stageIndex: number;
-  onComplete: (result: StageQuizResult) => void;
-}) {
-  const optionsMode = isOptionsQuiz(stage);
-
-  const drillState = useRef(
-    !optionsMode && "drill" in stage
-      ? generateOptionsForDrill(stage.drill)
-      : null,
-  );
-
-  const options = optionsMode
-    ? stage.options
-    : (drillState.current?.options ?? []);
-  const correctAnswer = optionsMode
-    ? stage.correct_answer
-    : (drillState.current?.correctAnswer ?? "1");
-
-  const [selected, setSelected] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [startTime] = useState(Date.now());
-
-  const handleSelect = (optionId: string) => {
-    if (revealed) return;
-    setSelected(optionId);
-  };
-
-  const handleCheck = () => {
-    if (!selected) return;
-    const isCorrect = selected === correctAnswer;
-    setRevealed(true);
-
-    const result: StageQuizResult = {
-      stage_index: stageIndex,
-      stage_type: "theory_quiz",
-      correct: isCorrect,
-      response_time_ms: Date.now() - startTime,
-      seeds_card: stage.seeds_card ?? null,
-      card_category: "declarative",
-    };
-
-    setTimeout(() => onComplete(result), 1200);
-  };
-
-  const getCardState = (optionId: string) => {
-    if (!revealed) return selected === optionId ? "selected" : "default";
-    if (optionId === correctAnswer) return "correct";
-    if (optionId === selected) return "incorrect";
-    return "disabled";
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="font-display text-lg font-bold text-ivory">
-        {stage.prompt}
-      </h2>
-
-      <div className="grid grid-cols-2 gap-3">
-        {options.map((opt) => (
-          <AnswerCard
-            key={opt.id}
-            label={opt.label}
-            sublabel={opt.sublabel}
-            state={getCardState(opt.id)}
-            degreeColor={opt.degree as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined}
-            onClick={() => handleSelect(opt.id)}
-            disabled={revealed}
-          />
-        ))}
-      </div>
-
-      {!revealed && (
-        <Button fullWidth disabled={!selected} onClick={handleCheck}>
-          Check
-        </Button>
-      )}
-    </div>
-  );
-}
-
 // ─── Rhythm Stage ───────────────────────────────────────────
 
 function RhythmView({
   stage,
-  stageIndex,
   onComplete,
 }: {
   stage: RhythmStage;
-  stageIndex: number;
-  onComplete: (result: StageQuizResult | null) => void;
+  onComplete: () => void;
 }) {
   const [lastAccuracy, setLastAccuracy] = useState<number | null>(null);
   const meterStr = `${stage.time_signature[0]}/${stage.time_signature[1]}` as
@@ -666,21 +233,6 @@ function RhythmView({
   const handleRhythmComplete = useCallback((accuracy: number) => {
     setLastAccuracy(accuracy);
   }, []);
-
-  const handleContinue = () => {
-    if (stage.mode === "listen" || lastAccuracy === null) {
-      onComplete(null);
-      return;
-    }
-    onComplete({
-      stage_index: stageIndex,
-      stage_type: "rhythm",
-      correct: lastAccuracy >= 0.6,
-      response_time_ms: 0,
-      seeds_card: stage.seeds_card ?? null,
-      card_category: "rhythm",
-    });
-  };
 
   const feedback =
     lastAccuracy !== null && stage.mode !== "listen"
@@ -734,7 +286,7 @@ function RhythmView({
       )}
 
       {(lastAccuracy !== null || stage.mode === "listen") && (
-        <Button fullWidth onClick={handleContinue}>
+        <Button fullWidth onClick={onComplete}>
           Continue &rarr;
         </Button>
       )}
@@ -749,9 +301,8 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
   const playback = usePlayback();
   const metronome = useMetronome();
   const [stageIdx, setStageIdx] = useState(0);
-  const [quizResults, setQuizResults] = useState<StageQuizResult[]>([]);
 
-  // Check if any stage uses pitch content (degrees or degree-based options)
+  // Check if any stage uses pitch content
   const lessonHasPitchContent = useMemo(
     () =>
       lesson.stages.some((s) => {
@@ -761,15 +312,8 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           s.audio_degrees.length > 0
         )
           return true;
-        if (
-          "options" in s &&
-          Array.isArray(s.options) &&
-          s.type !== "guided_practice" &&
-          s.options.some((o: QuizOption) => o.degree !== undefined)
-        )
-          return true;
         if (s.type === "guided_practice") return true;
-        if ("drill" in s) return true;
+        if (s.type === "interactive") return true;
         return false;
       }),
     [lesson.stages],
@@ -804,20 +348,13 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
   const progress =
     stages.length > 0 ? ((stageIdx + 1) / stages.length) * 100 : 0;
 
-  const advanceStage = useCallback(
-    (result: StageQuizResult | null) => {
-      if (result) {
-        setQuizResults((prev) => [...prev, result]);
-      }
-      if (stageIdx < stages.length - 1) {
-        setStageIdx((i) => i + 1);
-      } else {
-        // Final stage — pass all results up
-        onComplete(result ? [...quizResults, result] : quizResults);
-      }
-    },
-    [stageIdx, stages.length, quizResults, onComplete],
-  );
+  const advanceStage = useCallback(() => {
+    if (stageIdx < stages.length - 1) {
+      setStageIdx((i) => i + 1);
+    } else {
+      onComplete(stages.length);
+    }
+  }, [stageIdx, stages.length, onComplete]);
 
   if (!currentStage) return null;
 
@@ -866,33 +403,14 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           droneKey={lesson.drone_key}
           drone={drone}
           playback={playback}
-          onComplete={() => advanceStage(null)}
+          onComplete={advanceStage}
         />
       )}
       {currentStage.type === "theory_teach" && (
         <TheoryTeachView
           key={stageIdx}
           stage={currentStage}
-          onComplete={() => advanceStage(null)}
-        />
-      )}
-      {currentStage.type === "aural_quiz" && (
-        <AuralQuizView
-          key={stageIdx}
-          stage={currentStage}
-          stageIndex={stageIdx}
-          droneKey={lesson.drone_key}
-          drone={drone}
-          playback={playback}
-          onComplete={(r) => advanceStage(r)}
-        />
-      )}
-      {currentStage.type === "theory_quiz" && (
-        <TheoryQuizView
-          key={stageIdx}
-          stage={currentStage}
-          stageIndex={stageIdx}
-          onComplete={(r) => advanceStage(r)}
+          onComplete={advanceStage}
         />
       )}
       {currentStage.type === "interactive" && (
@@ -903,7 +421,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           droneKey={lesson.drone_key}
           drone={drone}
           playback={playback}
-          onComplete={() => advanceStage(null)}
+          onComplete={advanceStage}
         />
       )}
       {currentStage.type === "guided_practice" && (
@@ -914,15 +432,14 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           droneKey={lesson.drone_key}
           drone={drone}
           playback={playback}
-          onComplete={() => advanceStage(null)}
+          onComplete={advanceStage}
         />
       )}
       {currentStage.type === "rhythm" && (
         <RhythmView
           key={stageIdx}
           stage={currentStage}
-          stageIndex={stageIdx}
-          onComplete={(r) => advanceStage(r)}
+          onComplete={advanceStage}
         />
       )}
     </div>

@@ -285,7 +285,7 @@ export interface RhythmEvent {
 
 export interface StageRendererProps {
   lesson: LessonRenderData;
-  onComplete: (results: StageQuizResult[]) => void;
+  onComplete: (stagesCompleted: number) => void;
 }
 
 export interface LessonRenderData {
@@ -300,17 +300,8 @@ export interface LessonRenderData {
 
 export interface LessonCompletionResult {
   lesson_id: string;
+  stages_completed: number;
   duration_ms: number;
-  stage_results: StageQuizResult[];
-}
-
-export interface StageQuizResult {
-  stage_index: number;
-  stage_type: LessonStageType;
-  correct: boolean;
-  response_time_ms: number;
-  seeds_card: string | null;
-  card_category: CardCategory | null;
 }
 
 export interface StageCompletionResult {
