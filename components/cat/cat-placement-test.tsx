@@ -21,6 +21,7 @@ import {
   getPlacement,
 } from "@/lib/cat/engine";
 import type { CATItem, CATState, PlacementResult } from "@/lib/cat/types";
+import { ITEM_BANK } from "@/lib/cat/item-bank";
 import { RADAR_GROUP_LABELS, type RadarGroup } from "@/lib/radar/dimensions";
 import type { NoteName, DiatonicDegree } from "@/types/audio";
 
@@ -28,6 +29,7 @@ interface CATPlacementTestProps {
   onComplete: (placement: PlacementResult) => void;
   onSkipAll: () => void;
   onBack: () => void;
+  quietEnvironment?: boolean;
 }
 
 interface RadarDataPoint {
@@ -55,10 +57,27 @@ function buildRadarData(state: CATState): RadarDataPoint[] {
   }));
 }
 
+function applyNoisyEnvironmentAdjustment(
+  placement: PlacementResult,
+): PlacementResult {
+  // Find dimensions that have aural items in the bank
+  const auralDimensions = new Set(
+    ITEM_BANK.filter((i) => i.item_type === "aural").map((i) => i.dimension),
+  );
+  const extra = Array.from(auralDimensions).filter(
+    (d) => !placement.lowConfidenceDimensions.includes(d),
+  );
+  return {
+    ...placement,
+    lowConfidenceDimensions: [...placement.lowConfidenceDimensions, ...extra],
+  };
+}
+
 export function CATPlacementTest({
   onComplete,
   onSkipAll,
   onBack,
+  quietEnvironment,
 }: CATPlacementTestProps) {
   const [catState, setCATState] = useState<CATState>(createInitialState);
   const [currentItem, setCurrentItem] = useState<CATItem | null>(() =>
@@ -127,7 +146,10 @@ export function CATPlacementTest({
 
         if (isComplete(newState)) {
           drone.stop();
-          const placement = getPlacement(newState);
+          let placement = getPlacement(newState);
+          if (quietEnvironment === false) {
+            placement = applyNoisyEnvironmentAdjustment(placement);
+          }
           onComplete(placement);
           return;
         }
@@ -135,7 +157,10 @@ export function CATPlacementTest({
         const nextItem = selectNextItem(newState);
         if (!nextItem) {
           drone.stop();
-          const placement = getPlacement(newState);
+          let placement = getPlacement(newState);
+          if (quietEnvironment === false) {
+            placement = applyNoisyEnvironmentAdjustment(placement);
+          }
           onComplete(placement);
           return;
         }
