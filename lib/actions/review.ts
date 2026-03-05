@@ -41,6 +41,8 @@ export async function getReviewQueue(
       card_instance_id,
       srs_stage,
       difficulty_tier,
+      correct_streak,
+      interval_days,
       card_instances!inner (
         id,
         template_id,
@@ -67,6 +69,17 @@ export async function getReviewQueue(
     .lte("next_review_at", now)
     .order("next_review_at")
     .limit(cap);
+
+  // Build warm-up scores for later reordering
+  const warmupScores = new Map<string, number>();
+  for (const card of dueCards ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c = card as any;
+    warmupScores.set(
+      c.id,
+      (c.correct_streak ?? 0) * Math.max(c.interval_days ?? 0, 1),
+    );
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rawItems: ReviewQueueItem[] = (dueCards ?? []).map((card: any) => {
@@ -128,6 +141,51 @@ export async function getReviewQueue(
     if (interleavePool.length > 0) items.push(interleavePool.shift()!);
   }
   items.push(...interleavePool);
+
+  // Warm-up ordering: move high-confidence cards to front (positions 0-2)
+  if (items.length >= 5) {
+    const firstItem = items[0];
+    let warmupSlots = 3;
+    if (firstItem && firstItem.card_category === "perceptual") {
+      const firstDim = firstItem.dimensions[0] ?? "general";
+      let groupEnd = 0;
+      while (groupEnd < items.length) {
+        const cur = items[groupEnd];
+        if (
+          !cur ||
+          cur.card_category !== "perceptual" ||
+          (cur.dimensions[0] ?? "general") !== firstDim
+        )
+          break;
+        groupEnd++;
+      }
+      warmupSlots = groupEnd;
+    }
+
+    const candidates = items
+      .slice(warmupSlots)
+      .map((item, idx) => ({
+        item,
+        originalIdx: warmupSlots + idx,
+        score: warmupScores.get(item.user_card_state_id) ?? 0,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    for (let i = 0; i < warmupSlots && i < candidates.length; i++) {
+      const frontItem = items[i];
+      const candidate = candidates[i];
+      if (!frontItem || !candidate) continue;
+      const frontScore = warmupScores.get(frontItem.user_card_state_id) ?? 0;
+      if (candidate.score > frontScore) {
+        const backIdx = candidate.originalIdx;
+        const backItem = items[backIdx];
+        if (backItem) {
+          items[i] = backItem;
+          items[backIdx] = frontItem;
+        }
+      }
+    }
+  }
 
   // Stage breakdown
   const groupCounts: Record<SrsStageGroup, number> = {
