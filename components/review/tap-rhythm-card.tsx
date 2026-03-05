@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ReviewQueueItem, DifficultyTier } from "@/types/srs";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { brand } from "@/lib/tokens";
-import { stageToGroup } from "@/lib/srs/stages";
+import { stageToGroup, getAudiationPauseMs } from "@/lib/srs/stages";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -21,8 +21,6 @@ interface RhythmPattern {
 }
 
 // ─── Constants ──────────────────────────────────────────────
-
-const AUDIATION_PAUSE_MS = 1500;
 
 const TOLERANCE_BY_TIER: Record<DifficultyTier, number> = {
   intro: 150,
@@ -200,13 +198,14 @@ export function TapRhythmCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  // Phase 2: Audiation pause
+  // Phase 2: Audiation pause (adaptive by SRS stage)
   useEffect(() => {
     if (phase !== "audiation") return;
 
+    const pauseMs = getAudiationPauseMs(card.srs_stage);
     const start = Date.now();
     const interval = setInterval(() => {
-      const pct = Math.min((Date.now() - start) / AUDIATION_PAUSE_MS, 1);
+      const pct = Math.min((Date.now() - start) / pauseMs, 1);
       setAudiationProgress(pct);
       if (pct >= 1) {
         clearInterval(interval);
@@ -217,7 +216,7 @@ export function TapRhythmCard({
     }, 30);
 
     return () => clearInterval(interval);
-  }, [phase]);
+  }, [phase, card.srs_stage]);
 
   // Phase 3: Auto-end tapping after pattern duration + buffer
   useEffect(() => {

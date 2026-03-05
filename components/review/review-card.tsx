@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { ReviewQueueItem, ConfidenceRating } from "@/types/srs";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { degreeColors, brand } from "@/lib/tokens";
-import { stageToGroup } from "@/lib/srs/stages";
+import { stageToGroup, getAudiationPauseMs } from "@/lib/srs/stages";
 import { ConfidencePrompt } from "@/components/review/confidence-prompt";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -33,7 +33,6 @@ interface OptionData {
 
 // ─── Audiation Pause Durations ──────────────────────────────
 
-const PERCEPTUAL_PAUSE_MS = 1500;
 const RHYTHM_PAUSE_MS = 800;
 const REVEAL_DELAY_PERCEPTUAL = 400; // after resolution
 const REVEAL_DELAY_DECLARATIVE = 1000;
@@ -188,11 +187,11 @@ export function ReviewCard({
         const correctOpt = options.find((o) => o.id === correctAnswer);
         if (correctOpt?.degree && onPlayDegree) onPlayDegree(correctOpt.degree);
         setPlaying(false);
-        startAudiationPause(PERCEPTUAL_PAUSE_MS);
+        startAudiationPause(getAudiationPauseMs(card.srs_stage));
       };
       void playAudio();
     } else if (isRhythm) {
-      startAudiationPause(RHYTHM_PAUSE_MS);
+      startAudiationPause(getAudiationPauseMs(card.srs_stage));
     } else {
       // Declarative — immediately interactive
       answerStartTime.current = Date.now();

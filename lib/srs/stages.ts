@@ -122,3 +122,17 @@ export function canAdvanceSrs(
   if (tier === "stretch") return true;
   return stageIndex(targetStage) <= stageIndex("journeyman_2");
 }
+
+// ─── Audiation Pause by Stage ─────────────────────────────────
+
+export const AUDIATION_PAUSE_MS: Record<SrsStageGroup, number> = {
+  apprentice: 2000,
+  journeyman: 1500,
+  adept: 1200,
+  virtuoso: 900,
+  mastered: 750,
+};
+
+export function getAudiationPauseMs(stage: SrsStageKey): number {
+  return AUDIATION_PAUSE_MS[stageToGroup(stage)];
+}
