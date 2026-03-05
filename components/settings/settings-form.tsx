@@ -9,6 +9,7 @@ import {
   updateFeelingStates,
   updateAccessibilityPreferences,
   type AccessibilityPreferences,
+  updateGuidedMode,
   requestPasswordReset,
   deleteAccount,
   signOut,
@@ -106,6 +107,7 @@ interface SettingsFormProps {
   reviewSessionCap?: number | null;
   feelingStatesEnabled?: boolean;
   accessibilityPreferences?: AccessibilityPreferences;
+  guidedMode?: boolean;
 }
 
 export function SettingsForm({
@@ -114,6 +116,7 @@ export function SettingsForm({
   reviewSessionCap,
   feelingStatesEnabled = true,
   accessibilityPreferences = {},
+  guidedMode = false,
 }: SettingsFormProps) {
   const [toast, setToast] = useState<string | null>(null);
 
@@ -137,6 +140,7 @@ export function SettingsForm({
       />
       <DisplaySection
         feelingStates={feelingStatesEnabled}
+        guidedModeEnabled={guidedMode}
         onSaved={() => showToast("Display settings updated")}
       />
       <AccessibilitySection
@@ -347,12 +351,15 @@ function LearningSection({
 
 function DisplaySection({
   feelingStates,
+  guidedModeEnabled,
   onSaved,
 }: {
   feelingStates: boolean;
+  guidedModeEnabled: boolean;
   onSaved: () => void;
 }) {
   const [enabled, setEnabled] = useState(feelingStates);
+  const [guided, setGuided] = useState(guidedModeEnabled);
   const [isPending, startTransition] = useTransition();
 
   const handleToggle = () => {
@@ -364,34 +371,75 @@ function DisplaySection({
     });
   };
 
+  const handleGuidedToggle = () => {
+    const next = !guided;
+    setGuided(next);
+    startTransition(async () => {
+      await updateGuidedMode(next);
+      onSaved();
+    });
+  };
+
   return (
     <Section title="Display">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-sm text-ivory">Show feeling descriptions</span>
-          <p className="text-xs text-ash mt-0.5">
-            Brief descriptors when tapping degrees in lessons and drills
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          onClick={handleToggle}
-          disabled={isPending}
-          className={`
-            relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors
-            ${enabled ? "bg-violet" : "bg-steel"}
-            ${isPending ? "opacity-50" : ""}
-          `}
-        >
-          <span
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-ivory">
+              Show feeling descriptions
+            </span>
+            <p className="text-xs text-ash mt-0.5">
+              Brief descriptors when tapping degrees in lessons and drills
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            onClick={handleToggle}
+            disabled={isPending}
             className={`
-              pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform
-              ${enabled ? "translate-x-5" : "translate-x-0"}
+              relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors
+              ${enabled ? "bg-violet" : "bg-steel"}
+              ${isPending ? "opacity-50" : ""}
             `}
-          />
-        </button>
+          >
+            <span
+              className={`
+                pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform
+                ${enabled ? "translate-x-5" : "translate-x-0"}
+              `}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-ivory">Guided mode</span>
+            <p className="text-xs text-ash mt-0.5">
+              Simplified interface — one lesson at a time, focused practice only
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={guided}
+            onClick={handleGuidedToggle}
+            disabled={isPending}
+            className={`
+              relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors
+              ${guided ? "bg-violet" : "bg-steel"}
+              ${isPending ? "opacity-50" : ""}
+            `}
+          >
+            <span
+              className={`
+                pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform
+                ${guided ? "translate-x-5" : "translate-x-0"}
+              `}
+            />
+          </button>
+        </div>
       </div>
     </Section>
   );

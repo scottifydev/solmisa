@@ -582,6 +582,7 @@ export type Database = {
           created_at: string | null;
           experience_level: string | null;
           goals: string[] | null;
+          guided_mode: boolean | null;
           id: string;
           instrument: string | null;
           musical_background: string | null;
@@ -599,6 +600,7 @@ export type Database = {
           created_at?: string | null;
           experience_level?: string | null;
           goals?: string[] | null;
+          guided_mode?: boolean | null;
           id: string;
           instrument?: string | null;
           musical_background?: string | null;
@@ -616,6 +618,7 @@ export type Database = {
           created_at?: string | null;
           experience_level?: string | null;
           goals?: string[] | null;
+          guided_mode?: boolean | null;
           id?: string;
           instrument?: string | null;
           musical_background?: string | null;

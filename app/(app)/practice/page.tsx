@@ -6,6 +6,7 @@ import {
   getFocusPractice,
 } from "@/lib/actions/practice";
 import { getTracksWithProgress } from "@/lib/actions/lessons";
+import { getGuidedMode } from "@/lib/actions/profile";
 import { TrackSelector } from "@/components/learn/track-selector";
 import { DrillCard } from "@/components/practice/drill-card";
 import { RecommendationCard } from "@/components/practice/recommendation-card";
@@ -22,12 +23,13 @@ export default async function PracticePage({
   searchParams,
 }: PracticePageProps) {
   const params = await searchParams;
-  const [tracks, practiceData, recommendations, focusDrills] =
+  const [tracks, practiceData, recommendations, focusDrills, guidedMode] =
     await Promise.all([
       getTracksWithProgress(),
       getPracticeData(params.track),
       getRecommendations(),
       getFocusPractice(),
+      getGuidedMode(),
     ]);
 
   const { drills, trackSlug } = practiceData;
@@ -36,6 +38,30 @@ export default async function PracticePage({
 
   const unlockedDrills = drills.filter((d) => d.unlocked);
   const lockedDrills = drills.filter((d) => !d.unlocked);
+
+  if (guidedMode) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-8">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-ivory">
+            Practice
+          </h1>
+          <p className="text-silver text-sm mt-1">
+            Focused repetition on areas that need attention
+          </p>
+        </div>
+
+        {focusDrills.length > 0 ? (
+          <FocusPractice drills={focusDrills} />
+        ) : (
+          <EmptyState
+            title="No focus areas yet"
+            message="Complete more lessons and reviews to unlock targeted practice."
+          />
+        )}
+      </div>
+    );
+  }
 
   // Group by drill_type
   const drillsByType = new Map<string, typeof drills>();
