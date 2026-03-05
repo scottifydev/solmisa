@@ -44,6 +44,11 @@ const SEMITONE_TO_NOTE: string[] = [
   "B",
 ];
 
+/** Strip trailing octave digits from a key name (e.g. "C4" -> "C") */
+function stripOctave(key: string): NoteName {
+  return key.replace(/\d+$/, "") as NoteName;
+}
+
 function noteToMidi(name: NoteName, octave: number): number {
   const semi = NOTE_SEMITONES[name];
   if (semi === undefined) throw new Error(`Unknown note: ${name}`);
@@ -211,7 +216,8 @@ export class DroneGenerator {
   }
 
   async start(options: DroneOptions): Promise<void> {
-    const { key, octave = 4, volume = 0.35 } = options;
+    const { key: rawKey, octave = 4, volume = 0.35 } = options;
+    const key = stripOctave(rawKey);
     this.targetVolume = volume;
 
     if (this.isPlaying && this.currentKey === key) return;
@@ -276,7 +282,8 @@ export class DroneGenerator {
     this.isPlaying = false;
   }
 
-  async changeKey(key: NoteName, octave = 4): Promise<void> {
+  async changeKey(rawKey: NoteName, octave = 4): Promise<void> {
+    const key = stripOctave(rawKey);
     if (!this.isPlaying || this.oscillators.length === 0) {
       await this.start({ key, octave, volume: this.targetVolume });
       return;
@@ -328,7 +335,7 @@ export class DroneGenerator {
   }
 
   async playCadence(options?: Partial<CadenceOptions>): Promise<void> {
-    const key = options?.key ?? this.currentKey ?? "C";
+    const key = stripOctave(options?.key ?? this.currentKey ?? "C");
     const tempo = options?.tempo ?? 100;
     const chordDuration = (60 / tempo) * 0.6; // ~600ms at 100bpm
     const gap = 0.1; // 100ms gap between chords
