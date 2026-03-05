@@ -175,6 +175,36 @@ export async function updateFeelingStates(enabled: boolean) {
   if (error) throw new Error(error.message);
 }
 
+export async function getGuidedMode(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("guided_mode")
+    .eq("id", user.id)
+    .single();
+
+  return data?.guided_mode ?? false;
+}
+
+export async function updateGuidedMode(enabled: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ guided_mode: enabled })
+    .eq("id", user.id);
+  if (error) throw new Error(error.message);
+}
+
 export interface AccessibilityPreferences {
   high_contrast?: boolean;
   rhythm_tolerance_ms?: number;

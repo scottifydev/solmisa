@@ -5,18 +5,20 @@ import {
   getReviewSessionCap,
   getFeelingStatesEnabled,
   getAccessibilityPreferences,
+  getGuidedMode,
 } from "@/lib/actions/profile";
 import { SettingsForm } from "@/components/settings/settings-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const [data, sessionCap, feelingStates, accessibilityPrefs] =
+  const [data, sessionCap, feelingStates, accessibilityPrefs, guidedMode] =
     await Promise.all([
       getProfileData(),
       getReviewSessionCap(),
       getFeelingStatesEnabled(),
       getAccessibilityPreferences(),
+      getGuidedMode(),
     ]);
   if (!data) redirect("/login");
 
@@ -37,6 +39,7 @@ export default async function SettingsPage() {
         reviewSessionCap={sessionCap}
         feelingStatesEnabled={feelingStates}
         accessibilityPreferences={accessibilityPrefs}
+        guidedMode={guidedMode}
       />
     </div>
   );

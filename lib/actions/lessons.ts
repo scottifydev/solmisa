@@ -455,6 +455,75 @@ export async function getModulesWithLessonsForTrack(
   });
 }
 
+export interface NextLessonSuggestion {
+  lessonId: string;
+  lessonTitle: string;
+  trackName: string;
+  trackSlug: string;
+  moduleTitle: string;
+  lessonOrder: number;
+}
+
+export async function getNextLessonSuggestion(): Promise<NextLessonSuggestion | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [{ data: tracks }, { data: allLessons }, { data: progress }] =
+    await Promise.all([
+      supabase
+        .from("skill_tracks")
+        .select("id, slug, name")
+        .order("display_order"),
+      supabase
+        .from("lessons")
+        .select(
+          "id, title, lesson_order, module_id, track_id, modules!inner(title, module_order)",
+        )
+        .order("lesson_order"),
+      supabase
+        .from("lesson_progress")
+        .select("lesson_id, status")
+        .eq("user_id", user.id)
+        .eq("status", "completed"),
+    ]);
+
+  if (!tracks || !allLessons) return null;
+
+  const completedIds = new Set((progress ?? []).map((p) => p.lesson_id));
+
+  // Find the first uncompleted lesson across all tracks, prioritizing track display_order
+  for (const track of tracks) {
+    const trackLessons = allLessons
+      .filter((l) => l.track_id === track.id)
+      .sort((a, b) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const aModOrder = (a.modules as any)?.module_order ?? 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bModOrder = (b.modules as any)?.module_order ?? 0;
+        if (aModOrder !== bModOrder) return aModOrder - bModOrder;
+        return a.lesson_order - b.lesson_order;
+      });
+
+    const next = trackLessons.find((l) => !completedIds.has(l.id));
+    if (next) {
+      return {
+        lessonId: next.id,
+        lessonTitle: next.title,
+        trackName: track.name,
+        trackSlug: track.slug,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        moduleTitle: (next.modules as any)?.title ?? "Module",
+        lessonOrder: next.lesson_order,
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function completeLesson(lessonId: string) {
   const supabase = await createClient();
   const {
