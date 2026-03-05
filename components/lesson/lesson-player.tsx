@@ -35,24 +35,27 @@ export function LessonPlayer({
 
   const handleFinish = async () => {
     setSaving(true);
-
-    // Seed SRS cards from quiz results
-    if (userId && results) {
-      try {
-        const seedResult = await seedCardsFromLesson({
-          user_id: userId,
-          lesson_id: lesson.id,
-          stage_results: results,
-        });
-        setCardsSeeded(seedResult.cards_seeded);
-      } catch {
-        // Don't block completion on seeding failure
+    try {
+      // Seed SRS cards from quiz results
+      if (userId && results) {
+        try {
+          const seedResult = await seedCardsFromLesson({
+            user_id: userId,
+            lesson_id: lesson.id,
+            stage_results: results,
+          });
+          setCardsSeeded(seedResult.cards_seeded);
+        } catch {
+          // Don't block completion on seeding failure
+        }
       }
-    }
 
-    await completeLesson(lesson.id);
-    router.push("/learn");
-    router.refresh();
+      await completeLesson(lesson.id);
+      router.push("/learn");
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (results !== null) {

@@ -1,8 +1,11 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getModuleWithLessons } from "@/lib/actions/lessons";
 import { LessonListItem } from "@/components/learn/lesson-list-item";
 import Link from "next/link";
+
+const getCachedModule = cache(getModuleWithLessons);
 
 interface Props {
   params: Promise<{ moduleId: string }>;
@@ -10,14 +13,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { moduleId } = await params;
-  const data = await getModuleWithLessons(moduleId);
+  const data = await getCachedModule(moduleId);
   if (!data) return { title: "Module" };
   return { title: data.module.title };
 }
 
 export default async function ModulePage({ params }: Props) {
   const { moduleId } = await params;
-  const data = await getModuleWithLessons(moduleId);
+  const data = await getCachedModule(moduleId);
 
   if (!data) redirect("/learn");
 
