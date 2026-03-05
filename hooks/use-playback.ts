@@ -12,7 +12,9 @@ import type {
   UsePlaybackReturn,
 } from "@/types/audio";
 
-export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn {
+export function usePlayback(_options?: {
+  droneKey?: string;
+}): UsePlaybackReturn {
   const { ensureStarted } = useAudioContext();
   const engineRef = useRef<PlaybackEngine | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -28,18 +30,27 @@ export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn
     async (opts: PlayDegreeOptions) => {
       await ensureStarted();
       setIsPlaying(true);
-      await getEngine().playDegree(opts);
-      setIsPlaying(false);
+      try {
+        await getEngine().playDegree(opts);
+      } finally {
+        setIsPlaying(false);
+      }
     },
     [ensureStarted, getEngine],
   );
 
   const playDegreeSequence = useCallback(
-    async (degrees: DiatonicDegree[], opts: Omit<PlayDegreeOptions, "degree">) => {
+    async (
+      degrees: DiatonicDegree[],
+      opts: Omit<PlayDegreeOptions, "degree">,
+    ) => {
       await ensureStarted();
       setIsPlaying(true);
-      await getEngine().playDegreeSequence(degrees, opts);
-      setIsPlaying(false);
+      try {
+        await getEngine().playDegreeSequence(degrees, opts);
+      } finally {
+        setIsPlaying(false);
+      }
     },
     [ensureStarted, getEngine],
   );
@@ -48,8 +59,11 @@ export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn
     async (opts: ResolutionOptions) => {
       await ensureStarted();
       setIsPlaying(true);
-      await getEngine().playResolution(opts);
-      setIsPlaying(false);
+      try {
+        await getEngine().playResolution(opts);
+      } finally {
+        setIsPlaying(false);
+      }
     },
     [ensureStarted, getEngine],
   );
@@ -58,8 +72,11 @@ export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn
     async (opts: PlayIntervalOptions) => {
       await ensureStarted();
       setIsPlaying(true);
-      await getEngine().playInterval(opts);
-      setIsPlaying(false);
+      try {
+        await getEngine().playInterval(opts);
+      } finally {
+        setIsPlaying(false);
+      }
     },
     [ensureStarted, getEngine],
   );
@@ -68,8 +85,11 @@ export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn
     async (opts: PlayChordOptions) => {
       await ensureStarted();
       setIsPlaying(true);
-      await getEngine().playChord(opts);
-      setIsPlaying(false);
+      try {
+        await getEngine().playChord(opts);
+      } finally {
+        setIsPlaying(false);
+      }
     },
     [ensureStarted, getEngine],
   );
@@ -86,5 +106,13 @@ export function usePlayback(_options?: { droneKey?: string }): UsePlaybackReturn
     };
   }, []);
 
-  return { playDegree, playDegreeSequence, playResolution, playInterval, playChord, stop, isPlaying };
+  return {
+    playDegree,
+    playDegreeSequence,
+    playResolution,
+    playInterval,
+    playChord,
+    stop,
+    isPlaying,
+  };
 }

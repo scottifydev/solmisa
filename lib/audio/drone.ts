@@ -90,24 +90,47 @@ function buildCadenceChords(key: NoteName, bassOctave: number): string[][] {
   return [I, IV, V, Ifinal];
 }
 
+// ─── Pad Voice Configuration ─────────────────────────────────
+
+interface PadVoice {
+  type: OscillatorType;
+  detuneCents: number;
+  octaveOffset: number;
+  gain: number;
+}
+
+const PAD_VOICES: PadVoice[] = [
+  // Core unison layer — 6 voices with symmetric detune spread
+  { type: "sine", detuneCents: -12, octaveOffset: 0, gain: 0.3 },
+  { type: "sine", detuneCents: +12, octaveOffset: 0, gain: 0.3 },
+  { type: "triangle", detuneCents: -6, octaveOffset: 0, gain: 0.2 },
+  { type: "triangle", detuneCents: +6, octaveOffset: 0, gain: 0.2 },
+  { type: "sawtooth", detuneCents: -18, octaveOffset: 0, gain: 0.08 },
+  { type: "sawtooth", detuneCents: +18, octaveOffset: 0, gain: 0.08 },
+  // Sub-octave for warmth
+  { type: "sine", detuneCents: 0, octaveOffset: -1, gain: 0.18 },
+  // Upper-octave shimmer
+  { type: "sine", detuneCents: 0, octaveOffset: +1, gain: 0.04 },
+];
+
 // ─── Effects Defaults ───────────────────────────────────────
 
 export interface DroneEffectsConfig {
-  filterCutoff?: number; // Hz, default 800
-  reverbWet?: number; // 0-1, default 0.15
-  reverbDecay?: number; // seconds, default 2.5
-  chorusDepth?: number; // 0-1, default 0.3
-  chorusFrequency?: number; // Hz, default 0.4
-  compressorThreshold?: number; // dB, default -20
+  filterCutoff?: number; // Hz, default 600
+  reverbWet?: number; // 0-1, default 0.25
+  reverbDecay?: number; // seconds, default 3.5
+  chorusDepth?: number; // 0-1, default 0.5
+  chorusFrequency?: number; // Hz, default 0.3
+  compressorThreshold?: number; // dB, default -18
 }
 
 const DEFAULT_EFFECTS: Required<DroneEffectsConfig> = {
-  filterCutoff: 800,
-  reverbWet: 0.15,
-  reverbDecay: 2.5,
-  chorusDepth: 0.3,
-  chorusFrequency: 0.4,
-  compressorThreshold: -20,
+  filterCutoff: 600,
+  reverbWet: 0.25,
+  reverbDecay: 3.5,
+  chorusDepth: 0.5,
+  chorusFrequency: 0.3,
+  compressorThreshold: -18,
 };
 
 // ─── Drone Generator Class ──────────────────────────────────
@@ -116,14 +139,16 @@ const FADE_TIME = 0.4; // seconds for volume fades
 const CROSSFADE_TIME = 0.6; // seconds for key change crossfade
 
 export class DroneGenerator {
-  private sineOsc: Tone.Oscillator | null = null;
-  private triOsc: Tone.Oscillator | null = null;
+  private oscillators: Tone.Oscillator[] = [];
+  private voiceGains: Tone.Gain[] = [];
   private gainNode: Tone.Gain;
   private filter: Tone.Filter;
   private chorus: Tone.Chorus;
   private reverb: Tone.Reverb;
   private compressor: Tone.Compressor;
+  private filterLfo: Tone.LFO;
   private currentKey: NoteName | null = null;
+  private currentOctave = 4;
   private targetVolume = 0.35;
   private isPlaying = false;
   private cadenceSynth: Tone.PolySynth | null = null;
@@ -135,7 +160,7 @@ export class DroneGenerator {
   ) {
     this.effectsConfig = { ...DEFAULT_EFFECTS, ...effects };
 
-    // Chain: oscillators → filter → chorus → reverb → compressor → gain → destination
+    // Chain: voice gains → filter → chorus → reverb → compressor → master gain → destination
     this.gainNode = new Tone.Gain(0).connect(destination);
     this.compressor = new Tone.Compressor({
       threshold: this.effectsConfig.compressorThreshold,
@@ -152,7 +177,7 @@ export class DroneGenerator {
       frequency: this.effectsConfig.chorusFrequency,
       delayTime: 3.5,
       depth: this.effectsConfig.chorusDepth,
-      wet: 0.3,
+      wet: 0.35,
     }).connect(this.reverb);
     this.chorus.start();
     this.filter = new Tone.Filter({
@@ -161,6 +186,14 @@ export class DroneGenerator {
       rolloff: -24,
       Q: 0.7,
     }).connect(this.chorus);
+
+    // Gentle LFO on filter cutoff for organic movement
+    this.filterLfo = new Tone.LFO({
+      frequency: 0.08,
+      min: this.effectsConfig.filterCutoff * 0.7,
+      max: this.effectsConfig.filterCutoff * 1.3,
+      type: "sine",
+    }).connect(this.filter.frequency);
   }
 
   get playing(): boolean {
@@ -169,6 +202,12 @@ export class DroneGenerator {
 
   get key(): NoteName | null {
     return this.currentKey;
+  }
+
+  private computeVoiceFreq(baseFreq: number, voice: PadVoice): number {
+    const octaveMultiplier = Math.pow(2, voice.octaveOffset);
+    const detuneMultiplier = Math.pow(2, voice.detuneCents / 1200);
+    return baseFreq * octaveMultiplier * detuneMultiplier;
   }
 
   async start(options: DroneOptions): Promise<void> {
@@ -182,28 +221,31 @@ export class DroneGenerator {
       return;
     }
 
-    const freq = Tone.Frequency(`${key}${octave}`).toFrequency();
+    const baseFreq = Tone.Frequency(`${key}${octave}`).toFrequency();
 
-    // Layered sine + triangle with slight detune, routed through effects chain
-    this.sineOsc = new Tone.Oscillator({
-      type: "sine",
-      frequency: freq,
-    }).connect(this.filter);
-    this.triOsc = new Tone.Oscillator({
-      type: "triangle",
-      frequency: freq * 1.002,
-    }).connect(this.filter);
+    // Create pad voices — each with its own gain for individual level control
+    for (const voice of PAD_VOICES) {
+      const freq = this.computeVoiceFreq(baseFreq, voice);
+      const voiceGain = new Tone.Gain(voice.gain).connect(this.filter);
+      const osc = new Tone.Oscillator({
+        type: voice.type,
+        frequency: freq,
+      }).connect(voiceGain);
+      this.voiceGains.push(voiceGain);
+      this.oscillators.push(osc);
+    }
 
     // Start silent then fade in
     this.gainNode.gain.setValueAtTime(0, Tone.now());
-    this.sineOsc.start();
-    this.triOsc.start();
+    for (const osc of this.oscillators) osc.start();
+    this.filterLfo.start();
     this.gainNode.gain.linearRampToValueAtTime(
       this.targetVolume,
       Tone.now() + FADE_TIME,
     );
 
     this.currentKey = key;
+    this.currentOctave = octave;
     this.isPlaying = true;
   }
 
@@ -213,42 +255,48 @@ export class DroneGenerator {
     const now = Tone.now();
     this.gainNode.gain.linearRampToValueAtTime(0, now + FADE_TIME);
 
-    // Dispose oscillators after fade out
-    const sine = this.sineOsc;
-    const tri = this.triOsc;
+    // Capture references for cleanup after fade
+    const oscs = [...this.oscillators];
+    const gains = [...this.voiceGains];
     setTimeout(
       () => {
-        sine?.stop();
-        sine?.dispose();
-        tri?.stop();
-        tri?.dispose();
+        for (const osc of oscs) {
+          osc.stop();
+          osc.dispose();
+        }
+        for (const g of gains) g.dispose();
       },
       FADE_TIME * 1000 + 50,
     );
 
-    this.sineOsc = null;
-    this.triOsc = null;
+    this.filterLfo.stop();
+    this.oscillators = [];
+    this.voiceGains = [];
     this.currentKey = null;
     this.isPlaying = false;
   }
 
   async changeKey(key: NoteName, octave = 4): Promise<void> {
-    if (!this.isPlaying || !this.sineOsc || !this.triOsc) {
+    if (!this.isPlaying || this.oscillators.length === 0) {
       await this.start({ key, octave, volume: this.targetVolume });
       return;
     }
 
-    const freq = Tone.Frequency(`${key}${octave}`).toFrequency();
+    const baseFreq = Tone.Frequency(`${key}${octave}`).toFrequency();
     const now = Tone.now();
 
-    // Crossfade: ramp frequency smoothly
-    this.sineOsc.frequency.linearRampToValueAtTime(freq, now + CROSSFADE_TIME);
-    this.triOsc.frequency.linearRampToValueAtTime(
-      freq * 1.002,
-      now + CROSSFADE_TIME,
-    );
+    // Smoothly ramp all voices to new frequencies
+    for (let i = 0; i < this.oscillators.length; i++) {
+      const voice = PAD_VOICES[i]!;
+      const freq = this.computeVoiceFreq(baseFreq, voice);
+      this.oscillators[i]!.frequency.linearRampToValueAtTime(
+        freq,
+        now + CROSSFADE_TIME,
+      );
+    }
 
     this.currentKey = key;
+    this.currentOctave = octave;
   }
 
   setVolume(volume: number): void {
@@ -264,6 +312,8 @@ export class DroneGenerator {
         config.filterCutoff,
         Tone.now() + 0.1,
       );
+      this.filterLfo.min = config.filterCutoff * 0.7;
+      this.filterLfo.max = config.filterCutoff * 1.3;
     }
     if (config.reverbWet !== undefined) {
       this.reverb.wet.linearRampToValueAtTime(
@@ -333,6 +383,8 @@ export class DroneGenerator {
     this.stop();
     this.cadenceSynth?.dispose();
     this.cadenceSynth = null;
+    this.filterLfo.stop();
+    this.filterLfo.dispose();
     this.filter.dispose();
     this.chorus.dispose();
     this.reverb.dispose();
