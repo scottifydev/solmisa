@@ -81,11 +81,14 @@ export interface DroneOptions {
   timbre?: Timbre;
 }
 
+export type CadenceType = "major" | "minor";
+
 export interface CadenceOptions {
   key: NoteName;
   tempo?: number;
   progression?: string[];
   timbre?: Timbre;
+  cadenceType?: CadenceType;
 }
 
 export interface RandomKeyOptions {
