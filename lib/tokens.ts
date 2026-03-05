@@ -69,28 +69,10 @@ export const srsStages = {
   mastered: { label: "Mastered", color: "#b794f6", icon: "\u{1F451}" },
 } as const;
 
-export const degreeLabels = {
-  1: "Do",
-  2: "Re",
-  3: "Mi",
-  4: "Fa",
-  5: "Sol",
-  6: "La",
-  7: "Ti",
-} as const;
-
 export const type = {
   display: "'Outfit', sans-serif",
   body: "'DM Sans', sans-serif",
   mono: "'IBM Plex Mono', monospace",
-} as const;
-
-export const radii = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 20,
-  pill: 100,
 } as const;
 
 export const semanticColors = {

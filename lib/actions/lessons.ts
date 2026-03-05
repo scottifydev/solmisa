@@ -23,7 +23,7 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return [];
 
   const { data: modules } = await supabase
     .from("modules")
@@ -215,7 +215,7 @@ export async function getModuleWithLessons(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return null;
 
   const [{ data: mod }, { data: lessons }] = await Promise.all([
     supabase.from("modules").select("*").eq("id", moduleId).single(),
