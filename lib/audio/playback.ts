@@ -9,6 +9,14 @@ import type {
   PlayIntervalOptions,
   PlayChordOptions,
 } from "@/types/audio";
+import {
+  isSampleTimbre,
+  randomSampleTimbre,
+  findNearestKey,
+  sampleUrl,
+  loadSample,
+  type SampleTimbre,
+} from "./timbre";
 
 // ─── Music Theory Maps ──────────────────────────────────────
 
@@ -186,9 +194,27 @@ export class PlaybackEngine {
   }
 
   async playDegree(options: PlayDegreeOptions): Promise<void> {
-    const { degree, key, octave = 4, duration = 1 } = options;
+    const { degree, key, octave = 4, duration = 1, timbre } = options;
     this.isActive = true;
     this.stopRequested = false;
+
+    // Resolve timbre: 'varied' picks random sample, specific sample timbres use samples
+    const resolvedTimbre = timbre === "varied" ? randomSampleTimbre() : timbre;
+
+    if (resolvedTimbre && isSampleTimbre(resolvedTimbre)) {
+      try {
+        await this.playSample(
+          resolvedTimbre as SampleTimbre,
+          key,
+          degree,
+          duration,
+        );
+        this.isActive = false;
+        return;
+      } catch {
+        // Fall through to synth on sample load failure
+      }
+    }
 
     const note = degreeToNote(key, degree, octave);
     const synth = this.getSynth();
@@ -196,6 +222,37 @@ export class PlaybackEngine {
 
     await this.wait(duration * 1000 + 100);
     this.isActive = false;
+  }
+
+  private async playSample(
+    timbre: SampleTimbre,
+    key: NoteName,
+    degree: DiatonicDegree,
+    duration: number,
+  ): Promise<void> {
+    const nearestKey = findNearestKey(key);
+    const url = sampleUrl(timbre, nearestKey, degree);
+    const rawCtx = Tone.getContext().rawContext as AudioContext;
+    const buffer = await loadSample(url, rawCtx);
+
+    const source = rawCtx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = rawCtx.createGain();
+    gain.gain.setValueAtTime(0.7, rawCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(
+      0.001,
+      rawCtx.currentTime + Math.min(duration + 0.5, buffer.duration),
+    );
+
+    source.connect(gain);
+    gain.connect(rawCtx.destination);
+    source.start();
+
+    await this.wait(Math.min(duration + 0.5, buffer.duration) * 1000 + 100);
+    source.stop();
+    source.disconnect();
+    gain.disconnect();
   }
 
   async playDegreeSequence(

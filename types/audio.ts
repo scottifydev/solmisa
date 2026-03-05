@@ -109,7 +109,7 @@ export interface PlayDegreeOptions {
   key: NoteName;
   octave?: number;
   duration?: number;
-  timbre?: Timbre;
+  timbre?: Timbre | "varied";
 }
 
 export interface ResolutionOptions {
@@ -142,7 +142,10 @@ export interface PlayChordOptions {
 
 export interface UsePlaybackReturn {
   playDegree: (options: PlayDegreeOptions) => Promise<void>;
-  playDegreeSequence: (degrees: DiatonicDegree[], options: Omit<PlayDegreeOptions, "degree">) => Promise<void>;
+  playDegreeSequence: (
+    degrees: DiatonicDegree[],
+    options: Omit<PlayDegreeOptions, "degree">,
+  ) => Promise<void>;
   playResolution: (options: ResolutionOptions) => Promise<void>;
   playInterval: (options: PlayIntervalOptions) => Promise<void>;
   playChord: (options: PlayChordOptions) => Promise<void>;
