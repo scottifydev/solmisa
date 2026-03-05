@@ -82,38 +82,61 @@ function CompletionSummary({
         </div>
       )}
 
+      {seededCards.length > 0 && (
+        <p className="text-sm text-ash text-center">
+          {seededCards.length} new review item
+          {seededCards.length !== 1 ? "s" : ""} added — they{"'"}ll appear in
+          your next review session.
+        </p>
+      )}
+
       <div className="space-y-3">
+        {lesson.unlocks_drills.length > 0 && (
+          <Link
+            href={`/practice/${lesson.unlocks_drills[0]}`}
+            className="block"
+          >
+            <Button fullWidth>Try a practice drill</Button>
+          </Link>
+        )}
+
         {context.nextLesson && (
           <Link href={`/learn/${context.nextLesson.id}`} className="block">
-            <Button fullWidth>Next: {context.nextLesson.title}</Button>
+            <Button
+              fullWidth
+              variant={lesson.unlocks_drills.length > 0 ? "outline" : "primary"}
+            >
+              Next: {context.nextLesson.title}
+            </Button>
           </Link>
         )}
 
         {context.dueCardCount > 0 && (
           <Link href="/review" className="block">
-            <Button
-              fullWidth
-              variant={context.nextLesson ? "outline" : "primary"}
-            >
+            <Button fullWidth variant="outline">
               Start Review ({context.dueCardCount} card
               {context.dueCardCount !== 1 ? "s" : ""} due)
             </Button>
           </Link>
         )}
 
-        {!context.nextLesson && context.otherTracksWithContent.length > 0 && (
-          <Link href="/learn" className="block">
-            <Button fullWidth variant="secondary">
-              Explore other tracks
-            </Button>
-          </Link>
-        )}
+        {!context.nextLesson &&
+          lesson.unlocks_drills.length === 0 &&
+          context.otherTracksWithContent.length > 0 && (
+            <Link href="/learn" className="block">
+              <Button fullWidth variant="secondary">
+                Explore other tracks
+              </Button>
+            </Link>
+          )}
 
-        {!context.nextLesson && context.dueCardCount === 0 && (
-          <Link href="/learn" className="block">
-            <Button fullWidth>Back to Learn</Button>
-          </Link>
-        )}
+        {!context.nextLesson &&
+          lesson.unlocks_drills.length === 0 &&
+          context.dueCardCount === 0 && (
+            <Link href="/learn" className="block">
+              <Button fullWidth>Back to Learn</Button>
+            </Link>
+          )}
       </div>
     </div>
   );
