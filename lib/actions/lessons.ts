@@ -474,3 +474,69 @@ export async function completeLesson(lessonId: string) {
   );
   if (error) throw new Error(error.message);
 }
+
+export interface CompletionContext {
+  nextLesson: { id: string; title: string; lesson_order: number } | null;
+  dueCardCount: number;
+  otherTracksWithContent: { slug: string; name: string }[];
+}
+
+export async function getCompletionContext(
+  lessonId: string,
+): Promise<CompletionContext> {
+  if (!UUID_RE.test(lessonId))
+    return { nextLesson: null, dueCardCount: 0, otherTracksWithContent: [] };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return { nextLesson: null, dueCardCount: 0, otherTracksWithContent: [] };
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("module_id, track_id, lesson_order")
+    .eq("id", lessonId)
+    .single();
+
+  if (!lesson)
+    return { nextLesson: null, dueCardCount: 0, otherTracksWithContent: [] };
+
+  const [{ data: nextLesson }, { count: dueCount }, { data: otherTracks }] =
+    await Promise.all([
+      supabase
+        .from("lessons")
+        .select("id, title, lesson_order")
+        .eq("module_id", lesson.module_id)
+        .gt("lesson_order", lesson.lesson_order)
+        .order("lesson_order")
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("user_card_state")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .neq("srs_stage", "mastered")
+        .lte("next_review_at", new Date().toISOString()),
+      supabase
+        .from("skill_tracks")
+        .select("slug, name")
+        .neq("id", lesson.track_id),
+    ]);
+
+  return {
+    nextLesson: nextLesson
+      ? {
+          id: nextLesson.id,
+          title: nextLesson.title,
+          lesson_order: nextLesson.lesson_order,
+        }
+      : null,
+    dueCardCount: dueCount ?? 0,
+    otherTracksWithContent: (otherTracks ?? []).map((t) => ({
+      slug: t.slug,
+      name: t.name,
+    })),
+  };
+}
