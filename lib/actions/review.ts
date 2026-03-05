@@ -199,12 +199,16 @@ export async function submitReview(
     correct: req.correct,
     response_time_ms: req.response_time_ms,
     session_accuracy: req.session_accuracy,
+    confidence: req.confidence,
   });
 
   // Use RPC to atomically update state + create review record
   const { error: rpcError } = await supabase.rpc("process_review_answer", {
     p_user_card_state_id: req.user_card_state_id,
-    p_response: req.response,
+    p_response: {
+      ...req.response,
+      ...(req.confidence ? { confidence: req.confidence } : {}),
+    },
     p_correct: req.correct,
     p_response_time_ms: req.response_time_ms,
     p_new_stage: result.new_stage,

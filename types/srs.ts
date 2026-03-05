@@ -69,6 +69,8 @@ export type CardCategory = "perceptual" | "declarative" | "rhythm";
 
 export type DifficultyTier = "intro" | "core" | "stretch";
 
+export type ConfidenceRating = "sure" | "guessing";
+
 export type ResponseType =
   | "select_one"
   | "select_degree"
@@ -173,6 +175,7 @@ export interface SrsSchedulerInput {
   correct: boolean;
   response_time_ms: number;
   session_accuracy?: number;
+  confidence?: ConfidenceRating;
 }
 
 export interface SchedulerResult {
@@ -215,6 +218,7 @@ export interface ReviewAnswerRequest {
   response_time_ms: number;
   response: Record<string, unknown>;
   session_accuracy?: number;
+  confidence?: ConfidenceRating;
 }
 
 export interface ReviewAnswerResponse {

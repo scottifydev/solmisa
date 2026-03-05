@@ -6,6 +6,7 @@ import type {
   ReviewQueueResponse,
   ReviewQueueItem,
   ReviewAnswerRequest,
+  ConfidenceRating,
 } from "@/types/srs";
 import type { NoteName, DiatonicDegree } from "@/types/audio";
 import { submitReview } from "@/lib/actions/review";
@@ -85,7 +86,11 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
 
   // Handle answer from ReviewCard
   const handleAnswer = useCallback(
-    async (correct: boolean, responseTimeMs: number) => {
+    async (
+      correct: boolean,
+      responseTimeMs: number,
+      confidence?: ConfidenceRating,
+    ) => {
       if (!currentCard) return;
 
       // Build the request
@@ -94,6 +99,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         response: { selected: true },
         correct,
         response_time_ms: responseTimeMs,
+        confidence,
       };
 
       // Submit answer

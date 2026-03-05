@@ -16,12 +16,15 @@ import { getNextStage, getIntervalHours, canAdvanceSrs } from "./stages";
  *   (pass session accuracy via input.session_accuracy, correct = sessionAccuracy >= 0.8).
  */
 export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
-  const { item, correct } = input;
+  const { item, correct, confidence } = input;
 
-  // Ease factor adjustment
-  const easeDelta = correct
+  // Ease factor adjustment — modulated by confidence
+  const baseEaseDelta = correct
     ? FSRS_DEFAULTS.easeCorrectDelta
     : FSRS_DEFAULTS.easeIncorrectDelta;
+  // Correct + guessing = halved boost (fragile memory)
+  const easeDelta =
+    correct && confidence === "guessing" ? baseEaseDelta * 0.5 : baseEaseDelta;
   const newEase = clamp(
     item.ease_factor + easeDelta,
     FSRS_DEFAULTS.minEase,
