@@ -270,6 +270,191 @@ export async function getModuleWithLessons(
   };
 }
 
+export interface TrackWithProgress {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  display_order: number;
+  lessons_completed: number;
+  total_lessons: number;
+  has_new_lessons: boolean;
+  current_lesson_label: string | null;
+}
+
+export async function getTracksWithProgress(): Promise<TrackWithProgress[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const [
+    { data: tracks },
+    { data: lessons },
+    { data: progress },
+    { data: trackProgress },
+  ] = await Promise.all([
+    supabase.from("skill_tracks").select("*").order("display_order"),
+    supabase.from("lessons").select("id, track_id, lesson_order, module_id"),
+    supabase
+      .from("lesson_progress")
+      .select("lesson_id, status")
+      .eq("user_id", user.id),
+    supabase
+      .from("track_progress")
+      .select("track_id, lessons_completed")
+      .eq("user_id", user.id),
+  ]);
+
+  if (!tracks) return [];
+
+  const completedIds = new Set(
+    (progress ?? [])
+      .filter((p) => p.status === "completed")
+      .map((p) => p.lesson_id),
+  );
+
+  const trackProgressMap = new Map(
+    (trackProgress ?? []).map((tp) => [tp.track_id, tp.lessons_completed]),
+  );
+
+  return tracks.map((track) => {
+    const trackLessons = (lessons ?? []).filter((l) => l.track_id === track.id);
+    const totalLessons = trackLessons.length;
+    const lessonsCompleted = trackLessons.filter((l) =>
+      completedIds.has(l.id),
+    ).length;
+    const hasNewLessons = trackLessons.some((l) => !completedIds.has(l.id));
+
+    let currentLessonLabel: string | null = null;
+    if (totalLessons > 0) {
+      const nextLesson = trackLessons
+        .sort((a, b) => a.lesson_order - b.lesson_order)
+        .find((l) => !completedIds.has(l.id));
+      if (nextLesson) {
+        currentLessonLabel = `Lesson ${nextLesson.lesson_order} of ${totalLessons}`;
+      } else {
+        currentLessonLabel = `All ${totalLessons} complete`;
+      }
+    }
+
+    return {
+      id: track.id,
+      slug: track.slug,
+      name: track.name,
+      description: track.description,
+      icon: track.icon,
+      display_order: track.display_order,
+      lessons_completed: lessonsCompleted,
+      total_lessons: totalLessons,
+      has_new_lessons: hasNewLessons && lessonsCompleted < totalLessons,
+      current_lesson_label: currentLessonLabel,
+    };
+  });
+}
+
+export async function getModulesWithLessonsForTrack(
+  trackSlug: string,
+): Promise<ModuleListItem[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: track } = await supabase
+    .from("skill_tracks")
+    .select("id")
+    .eq("slug", trackSlug)
+    .single();
+
+  if (!track) return [];
+
+  const { data: modules } = await supabase
+    .from("modules")
+    .select("*")
+    .eq("track_id", track.id)
+    .order("module_order");
+
+  if (!modules) return [];
+
+  const moduleIds = modules.map((m) => m.id);
+
+  const [{ data: allLessons }, { data: progress }] = await Promise.all([
+    supabase
+      .from("lessons")
+      .select("id, title, lesson_order, module_id")
+      .in("module_id", moduleIds)
+      .order("lesson_order"),
+    supabase
+      .from("lesson_progress")
+      .select("lesson_id, status")
+      .eq("user_id", user.id),
+  ]);
+
+  const completedIds = new Set(
+    (progress ?? [])
+      .filter((p) => p.status === "completed")
+      .map((p) => p.lesson_id),
+  );
+
+  const inProgressIds = new Set(
+    (progress ?? [])
+      .filter((p) => p.status === "in_progress")
+      .map((p) => p.lesson_id),
+  );
+
+  const lessonsByModule = new Map<string, typeof allLessons>();
+  for (const lesson of allLessons ?? []) {
+    const existing = lessonsByModule.get(lesson.module_id) ?? [];
+    existing.push(lesson);
+    lessonsByModule.set(lesson.module_id, existing);
+  }
+
+  let prevModuleCompleted = true;
+
+  return modules.map((mod) => {
+    const lessons = lessonsByModule.get(mod.id) ?? [];
+    const completedCount = lessons.filter((l) => completedIds.has(l.id)).length;
+    const hasInProgress = lessons.some((l) => inProgressIds.has(l.id));
+
+    let progressStatus: ModuleProgressStatus;
+    if (completedCount === lessons.length && lessons.length > 0) {
+      progressStatus = "completed";
+    } else if (completedCount > 0 || hasInProgress) {
+      progressStatus = "in_progress";
+    } else if (prevModuleCompleted) {
+      progressStatus = "available";
+    } else {
+      progressStatus = "locked";
+    }
+
+    prevModuleCompleted = progressStatus === "completed";
+
+    return {
+      id: mod.id,
+      title: mod.title,
+      description: mod.description,
+      module_order: mod.module_order,
+      track_id: mod.track_id,
+      unlock_criteria: mod.unlock_criteria,
+      progressStatus,
+      lessonsCompleted: completedCount,
+      lessonCount: lessons.length,
+      lessons: lessons.map(
+        (l): LessonSummary => ({
+          id: l.id,
+          title: l.title,
+          lesson_order: l.lesson_order,
+          isCompleted: completedIds.has(l.id),
+        }),
+      ),
+    };
+  });
+}
+
 export async function completeLesson(lessonId: string) {
   const supabase = await createClient();
   const {
