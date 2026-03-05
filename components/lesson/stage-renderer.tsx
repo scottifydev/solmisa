@@ -23,6 +23,7 @@ import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import { brand } from "@/lib/tokens";
 import { RhythmTapper } from "@/components/lesson/rhythm-tapper";
+import { useMetronome } from "@/hooks/use-metronome";
 
 // ─── Stage Pill ─────────────────────────────────────────────
 
@@ -84,12 +85,14 @@ function AuralTeachView({
   droneKey,
   drone,
   playback,
+  metronome,
   onComplete,
 }: {
   stage: AuralTeachStage;
   droneKey: string | null;
   drone: ReturnType<typeof useDrone>;
   playback: ReturnType<typeof usePlayback>;
+  metronome: ReturnType<typeof useMetronome>;
   onComplete: () => void;
 }) {
   const [contentVisible, setContentVisible] = useState(false);
@@ -108,7 +111,6 @@ function AuralTeachView({
         await drone.start({ key });
         await drone.playCadence({ key });
 
-        // Play audio degrees sequence with highlighting
         for (const deg of stage.audio_degrees) {
           setActiveDegree(deg);
           await playback.playDegree({
@@ -118,6 +120,13 @@ function AuralTeachView({
           });
         }
         setActiveDegree(stage.highlight_degree);
+      } else {
+        // Non-pitch stage: play metronome so user has audio context
+        await metronome.start({
+          bpm: 100,
+          beatsPerMeasure: 4,
+          accentFirst: true,
+        });
       }
 
       // Content appears after audio (Gordon: sound before label)
@@ -703,6 +712,7 @@ function RhythmView({
 export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
   const drone = useDrone();
   const playback = usePlayback();
+  const metronome = useMetronome();
   const [stageIdx, setStageIdx] = useState(0);
   const [quizResults, setQuizResults] = useState<StageQuizResult[]>([]);
 
@@ -736,6 +746,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
     return () => {
       drone.stop();
       playback.stop();
+      metronome.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -747,6 +758,8 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
 
   const advanceStage = useCallback(
     (result: StageQuizResult | null) => {
+      // Stop metronome between stages so it doesn't bleed
+      metronome.stop();
       if (result) {
         setQuizResults((prev) => [...prev, result]);
       }
@@ -807,6 +820,7 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           droneKey={lesson.drone_key}
           drone={drone}
           playback={playback}
+          metronome={metronome}
           onComplete={() => advanceStage(null)}
         />
       )}
