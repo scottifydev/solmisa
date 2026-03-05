@@ -50,6 +50,7 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
               status={mod.progressStatus}
               lessonsCompleted={mod.lessonsCompleted}
               lessonCount={mod.lessonCount}
+              lessons={mod.lessons}
             />
           ))}
         </div>
