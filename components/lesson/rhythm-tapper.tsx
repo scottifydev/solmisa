@@ -446,7 +446,14 @@ export function RhythmTapper({
       {/* Beat Grid */}
       <div
         className="bg-slate border border-steel rounded-lg px-5 py-4 select-none"
-        onClick={phase === "recording" ? handleTap : undefined}
+        onPointerDown={
+          phase === "recording"
+            ? (e) => {
+                e.preventDefault();
+                handleTap();
+              }
+            : undefined
+        }
         role={phase === "recording" ? "button" : undefined}
         tabIndex={phase === "recording" ? 0 : undefined}
       >
@@ -471,13 +478,6 @@ export function RhythmTapper({
             </div>
           ))}
         </div>
-
-        {/* Tap instruction */}
-        {phase === "recording" && (
-          <div className="text-center text-ash text-xs font-mono mt-3">
-            Tap here or press Space
-          </div>
-        )}
       </div>
 
       {/* Results */}
@@ -510,6 +510,28 @@ export function RhythmTapper({
               {beatResults.filter((r) => r.extra).length} extra
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Big Tap Button */}
+      {phase === "recording" && (
+        <button
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            handleTap();
+          }}
+          className="w-full h-20 rounded-xl font-display text-2xl font-bold tracking-wider text-white select-none active:scale-95 transition-transform duration-75"
+          style={{ backgroundColor: brand.violet, touchAction: "manipulation" }}
+        >
+          TAP
+        </button>
+      )}
+
+      {/* Hint */}
+      {phase === "recording" && (
+        <div className="text-center text-ash text-xs font-mono">
+          Tap the button or press Space
         </div>
       )}
 

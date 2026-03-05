@@ -134,6 +134,7 @@ export interface CardTemplate {
   feedback: FeedbackConfig;
   block_scoring: BlockScoringConfig | null;
   dimensions: string[];
+  radar_dimensions: string[];
   is_parametric: boolean;
 }
 

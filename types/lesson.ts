@@ -1,5 +1,22 @@
 import type { CardCategory } from "./srs";
 
+// ─── Skill Tracks (v2) ──────────────────────────────────────
+
+export type SkillTrackSlug =
+  | "ear_training"
+  | "theory"
+  | "rhythm"
+  | "sight_reading";
+
+export interface SkillTrack {
+  id: string;
+  slug: SkillTrackSlug;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  display_order: number;
+}
+
 // ─── Module & Lesson (DB mirrors) ────────────────────────────
 
 export interface ModuleUnlockCriteria {
@@ -13,6 +30,7 @@ export interface Module {
   title: string;
   description: string | null;
   module_order: number;
+  track_id: string;
   unlock_criteria: ModuleUnlockCriteria | null;
   lessons?: LessonSummary[];
 }
@@ -24,13 +42,23 @@ export interface LessonSummary {
   isCompleted: boolean;
 }
 
+export interface SoftPrerequisite {
+  type: "lesson" | "drill" | "review_count";
+  target_id?: string;
+  min_count?: number;
+}
+
 export interface Lesson {
   id: string;
   title: string;
   description: string | null;
   module_id: string;
+  track_id: string;
   lesson_order: number;
   drone_key: string | null;
+  unlocks_cards: string[];
+  unlocks_drills: string[];
+  soft_prerequisites: SoftPrerequisite[];
   stages: LessonStage[];
 }
 
@@ -64,21 +92,27 @@ export interface ModuleProgress {
   completed_at: string | null;
 }
 
-// ─── Lesson Stages (the 5 types) ─────────────────────────────
+// ─── Lesson Stages ───────────────────────────────────────────
 
 export type LessonStageType =
   | "aural_teach"
   | "theory_teach"
+  | "interactive"
+  | "guided_practice"
+  | "rhythm"
+  // v1 compat — removed once lesson content is migrated (Phase 3)
   | "aural_quiz"
-  | "theory_quiz"
-  | "rhythm";
+  | "theory_quiz";
 
 export type LessonStage =
   | AuralTeachStage
   | TheoryTeachStage
+  | InteractiveStage
+  | GuidedPracticeStage
+  | RhythmStage
+  // v1 compat — removed once lesson content is migrated (Phase 3)
   | AuralQuizStage
-  | TheoryQuizStage
-  | RhythmStage;
+  | TheoryQuizStage;
 
 export interface AuralTeachStage {
   type: "aural_teach";
@@ -96,6 +130,29 @@ export interface TheoryTeachStage {
   notation?: string;
   degree?: number;
   show_degree_circle: boolean;
+}
+
+// ─── v2 Stage Types ─────────────────────────────────────────
+
+export interface InteractiveStage {
+  type: "interactive";
+  title: string;
+  instructions: string;
+  component: string;
+  config: Record<string, unknown>;
+  audio_degrees?: number[];
+  show_degree_circle?: boolean;
+}
+
+export interface GuidedPracticeStage {
+  type: "guided_practice";
+  title: string;
+  instructions: string;
+  component: string;
+  config: Record<string, unknown>;
+  trials?: number;
+  pass_threshold?: number;
+  engagement_weight?: number;
 }
 
 // ─── Drill Config (parameterized quiz generation) ────────────
@@ -173,6 +230,8 @@ export type TheoryQuizStage = OptionsTheoryQuizStage | DrillTheoryQuizStage;
 
 export interface RhythmStage {
   type: "rhythm";
+  title?: string;
+  instructions?: string;
   mode: "listen" | "tap" | "quiz";
   tempo: number;
   time_signature: [number, number];
@@ -226,8 +285,8 @@ export interface LessonRenderData {
 
 export interface LessonCompletionResult {
   lesson_id: string;
-  stage_results: StageQuizResult[];
   duration_ms: number;
+  stage_results: StageQuizResult[];
 }
 
 export interface StageQuizResult {
@@ -237,4 +296,94 @@ export interface StageQuizResult {
   response_time_ms: number;
   seeds_card: string | null;
   card_category: CardCategory | null;
+}
+
+export interface StageCompletionResult {
+  stage_index: number;
+  stage_type: LessonStageType;
+  completed: boolean;
+  engagement_score?: number;
+  response_time_ms?: number;
+}
+
+// ─── v2 Domain Types ─────────────────────────────────────────
+
+export type DrillType =
+  | "degree_id"
+  | "interval_id"
+  | "chord_quality"
+  | "degree_discrimination"
+  | "meter_id"
+  | "minor_form_id"
+  | "rhythm_tap"
+  | "rhythm_echo"
+  | "note_reading"
+  | "key_signature_id"
+  | "scale_construction"
+  | "roman_numeral_id"
+  | "melodic_dictation"
+  | "harmonic_dictation";
+
+export type OnboardingLevel =
+  | "beginner"
+  | "elementary"
+  | "intermediate"
+  | "advanced";
+export type PracticeToolType =
+  | "internal_drill"
+  | "external_app"
+  | "instrument"
+  | "singing";
+
+export interface TrackProgress {
+  id: string;
+  user_id: string;
+  track_id: string;
+  lessons_completed: number;
+  current_module_id: string | null;
+  started_at: string | null;
+  updated_at: string;
+}
+
+export interface Drill {
+  id: string;
+  track_id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  drill_type: DrillType;
+  config: Record<string, unknown>;
+  difficulty_range: string[];
+  display_order: number;
+}
+
+export interface OnboardingResult {
+  id: string;
+  user_id: string;
+  track_id: string;
+  dimension: string;
+  estimated_level: OnboardingLevel;
+  confidence: number;
+  raw_responses: unknown[];
+}
+
+export interface PracticeRecommendation {
+  id: string;
+  track_id: string;
+  dimension: string;
+  level: OnboardingLevel;
+  tool_type: PracticeToolType;
+  tool_name: string;
+  tool_url: string | null;
+  description: string | null;
+  display_order: number;
+}
+
+export interface RadarCache {
+  id: string;
+  user_id: string;
+  dimension: string;
+  score: number;
+  total_reviews: number;
+  computed_at: string;
 }

@@ -59,6 +59,8 @@ function StagePill({
     theory_teach: "bg-info/10 text-info border border-info/30",
     theory_quiz: "bg-warning/10 text-warning border border-warning/30",
     rhythm: "bg-correct/10 text-correct border border-correct/30",
+    interactive: "bg-violet/10 text-violet border border-violet/40",
+    guided_practice: "bg-info/10 text-info border border-info/30",
   };
 
   const labels: Record<LessonStageType, string> = {
@@ -67,6 +69,8 @@ function StagePill({
     theory_teach: "theory",
     theory_quiz: "quiz",
     rhythm: "rhythm",
+    interactive: "interact",
+    guided_practice: "practice",
   };
 
   return (
@@ -647,7 +651,7 @@ function RhythmView({
   stageIndex: number;
   onComplete: (result: StageQuizResult | null) => void;
 }) {
-  const [done, setDone] = useState(false);
+  const [lastAccuracy, setLastAccuracy] = useState<number | null>(null);
   const meterStr = `${stage.time_signature[0]}/${stage.time_signature[1]}` as
     | "4/4"
     | "3/4"
@@ -655,32 +659,59 @@ function RhythmView({
     | "5/8"
     | "7/8";
 
-  const handleRhythmComplete = useCallback(
-    (accuracy: number) => {
-      setDone(true);
-      if (stage.mode === "listen") {
-        // Listen mode: no scoring, just advance
-        return;
-      }
-      // Tap mode: score based on accuracy
-      onComplete({
-        stage_index: stageIndex,
-        stage_type: "rhythm",
-        correct: accuracy >= 0.6,
-        response_time_ms: 0,
-        seeds_card: stage.seeds_card ?? null,
-        card_category: "rhythm",
-      });
-    },
-    [stage, stageIndex, onComplete],
-  );
+  const handleRhythmComplete = useCallback((accuracy: number) => {
+    setLastAccuracy(accuracy);
+  }, []);
+
+  const handleContinue = () => {
+    if (stage.mode === "listen" || lastAccuracy === null) {
+      onComplete(null);
+      return;
+    }
+    onComplete({
+      stage_index: stageIndex,
+      stage_type: "rhythm",
+      correct: lastAccuracy >= 0.6,
+      response_time_ms: 0,
+      seeds_card: stage.seeds_card ?? null,
+      card_category: "rhythm",
+    });
+  };
+
+  const feedback =
+    lastAccuracy !== null && stage.mode !== "listen"
+      ? lastAccuracy >= 0.9
+        ? {
+            text: "Excellent timing. Your internal pulse is solid.",
+            style: "bg-correct/10 text-correct border-correct/30",
+          }
+        : lastAccuracy >= 0.7
+          ? {
+              text: "Good rhythm. A few beats were slightly off \u2014 try again or continue.",
+              style: "bg-correct/10 text-correct border-correct/30",
+            }
+          : lastAccuracy >= 0.5
+            ? {
+                text: "Getting there. Focus on feeling the pulse before each tap.",
+                style: "bg-warning/10 text-warning border-warning/30",
+              }
+            : {
+                text: "Keep practicing. Try tapping along with the count-in to lock in the tempo.",
+                style: "bg-incorrect/10 text-incorrect border-incorrect/30",
+              }
+      : null;
 
   return (
     <div className="space-y-6">
       <div className="bg-obsidian border border-steel rounded-lg p-6">
         <h2 className="font-display text-lg font-bold text-ivory mb-4">
-          Rhythm
+          {stage.title ?? "Rhythm"}
         </h2>
+        {stage.instructions && (
+          <p className="text-[15px] text-silver leading-relaxed mb-4">
+            {stage.instructions}
+          </p>
+        )}
         <RhythmTapper
           meter={meterStr}
           bpm={stage.tempo}
@@ -689,8 +720,17 @@ function RhythmView({
           onComplete={handleRhythmComplete}
         />
       </div>
-      {(done || stage.mode === "listen") && (
-        <Button fullWidth onClick={() => onComplete(null)}>
+
+      {feedback && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm font-body border ${feedback.style}`}
+        >
+          {feedback.text}
+        </div>
+      )}
+
+      {(lastAccuracy !== null || stage.mode === "listen") && (
+        <Button fullWidth onClick={handleContinue}>
           Continue &rarr;
         </Button>
       )}
@@ -729,15 +769,10 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
     [lesson.stages],
   );
 
-  // Start drone or metronome at lesson level, stop all audio on unmount
+  // Start drone at lesson level for pitch lessons, stop all audio on unmount
   useEffect(() => {
-    if (lessonHasPitchContent) {
-      if (lesson.drone_key) {
-        void drone.start({ key: lesson.drone_key as NoteName });
-      }
-    } else {
-      // Rhythm lesson: start metronome for the whole lesson
-      void metronome.start({ bpm: 100, beatsPerMeasure: 4, accentFirst: true });
+    if (lessonHasPitchContent && lesson.drone_key) {
+      void drone.start({ key: lesson.drone_key as NoteName });
     }
     return () => {
       drone.stop();
@@ -746,6 +781,17 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Manage metronome: run during non-rhythm stages in non-pitch lessons
+  useEffect(() => {
+    if (lessonHasPitchContent) return;
+    if (currentStage?.type === "rhythm") {
+      metronome.stop();
+    } else {
+      void metronome.start({ bpm: 100, beatsPerMeasure: 4, accentFirst: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageIdx]);
 
   const stages = lesson.stages;
   const currentStage = stages[stageIdx];

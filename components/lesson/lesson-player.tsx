@@ -50,7 +50,11 @@ export function LessonPlayer({
         }
       }
 
-      await completeLesson(lesson.id);
+      try {
+        await completeLesson(lesson.id);
+      } catch {
+        // Don't block navigation on completion tracking failure
+      }
       router.push("/learn");
       router.refresh();
     } finally {

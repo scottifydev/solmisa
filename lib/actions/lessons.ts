@@ -91,6 +91,7 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
       title: mod.title,
       description: mod.description,
       module_order: mod.module_order,
+      track_id: mod.track_id,
       unlock_criteria: mod.unlock_criteria,
       progressStatus,
       lessonsCompleted: completedCount,
@@ -129,8 +130,13 @@ export async function getLesson(lessonId: string): Promise<Lesson | null> {
     title: lesson.title,
     description: lesson.description,
     module_id: lesson.module_id,
+    track_id: lesson.track_id,
     lesson_order: lesson.lesson_order,
     drone_key: lesson.drone_key,
+    unlocks_cards: lesson.unlocks_cards ?? [],
+    unlocks_drills: lesson.unlocks_drills ?? [],
+    soft_prerequisites: (lesson.soft_prerequisites ??
+      []) as Lesson["soft_prerequisites"],
     stages: (lesson.stages ?? []) as LessonStage[],
   };
 }
@@ -180,8 +186,13 @@ export async function getLessonWithContext(
       title: lesson.title,
       description: lesson.description,
       module_id: lesson.module_id,
+      track_id: lesson.track_id,
       lesson_order: lesson.lesson_order,
       drone_key: lesson.drone_key,
+      unlocks_cards: lesson.unlocks_cards ?? [],
+      unlocks_drills: lesson.unlocks_drills ?? [],
+      soft_prerequisites: (lesson.soft_prerequisites ??
+        []) as Lesson["soft_prerequisites"],
       stages: (lesson.stages ?? []) as LessonStage[],
     },
     moduleTitle: module?.title ?? "Module",

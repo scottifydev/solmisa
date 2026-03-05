@@ -177,6 +177,7 @@ export type Database = {
           playback: Json | null;
           prompt_audio: Json | null;
           prompt_text: string;
+          radar_dimensions: string[] | null;
           response_type: string;
           slug: string;
         };
@@ -194,6 +195,7 @@ export type Database = {
           playback?: Json | null;
           prompt_audio?: Json | null;
           prompt_text: string;
+          radar_dimensions?: string[] | null;
           response_type: string;
           slug: string;
         };
@@ -211,6 +213,7 @@ export type Database = {
           playback?: Json | null;
           prompt_audio?: Json | null;
           prompt_text?: string;
+          radar_dimensions?: string[] | null;
           response_type?: string;
           slug?: string;
         };
@@ -220,6 +223,53 @@ export type Database = {
             columns: ["lesson_id"];
             isOneToOne: false;
             referencedRelation: "lessons";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      drills: {
+        Row: {
+          config: Json;
+          created_at: string | null;
+          description: string | null;
+          difficulty_range: string[] | null;
+          display_order: number | null;
+          drill_type: string;
+          id: string;
+          slug: string;
+          title: string;
+          track_id: string;
+        };
+        Insert: {
+          config?: Json;
+          created_at?: string | null;
+          description?: string | null;
+          difficulty_range?: string[] | null;
+          display_order?: number | null;
+          drill_type: string;
+          id?: string;
+          slug: string;
+          title: string;
+          track_id: string;
+        };
+        Update: {
+          config?: Json;
+          created_at?: string | null;
+          description?: string | null;
+          difficulty_range?: string[] | null;
+          display_order?: number | null;
+          drill_type?: string;
+          id?: string;
+          slug?: string;
+          title?: string;
+          track_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "drills_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
             referencedColumns: ["id"];
           },
         ];
@@ -286,8 +336,12 @@ export type Database = {
           id: string;
           lesson_order: number;
           module_id: string;
+          soft_prerequisites: Json | null;
           stages: Json;
           title: string;
+          track_id: string;
+          unlocks_cards: string[] | null;
+          unlocks_drills: string[] | null;
         };
         Insert: {
           created_at?: string | null;
@@ -296,8 +350,12 @@ export type Database = {
           id?: string;
           lesson_order: number;
           module_id: string;
+          soft_prerequisites?: Json | null;
           stages?: Json;
           title: string;
+          track_id: string;
+          unlocks_cards?: string[] | null;
+          unlocks_drills?: string[] | null;
         };
         Update: {
           created_at?: string | null;
@@ -306,8 +364,12 @@ export type Database = {
           id?: string;
           lesson_order?: number;
           module_id?: string;
+          soft_prerequisites?: Json | null;
           stages?: Json;
           title?: string;
+          track_id?: string;
+          unlocks_cards?: string[] | null;
+          unlocks_drills?: string[] | null;
         };
         Relationships: [
           {
@@ -315,6 +377,13 @@ export type Database = {
             columns: ["module_id"];
             isOneToOne: false;
             referencedRelation: "modules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lessons_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
             referencedColumns: ["id"];
           },
         ];
@@ -377,6 +446,7 @@ export type Database = {
           id: string;
           module_order: number;
           title: string;
+          track_id: string;
           unlock_criteria: Json | null;
         };
         Insert: {
@@ -385,6 +455,7 @@ export type Database = {
           id?: string;
           module_order: number;
           title: string;
+          track_id: string;
           unlock_criteria?: Json | null;
         };
         Update: {
@@ -393,12 +464,117 @@ export type Database = {
           id?: string;
           module_order?: number;
           title?: string;
+          track_id?: string;
           unlock_criteria?: Json | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "modules_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      onboarding_results: {
+        Row: {
+          confidence: number | null;
+          created_at: string | null;
+          dimension: string;
+          estimated_level: string;
+          id: string;
+          raw_responses: Json | null;
+          track_id: string;
+          user_id: string;
+        };
+        Insert: {
+          confidence?: number | null;
+          created_at?: string | null;
+          dimension: string;
+          estimated_level: string;
+          id?: string;
+          raw_responses?: Json | null;
+          track_id: string;
+          user_id: string;
+        };
+        Update: {
+          confidence?: number | null;
+          created_at?: string | null;
+          dimension?: string;
+          estimated_level?: string;
+          id?: string;
+          raw_responses?: Json | null;
+          track_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_results_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "onboarding_results_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      practice_recommendations: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          dimension: string;
+          display_order: number | null;
+          id: string;
+          level: string;
+          tool_name: string;
+          tool_type: string;
+          tool_url: string | null;
+          track_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          description?: string | null;
+          dimension: string;
+          display_order?: number | null;
+          id?: string;
+          level: string;
+          tool_name: string;
+          tool_type: string;
+          tool_url?: string | null;
+          track_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          description?: string | null;
+          dimension?: string;
+          display_order?: number | null;
+          id?: string;
+          level?: string;
+          tool_name?: string;
+          tool_type?: string;
+          tool_url?: string | null;
+          track_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "practice_recommendations_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
+          cat_state: Json | null;
           created_at: string | null;
           experience_level: string | null;
           goals: string[] | null;
@@ -413,6 +589,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          cat_state?: Json | null;
           created_at?: string | null;
           experience_level?: string | null;
           goals?: string[] | null;
@@ -427,6 +604,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          cat_state?: Json | null;
           created_at?: string | null;
           experience_level?: string | null;
           goals?: string[] | null;
@@ -442,11 +620,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      radar_cache: {
+        Row: {
+          computed_at: string | null;
+          dimension: string;
+          id: string;
+          score: number;
+          total_reviews: number | null;
+          user_id: string;
+        };
+        Insert: {
+          computed_at?: string | null;
+          dimension: string;
+          id?: string;
+          score?: number;
+          total_reviews?: number | null;
+          user_id: string;
+        };
+        Update: {
+          computed_at?: string | null;
+          dimension?: string;
+          id?: string;
+          score?: number;
+          total_reviews?: number | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "radar_cache_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       review_records: {
         Row: {
           correct: boolean;
           created_at: string | null;
           id: string;
+          radar_dimensions: string[] | null;
           response: Json;
           response_time_ms: number | null;
           srs_stage_after: string | null;
@@ -457,6 +671,7 @@ export type Database = {
           correct: boolean;
           created_at?: string | null;
           id?: string;
+          radar_dimensions?: string[] | null;
           response: Json;
           response_time_ms?: number | null;
           srs_stage_after?: string | null;
@@ -467,6 +682,7 @@ export type Database = {
           correct?: boolean;
           created_at?: string | null;
           id?: string;
+          radar_dimensions?: string[] | null;
           response?: Json;
           response_time_ms?: number | null;
           srs_stage_after?: string | null;
@@ -511,6 +727,88 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "skill_axes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      skill_tracks: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          display_order: number;
+          icon: string | null;
+          id: string;
+          name: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          description?: string | null;
+          display_order: number;
+          icon?: string | null;
+          id?: string;
+          name: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string | null;
+          description?: string | null;
+          display_order?: number;
+          icon?: string | null;
+          id?: string;
+          name?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
+      track_progress: {
+        Row: {
+          current_module_id: string | null;
+          id: string;
+          lessons_completed: number | null;
+          started_at: string | null;
+          track_id: string;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          current_module_id?: string | null;
+          id?: string;
+          lessons_completed?: number | null;
+          started_at?: string | null;
+          track_id: string;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          current_module_id?: string | null;
+          id?: string;
+          lessons_completed?: number | null;
+          started_at?: string | null;
+          track_id?: string;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "track_progress_current_module_id_fkey";
+            columns: ["current_module_id"];
+            isOneToOne: false;
+            referencedRelation: "modules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "track_progress_track_id_fkey";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "skill_tracks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "track_progress_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -604,13 +902,36 @@ export type Database = {
         };
         Returns: Json;
       };
+      reconcile_lesson_cards: { Args: { p_user_id?: string }; Returns: Json };
       seed_lesson_cards: {
         Args: { p_card_data: Json; p_lesson_id: string; p_user_id: string };
         Returns: Json;
       };
+      seed_lesson_cards_v2: {
+        Args: {
+          p_initial_interval_override?: string;
+          p_lesson_id: string;
+          p_user_id: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
-      [_ in never]: never;
+      card_category: "perceptual" | "declarative";
+      experience_level: "beginner" | "intermediate" | "advanced";
+      lesson_stage_type:
+        | "aural_teach"
+        | "theory_teach"
+        | "aural_quiz"
+        | "theory_quiz"
+        | "practice";
+      review_result: "correct" | "incorrect" | "skip";
+      srs_stage:
+        | "apprentice"
+        | "journeyman"
+        | "adept"
+        | "virtuoso"
+        | "mastered";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -720,3 +1041,38 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {
+      card_category: ["perceptual", "declarative"],
+      experience_level: ["beginner", "intermediate", "advanced"],
+      lesson_stage_type: [
+        "aural_teach",
+        "theory_teach",
+        "aural_quiz",
+        "theory_quiz",
+        "practice",
+      ],
+      review_result: ["correct", "incorrect", "skip"],
+      srs_stage: ["apprentice", "journeyman", "adept", "virtuoso", "mastered"],
+    },
+  },
+} as const;
