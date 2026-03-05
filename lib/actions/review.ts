@@ -238,3 +238,49 @@ export async function hasAnyCards(): Promise<boolean> {
 
   return (count ?? 0) > 0;
 }
+
+export interface DimensionAccuracy {
+  dimension: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
+export async function getRadarDimensionAccuracy(): Promise<
+  DimensionAccuracy[]
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Compute on read (Option A from spec): query review_records with radar_dimensions
+  const { data: records } = await supabase
+    .from("review_records")
+    .select("correct, radar_dimensions, user_card_state!inner(user_id)")
+    .eq("user_card_state.user_id", user.id);
+
+  if (!records || records.length === 0) return [];
+
+  const dimStats = new Map<string, { total: number; correct: number }>();
+
+  for (const record of records) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dims = (record as any).radar_dimensions as string[] | null;
+    if (!dims || dims.length === 0) continue;
+    for (const dim of dims) {
+      const stats = dimStats.get(dim) ?? { total: 0, correct: 0 };
+      stats.total++;
+      if (record.correct) stats.correct++;
+      dimStats.set(dim, stats);
+    }
+  }
+
+  return Array.from(dimStats.entries()).map(([dimension, stats]) => ({
+    dimension,
+    total: stats.total,
+    correct: stats.correct,
+    accuracy: stats.total > 0 ? stats.correct / stats.total : 0,
+  }));
+}
