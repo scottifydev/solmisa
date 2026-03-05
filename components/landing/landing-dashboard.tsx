@@ -14,6 +14,7 @@ import { AnonymousReviewSession } from "./anonymous-review-session";
 import { DemoLesson } from "./demo-lesson";
 import { OnboardingTooltip } from "./onboarding-tooltip";
 import { SkillRadar } from "@/components/dashboard/skill-radar";
+import { AudioProvider } from "@/components/audio-provider";
 
 type View = "dashboard" | "review" | "lesson";
 
@@ -37,12 +38,14 @@ export function LandingDashboard() {
 
   if (view === "lesson") {
     return (
-      <main className="px-6 py-8 max-w-[500px] mx-auto">
-        <DemoLesson
-          onBack={() => setView("dashboard")}
-          onComplete={() => setView("dashboard")}
-        />
-      </main>
+      <AudioProvider>
+        <main className="px-6 py-8 max-w-[500px] mx-auto">
+          <DemoLesson
+            onBack={() => setView("dashboard")}
+            onComplete={() => setView("dashboard")}
+          />
+        </main>
+      </AudioProvider>
     );
   }
 
@@ -86,7 +89,7 @@ export function LandingDashboard() {
         </div>
         <button
           onClick={() => setView("lesson")}
-          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/10 bg-gradient-to-br from-violet/4 to-transparent hover:from-violet/8 transition-all cursor-pointer text-left flex items-center gap-3"
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15 transition-all cursor-pointer text-left flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">&#x1F4D6;</span>
           <div>
@@ -112,7 +115,7 @@ export function LandingDashboard() {
           label="7-Day Accuracy"
           value="84%"
           sub="demo data"
-          color="#4ECDC4"
+          color={colors.correct}
         />
         <StatCard
           label="Items Mastered"
