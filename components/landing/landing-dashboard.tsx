@@ -7,7 +7,7 @@ import { colors } from "@/lib/tokens";
 import {
   DEMO_STATS,
   DEMO_REVIEW_CARDS,
-  DEMO_SKILL_AXES,
+  DEMO_RADAR_SCORES,
 } from "@/lib/data/demo-data";
 import { SrsBar } from "./srs-bar";
 import { AnonymousReviewSession } from "./anonymous-review-session";
@@ -132,7 +132,11 @@ export function LandingDashboard() {
       </div>
 
       {/* Skill Radar */}
-      <SkillRadar axes={DEMO_SKILL_AXES} />
+      <SkillRadar
+        current={DEMO_RADAR_SCORES}
+        lifetime={DEMO_RADAR_SCORES}
+        emptyMessage="Complete lessons to build your skill profile"
+      />
 
       {/* SRS breakdown */}
       <div className="rounded-xl border border-steel bg-obsidian p-5">

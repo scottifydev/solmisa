@@ -1,6 +1,6 @@
 import type { ReviewStatsResponse, SrsStageGroup } from "@/types/srs";
-import type { SkillAxis } from "@/lib/skill-axes";
-import { SKILL_AXES, MAX_SKILL_POINTS } from "@/lib/skill-axes";
+import type { RadarScore } from "@/lib/actions/radar";
+import { RADAR_DIMENSIONS } from "@/lib/radar/dimensions";
 
 export const DEMO_STATS: ReviewStatsResponse = {
   totalCards: 12,
@@ -38,8 +38,10 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Fa (4)", degree: 4 },
     ],
     correctAnswer: "b",
-    correctFeedback: "Ti sits a half-step below Do \u2014 that proximity creates the strongest gravitational pull in the scale.",
-    incorrectFeedback: "The leading tone (Ti) sits a half-step below Do. That closeness creates the strongest pull toward tonic.",
+    correctFeedback:
+      "Ti sits a half-step below Do \u2014 that proximity creates the strongest gravitational pull in the scale.",
+    incorrectFeedback:
+      "The leading tone (Ti) sits a half-step below Do. That closeness creates the strongest pull toward tonic.",
   },
   {
     id: "demo-2",
@@ -52,8 +54,10 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "4" },
     ],
     correctAnswer: "c",
-    correctFeedback: "A Major: F\u266F, C\u266F, G\u266F. Three sharps following the order of sharps.",
-    incorrectFeedback: "A Major has three sharps: F\u266F, C\u266F, G\u266F. Follow the circle of fifths from C to count them.",
+    correctFeedback:
+      "A Major: F\u266F, C\u266F, G\u266F. Three sharps following the order of sharps.",
+    incorrectFeedback:
+      "A Major has three sharps: F\u266F, C\u266F, G\u266F. Follow the circle of fifths from C to count them.",
   },
   {
     id: "demo-3",
@@ -66,8 +70,10 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Supertonic" },
     ],
     correctAnswer: "c",
-    correctFeedback: "The dominant. It\u2019s the second most stable degree after tonic \u2014 the harmonic anchor of the scale.",
-    incorrectFeedback: "Sol (5) is the dominant \u2014 the second most stable tone after tonic, and the root of the V chord.",
+    correctFeedback:
+      "The dominant. It\u2019s the second most stable degree after tonic \u2014 the harmonic anchor of the scale.",
+    incorrectFeedback:
+      "Sol (5) is the dominant \u2014 the second most stable tone after tonic, and the root of the V chord.",
   },
   {
     id: "demo-4",
@@ -80,8 +86,10 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "Phrygian" },
     ],
     correctAnswer: "c",
-    correctFeedback: "Mixolydian. The \u266D7 gives it a bluesy, unresolved quality \u2014 common in rock and folk.",
-    incorrectFeedback: "Mixolydian is a major scale with a \u266D7. Think of the dominant chord\u2019s scale \u2014 that bright-but-unsettled sound.",
+    correctFeedback:
+      "Mixolydian. The \u266D7 gives it a bluesy, unresolved quality \u2014 common in rock and folk.",
+    incorrectFeedback:
+      "Mixolydian is a major scale with a \u266D7. Think of the dominant chord\u2019s scale \u2014 that bright-but-unsettled sound.",
   },
   {
     id: "demo-5",
@@ -94,32 +102,36 @@ export const DEMO_REVIEW_CARDS: DemoReviewCard[] = [
       { id: "d", label: "La (6)", degree: 6 },
     ],
     correctAnswer: "a",
-    correctFeedback: "Do is tonic \u2014 the point of rest. Every other degree defines itself by its relationship to this one.",
-    incorrectFeedback: "Do (1) is tonic \u2014 the resting place. It\u2019s the degree that feels resolved, like arriving home.",
+    correctFeedback:
+      "Do is tonic \u2014 the point of rest. Every other degree defines itself by its relationship to this one.",
+    incorrectFeedback:
+      "Do (1) is tonic \u2014 the resting place. It\u2019s the degree that feels resolved, like arriving home.",
   },
 ];
 
-const DEMO_SCORES: Record<string, number> = {
-  "Key Signatures": 180,
-  Intervals: 120,
-  "Scales & Modes": 95,
-  "Chords & Harmony": 60,
-  "Ear Training": 240,
-  "Rhythm & Meter": 150,
-  Performance: 30,
-  "Sight Reading": 45,
-  "Practice Discipline": 80,
-  "Active Listening": 110,
-  "Composition & Arranging": 15,
-  "Music Literacy": 70,
+const DEMO_DIMENSION_SCORES: Record<string, number> = {
+  degree_1: 72,
+  degree_2: 55,
+  degree_3: 60,
+  degree_4: 35,
+  degree_5: 68,
+  degree_6: 28,
+  degree_7: 42,
+  interval_id: 45,
+  chord_quality: 30,
+  key_signatures: 62,
+  scales: 50,
+  roman_numerals: 20,
+  rhythm_accuracy: 58,
+  meter_id: 40,
+  note_reading: 35,
+  rhythm_reading: 25,
 };
 
-export const DEMO_SKILL_AXES: SkillAxis[] = SKILL_AXES.map((name) => {
-  const score = DEMO_SCORES[name] ?? 0;
-  return {
-    axis_name: name,
-    score,
-    max_points: MAX_SKILL_POINTS,
-    percentage: Math.round((score / MAX_SKILL_POINTS) * 100),
-  };
-});
+export const DEMO_RADAR_SCORES: RadarScore[] = RADAR_DIMENSIONS.map((d) => ({
+  slug: d.slug,
+  name: d.name,
+  group: d.group,
+  score: DEMO_DIMENSION_SCORES[d.slug] ?? 0,
+  total_reviews: Math.floor(Math.random() * 20) + 5,
+}));
