@@ -22,7 +22,7 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
 
   const now = new Date().toISOString();
 
-  // Get due card states joined with card instances and templates
+  // Fetch due cards across all tracks with template + track joins
   const { data: dueCards, count } = await supabase
     .from("user_card_state")
     .select(
@@ -42,7 +42,11 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
           response_type,
           playback,
           feedback,
-          dimensions
+          dimensions,
+          lessons (
+            track_id,
+            skill_tracks (slug)
+          )
         )
       )
     `,
@@ -54,10 +58,12 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
     .order("next_review_at")
     .limit(limit);
 
-  const items: ReviewQueueItem[] = (dueCards ?? []).map((card) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const instance = card.card_instances as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawItems: ReviewQueueItem[] = (dueCards ?? []).map((card: any) => {
+    const instance = card.card_instances;
     const template = instance?.card_templates;
+    const lesson = template?.lessons;
+    const track = lesson?.skill_tracks;
 
     return {
       user_card_state_id: card.id,
@@ -67,7 +73,7 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
       response_type: template?.response_type ?? "select_one",
       options_data: instance?.options_data ?? null,
       answer_data: instance?.answer_data ?? {},
-      card_category: template?.card_category ?? "declarative",
+      card_category: (template?.card_category ?? "declarative") as CardCategory,
       srs_stage: card.srs_stage as SrsStageKey,
       difficulty_tier: card.difficulty_tier,
       playback: template?.playback ?? null,
@@ -85,8 +91,33 @@ export async function getReviewQueue(limit = 20): Promise<ReviewQueueResponse> {
         },
       },
       dimensions: template?.dimensions ?? [],
+      track_slug: track?.slug ?? "unknown",
     };
   });
+
+  // Blend: group perceptual cards by first dimension, interleave declarative/rhythm
+  const perceptual = rawItems.filter((i) => i.card_category === "perceptual");
+  const interleave = rawItems.filter((i) => i.card_category !== "perceptual");
+
+  // Group perceptual cards by first dimension (skill group proxy)
+  const perceptualGroups = new Map<string, ReviewQueueItem[]>();
+  for (const item of perceptual) {
+    const group = item.dimensions[0] ?? "general";
+    const existing = perceptualGroups.get(group) ?? [];
+    existing.push(item);
+    perceptualGroups.set(group, existing);
+  }
+
+  // Build blended queue
+  const items: ReviewQueueItem[] = [];
+  const interleavePool = [...interleave];
+  for (const group of perceptualGroups.values()) {
+    items.push(...group);
+    // Insert 1-2 interleave cards between perceptual groups
+    if (interleavePool.length > 0) items.push(interleavePool.shift()!);
+    if (interleavePool.length > 0) items.push(interleavePool.shift()!);
+  }
+  items.push(...interleavePool);
 
   // Stage breakdown
   const groupCounts: Record<SrsStageGroup, number> = {

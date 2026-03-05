@@ -197,6 +197,7 @@ export interface ReviewQueueItem {
   playback: PlaybackConfig | null;
   feedback: FeedbackConfig;
   dimensions: string[];
+  track_slug: string;
 }
 
 export interface ReviewQueueResponse {
