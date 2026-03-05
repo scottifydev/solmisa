@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getPracticeData, getRecommendations } from "@/lib/actions/practice";
+import {
+  getPracticeData,
+  getRecommendations,
+  getFocusPractice,
+} from "@/lib/actions/practice";
 import { getTracksWithProgress } from "@/lib/actions/lessons";
 import { TrackSelector } from "@/components/learn/track-selector";
 import { DrillCard } from "@/components/practice/drill-card";
 import { RecommendationCard } from "@/components/practice/recommendation-card";
+import { FocusPractice } from "@/components/practice/focus-practice";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata: Metadata = { title: "Practice" };
@@ -17,11 +22,13 @@ export default async function PracticePage({
   searchParams,
 }: PracticePageProps) {
   const params = await searchParams;
-  const [tracks, practiceData, recommendations] = await Promise.all([
-    getTracksWithProgress(),
-    getPracticeData(params.track),
-    getRecommendations(),
-  ]);
+  const [tracks, practiceData, recommendations, focusDrills] =
+    await Promise.all([
+      getTracksWithProgress(),
+      getPracticeData(params.track),
+      getRecommendations(),
+      getFocusPractice(),
+    ]);
 
   const { drills, trackSlug } = practiceData;
   const trackName =
@@ -50,6 +57,9 @@ export default async function PracticePage({
       <Suspense fallback={null}>
         <TrackSelector tracks={tracks} />
       </Suspense>
+
+      {/* Focus Practice — weak dimensions */}
+      {focusDrills.length > 0 && <FocusPractice drills={focusDrills} />}
 
       {/* Recommendations section — always visible */}
       <div className="space-y-3">
