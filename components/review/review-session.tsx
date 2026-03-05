@@ -12,6 +12,7 @@ import { submitReview } from "@/lib/actions/review";
 import { useDrone } from "@/hooks/use-drone";
 import { usePlayback } from "@/hooks/use-playback";
 import { ReviewCard } from "@/components/review/review-card";
+import { TapRhythmCard } from "@/components/review/tap-rhythm-card";
 import { PreSession } from "@/components/review/pre-session";
 import {
   SessionSummary,
@@ -230,7 +231,16 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
       )}
 
       {/* Review card */}
-      {!changingKey && (
+      {!changingKey && currentCard.response_type === "tap_rhythm" && (
+        <TapRhythmCard
+          key={currentCard.card_instance_id}
+          card={currentCard}
+          index={currentIndex}
+          total={total}
+          onAnswer={handleAnswer}
+        />
+      )}
+      {!changingKey && currentCard.response_type !== "tap_rhythm" && (
         <ReviewCard
           key={currentCard.card_instance_id}
           card={currentCard}

@@ -78,7 +78,8 @@ export type ResponseType =
   | "play"
   | "sequence"
   | "toggle_set"
-  | "free_response";
+  | "free_response"
+  | "tap_rhythm";
 
 export interface DifficultyTierConfig {
   key_pool: string[];
