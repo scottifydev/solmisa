@@ -85,14 +85,12 @@ function AuralTeachView({
   droneKey,
   drone,
   playback,
-  metronome,
   onComplete,
 }: {
   stage: AuralTeachStage;
   droneKey: string | null;
   drone: ReturnType<typeof useDrone>;
   playback: ReturnType<typeof usePlayback>;
-  metronome: ReturnType<typeof useMetronome>;
   onComplete: () => void;
 }) {
   const [contentVisible, setContentVisible] = useState(false);
@@ -120,13 +118,6 @@ function AuralTeachView({
           });
         }
         setActiveDegree(stage.highlight_degree);
-      } else {
-        // Non-pitch stage: play metronome so user has audio context
-        await metronome.start({
-          bpm: 100,
-          beatsPerMeasure: 4,
-          accentFirst: true,
-        });
       }
 
       // Content appears after audio (Gordon: sound before label)
@@ -738,10 +729,15 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
     [lesson.stages],
   );
 
-  // Start drone on mount only if lesson has pitch content, stop all audio on unmount
+  // Start drone or metronome at lesson level, stop all audio on unmount
   useEffect(() => {
-    if (lesson.drone_key && lessonHasPitchContent) {
-      void drone.start({ key: lesson.drone_key as NoteName });
+    if (lessonHasPitchContent) {
+      if (lesson.drone_key) {
+        void drone.start({ key: lesson.drone_key as NoteName });
+      }
+    } else {
+      // Rhythm lesson: start metronome for the whole lesson
+      void metronome.start({ bpm: 100, beatsPerMeasure: 4, accentFirst: true });
     }
     return () => {
       drone.stop();
@@ -758,8 +754,6 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
 
   const advanceStage = useCallback(
     (result: StageQuizResult | null) => {
-      // Stop metronome between stages so it doesn't bleed
-      metronome.stop();
       if (result) {
         setQuizResults((prev) => [...prev, result]);
       }
@@ -820,7 +814,6 @@ export function StageRenderer({ lesson, onComplete }: StageRendererProps) {
           droneKey={lesson.drone_key}
           drone={drone}
           playback={playback}
-          metronome={metronome}
           onComplete={() => advanceStage(null)}
         />
       )}
