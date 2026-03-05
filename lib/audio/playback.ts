@@ -83,8 +83,14 @@ const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
   minor7: [0, 3, 7, 10],
 };
 
+/** Strip trailing octave digits from a key name (e.g. "C4" -> "C") */
+function stripOctave(key: string): NoteName {
+  return key.replace(/\d+$/, "") as NoteName;
+}
+
 function noteToMidi(name: NoteName, octave: number): number {
-  const semi = NOTE_SEMITONES[name];
+  const clean = stripOctave(name);
+  const semi = NOTE_SEMITONES[clean];
   if (semi === undefined) throw new Error(`Unknown note: ${name}`);
   return (octave + 1) * 12 + semi;
 }
