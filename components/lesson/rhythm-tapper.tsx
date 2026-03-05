@@ -44,15 +44,23 @@ const COUNT_IN_BARS = 1;
 
 function getBeatsPerMeasure(meter: Meter): number {
   switch (meter) {
-    case "4/4": return 4;
-    case "3/4": return 3;
-    case "6/8": return 6;
-    case "5/8": return 5;
-    case "7/8": return 7;
+    case "4/4":
+      return 4;
+    case "3/4":
+      return 3;
+    case "6/8":
+      return 6;
+    case "5/8":
+      return 5;
+    case "7/8":
+      return 7;
   }
 }
 
-function getMeasureCount(pattern: RhythmEvent[], beatsPerMeasure: number): number {
+function getMeasureCount(
+  pattern: RhythmEvent[],
+  beatsPerMeasure: number,
+): number {
   if (pattern.length === 0) return 1;
   const lastEvent = pattern[pattern.length - 1]!;
   const lastBeatEnd = lastEvent.beat + lastEvent.duration;
@@ -110,9 +118,10 @@ function BeatMarker({
         style={{
           width: size,
           height: size,
-          border: result === "missed"
-            ? `${borderWidth}px dashed ${stroke}`
-            : `${borderWidth}px solid ${stroke}`,
+          border:
+            result === "missed"
+              ? `${borderWidth}px dashed ${stroke}`
+              : `${borderWidth}px solid ${stroke}`,
           backgroundColor: fill,
         }}
       />
@@ -132,7 +141,9 @@ export function RhythmTapper({
 }: RhythmTapperProps) {
   const { ensureStarted } = useAudioContext();
 
-  const [phase, setPhase] = useState<"idle" | "counting" | "playing" | "recording" | "results">("idle");
+  const [phase, setPhase] = useState<
+    "idle" | "counting" | "playing" | "recording" | "results"
+  >("idle");
   const [activeBeat, setActiveBeat] = useState(-1);
   const [countInBeat, setCountInBeat] = useState(-1);
   const [taps, setTaps] = useState<TapMark[]>([]);
@@ -144,17 +155,17 @@ export function RhythmTapper({
   const startTimeRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const finishRecordingRef = useRef<() => void>(() => {});
 
   const beatsPerMeasure = getBeatsPerMeasure(meter);
   const measureCount = getMeasureCount(targetPattern, beatsPerMeasure);
   const totalBeats = beatsPerMeasure * measureCount;
   const beatDurationMs = (60 / bpm) * 1000;
-  const toleranceMs = bpm >= FAST_BPM_THRESHOLD ? TOLERANCE_FAST_MS : TOLERANCE_BASE_MS;
+  const toleranceMs =
+    bpm >= FAST_BPM_THRESHOLD ? TOLERANCE_FAST_MS : TOLERANCE_BASE_MS;
 
   // Build target beat positions for the pattern
-  const targetBeats = targetPattern
-    .filter((e) => !e.rest)
-    .map((e) => e.beat);
+  const targetBeats = targetPattern.filter((e) => !e.rest).map((e) => e.beat);
 
   // Get or create an AudioContext for clicks
   const getAudioCtx = useCallback(() => {
@@ -165,23 +176,30 @@ export function RhythmTapper({
   }, []);
 
   // Play a click sound
-  const playClick = useCallback((isDownbeat: boolean) => {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = isDownbeat ? 1200 : 800;
-    osc.type = "sine";
-    gain.gain.setValueAtTime(isDownbeat ? 0.3 : 0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.05);
-  }, [getAudioCtx]);
+  const playClick = useCallback(
+    (isDownbeat: boolean) => {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = isDownbeat ? 1200 : 800;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(isDownbeat ? 0.3 : 0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.05);
+    },
+    [getAudioCtx],
+  );
 
   // Play a sequence of beats with visual highlighting
   const playSequence = useCallback(
-    (beats: number[], onBeat: (beatIdx: number) => void, onDone: () => void) => {
+    (
+      beats: number[],
+      onBeat: (beatIdx: number) => void,
+      onDone: () => void,
+    ) => {
       let idx = 0;
       const tick = () => {
         if (idx >= beats.length) {
@@ -230,7 +248,10 @@ export function RhythmTapper({
     if (mode === "tap") {
       if (countIn) {
         setPhase("counting");
-        const countInBeats = Array.from({ length: beatsPerMeasure * COUNT_IN_BARS }, (_, i) => i + 1);
+        const countInBeats = Array.from(
+          { length: beatsPerMeasure * COUNT_IN_BARS },
+          (_, i) => i + 1,
+        );
         let ci = 0;
         const countTick = () => {
           if (ci >= countInBeats.length) {
@@ -240,7 +261,10 @@ export function RhythmTapper({
             startTimeRef.current = Date.now();
             // Schedule end of recording
             const recordDuration = totalBeats * beatDurationMs;
-            timerRef.current = setTimeout(() => finishRecording(), recordDuration);
+            timerRef.current = setTimeout(
+              () => finishRecordingRef.current(),
+              recordDuration,
+            );
             return;
           }
           setCountInBeat(ci);
@@ -253,11 +277,23 @@ export function RhythmTapper({
         setPhase("recording");
         startTimeRef.current = Date.now();
         const recordDuration = totalBeats * beatDurationMs;
-        timerRef.current = setTimeout(() => finishRecording(), recordDuration);
+        timerRef.current = setTimeout(
+          () => finishRecordingRef.current(),
+          recordDuration,
+        );
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, countIn, beatsPerMeasure, totalBeats, beatDurationMs, ensureStarted, playSequence, playClick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    mode,
+    countIn,
+    beatsPerMeasure,
+    totalBeats,
+    beatDurationMs,
+    ensureStarted,
+    playSequence,
+    playClick,
+  ]);
 
   // Handle tap input
   const handleTap = useCallback(() => {
@@ -310,7 +346,11 @@ export function RhythmTapper({
     // Mark unmatched taps as extra
     for (let i = 0; i < userTaps.length; i++) {
       if (!tapUsed.has(i)) {
-        results.push({ beat: userTaps[i]!.beatPosition, hit: false, extra: true });
+        results.push({
+          beat: userTaps[i]!.beatPosition,
+          hit: false,
+          extra: true,
+        });
       }
     }
 
@@ -322,8 +362,10 @@ export function RhythmTapper({
     setAccuracy(acc);
     setTaps([...userTaps]);
     onComplete?.(acc);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetBeats, beatDurationMs, toleranceMs]);
+
+  finishRecordingRef.current = finishRecording;
 
   // Keyboard handler for spacebar
   useEffect(() => {
@@ -354,16 +396,18 @@ export function RhythmTapper({
     // Get result for this beat
     let result: "correct" | "missed" | "extra" | null = null;
     if (phase === "results") {
-      const br = beatResults.find((r) => Math.round(r.beat) === beatNum && !r.extra);
+      const br = beatResults.find(
+        (r) => Math.round(r.beat) === beatNum && !r.extra,
+      );
       if (br) {
         result = br.hit ? "correct" : "missed";
       }
     }
 
     // Check if user tapped near this beat
-    const isTapped = phase === "recording" && taps.some(
-      (t) => Math.abs(t.beatPosition - beatNum) < 0.4
-    );
+    const isTapped =
+      phase === "recording" &&
+      taps.some((t) => Math.abs(t.beatPosition - beatNum) < 0.4);
 
     return {
       beatNum,
@@ -410,9 +454,7 @@ export function RhythmTapper({
           {beatGrid.map((b, i) => (
             <div key={i} className="flex items-center gap-3">
               {/* Measure bar line */}
-              {b.isMeasureStart && (
-                <div className="w-px h-6 bg-steel/60" />
-              )}
+              {b.isMeasureStart && <div className="w-px h-6 bg-steel/60" />}
               <div className="flex flex-col items-center gap-1">
                 <BeatMarker
                   isActive={b.isActive}
@@ -446,11 +488,12 @@ export function RhythmTapper({
             <span
               className="text-lg font-bold font-mono"
               style={{
-                color: accPct >= 80
-                  ? semanticColors.correct
-                  : accPct >= 60
-                    ? semanticColors.warning
-                    : semanticColors.incorrect,
+                color:
+                  accPct >= 80
+                    ? semanticColors.correct
+                    : accPct >= 60
+                      ? semanticColors.warning
+                      : semanticColors.incorrect,
               }}
             >
               {accPct}%
@@ -477,7 +520,11 @@ export function RhythmTapper({
             onClick={() => void handleStart()}
             className="flex-1 py-2 rounded-lg font-body font-medium text-sm bg-coral text-white hover:bg-coral/90 transition-colors"
           >
-            {phase === "results" ? "Retry" : mode === "listen" ? "Play" : "Start"}
+            {phase === "results"
+              ? "Retry"
+              : mode === "listen"
+                ? "Play"
+                : "Start"}
           </button>
         )}
       </div>
