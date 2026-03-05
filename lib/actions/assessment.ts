@@ -128,44 +128,58 @@ export async function submitAssessmentAnswer(
   );
 
   // Calculate weight deltas (new weights minus old weights)
-  const allAxes = new Set([
-    ...Object.keys(selected.weights),
-    ...Object.keys(previousWeights),
-  ]);
+  const allAxes = [
+    ...new Set([
+      ...Object.keys(selected.weights),
+      ...Object.keys(previousWeights),
+    ]),
+  ];
+
+  if (allAxes.length === 0) return { success: true };
+
+  // Batch read: fetch all existing skill_axes rows for this user+source in one query
+  const { data: existingAxes } = await supabase
+    .from("skill_axes")
+    .select("id, axis_name, score")
+    .eq("user_id", user.id)
+    .eq("source", "assessment")
+    .in("axis_name", allAxes);
+
+  const axisMap = new Map((existingAxes ?? []).map((r) => [r.axis_name, r]));
+
+  const now = new Date().toISOString();
+  const updates: PromiseLike<unknown>[] = [];
 
   for (const axis of allAxes) {
     const newWeight = selected.weights[axis] ?? 0;
     const oldWeight = previousWeights[axis] ?? 0;
     const delta = newWeight - oldWeight;
-
     if (delta === 0) continue;
 
-    // Check if skill axis row exists
-    const { data: axisRow } = await supabase
-      .from("skill_axes")
-      .select("id, score")
-      .eq("user_id", user.id)
-      .eq("axis_name", axis)
-      .eq("source", "assessment")
-      .maybeSingle();
-
-    if (axisRow) {
-      await supabase
-        .from("skill_axes")
-        .update({
-          score: (axisRow.score ?? 0) + delta,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", axisRow.id);
+    const existing_axis = axisMap.get(axis);
+    if (existing_axis) {
+      updates.push(
+        supabase
+          .from("skill_axes")
+          .update({
+            score: (existing_axis.score ?? 0) + delta,
+            updated_at: now,
+          })
+          .eq("id", existing_axis.id),
+      );
     } else {
-      await supabase.from("skill_axes").insert({
-        user_id: user.id,
-        axis_name: axis,
-        score: Math.max(0, delta),
-        source: "assessment",
-      });
+      updates.push(
+        supabase.from("skill_axes").insert({
+          user_id: user.id,
+          axis_name: axis,
+          score: Math.max(0, delta),
+          source: "assessment",
+        }),
+      );
     }
   }
+
+  await Promise.all(updates);
 
   return { success: true };
 }
