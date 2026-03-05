@@ -584,6 +584,7 @@ export type Database = {
           name: string | null;
           onboarding_complete: boolean | null;
           primary_solfege_system: string | null;
+          show_feeling_states: boolean | null;
           streak_days: number | null;
           streak_last_date: string | null;
           updated_at: string | null;
@@ -599,6 +600,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean | null;
           primary_solfege_system?: string | null;
+          show_feeling_states?: boolean | null;
           streak_days?: number | null;
           streak_last_date?: string | null;
           updated_at?: string | null;
@@ -614,6 +616,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean | null;
           primary_solfege_system?: string | null;
+          show_feeling_states?: boolean | null;
           streak_days?: number | null;
           streak_last_date?: string | null;
           updated_at?: string | null;

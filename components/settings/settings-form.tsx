@@ -6,6 +6,7 @@ import {
   updateProfile,
   updateLearningPreferences,
   updateReviewSessionCap,
+  updateFeelingStates,
   requestPasswordReset,
   deleteAccount,
   signOut,
@@ -101,12 +102,14 @@ interface SettingsFormProps {
   };
   email: string;
   reviewSessionCap?: number | null;
+  feelingStatesEnabled?: boolean;
 }
 
 export function SettingsForm({
   profile,
   email,
   reviewSessionCap,
+  feelingStatesEnabled = true,
 }: SettingsFormProps) {
   const [toast, setToast] = useState<string | null>(null);
 
@@ -127,6 +130,10 @@ export function SettingsForm({
         solfegeSystem={profile.primary_solfege_system}
         goals={profile.goals}
         onSaved={() => showToast("Preferences updated")}
+      />
+      <DisplaySection
+        feelingStates={feelingStatesEnabled}
+        onSaved={() => showToast("Display settings updated")}
       />
       <ReviewSection
         sessionCap={reviewSessionCap ?? 20}
@@ -323,6 +330,60 @@ function LearningSection({
         <Button onClick={handleSave} loading={isPending}>
           Save preferences
         </Button>
+      </div>
+    </Section>
+  );
+}
+
+// ─── Display Section ────────────────────────────────────────
+
+function DisplaySection({
+  feelingStates,
+  onSaved,
+}: {
+  feelingStates: boolean;
+  onSaved: () => void;
+}) {
+  const [enabled, setEnabled] = useState(feelingStates);
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggle = () => {
+    const next = !enabled;
+    setEnabled(next);
+    startTransition(async () => {
+      await updateFeelingStates(next);
+      onSaved();
+    });
+  };
+
+  return (
+    <Section title="Display">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-sm text-ivory">Show feeling descriptions</span>
+          <p className="text-xs text-ash mt-0.5">
+            Brief descriptors when tapping degrees in lessons and drills
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          onClick={handleToggle}
+          disabled={isPending}
+          className={`
+            relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors
+            ${enabled ? "bg-violet" : "bg-steel"}
+            ${isPending ? "opacity-50" : ""}
+          `}
+        >
+          <span
+            className={`
+              pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform
+              ${enabled ? "translate-x-5" : "translate-x-0"}
+            `}
+          />
+        </button>
       </div>
     </Section>
   );

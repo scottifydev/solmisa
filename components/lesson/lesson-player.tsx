@@ -15,6 +15,7 @@ interface LessonPlayerProps {
   moduleTitle?: string;
   totalLessons?: number;
   userId?: string;
+  showFeelingStates?: boolean;
 }
 
 interface CompletionData {
@@ -147,6 +148,7 @@ export function LessonPlayer({
   moduleTitle = "Module",
   totalLessons = 1,
   userId,
+  showFeelingStates = false,
 }: LessonPlayerProps) {
   const router = useRouter();
   const [completionData, setCompletionData] = useState<CompletionData | null>(
@@ -216,6 +218,7 @@ export function LessonPlayer({
           stages: lesson.stages,
         }}
         onComplete={handleComplete}
+        showFeelingStates={showFeelingStates}
       />
     </div>
   );

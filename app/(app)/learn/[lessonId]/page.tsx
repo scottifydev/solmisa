@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { getLessonWithContext } from "@/lib/actions/lessons";
 import { createClient } from "@/lib/supabase/server";
+import { getFeelingStatesEnabled } from "@/lib/actions/profile";
 import { LessonPlayer } from "@/components/lesson/lesson-player";
 import { notFound } from "next/navigation";
 
@@ -20,9 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LessonPage({ params }: Props) {
   const { lessonId } = await params;
-  const [data, supabase] = await Promise.all([
+  const [data, supabase, feelingStates] = await Promise.all([
     getCachedLesson(lessonId),
     createClient(),
+    getFeelingStatesEnabled(),
   ]);
 
   if (!data) {
@@ -39,6 +41,7 @@ export default async function LessonPage({ params }: Props) {
       moduleTitle={data.moduleTitle}
       totalLessons={data.totalLessons}
       userId={user?.id}
+      showFeelingStates={feelingStates}
     />
   );
 }
