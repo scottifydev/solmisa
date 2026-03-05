@@ -13,6 +13,7 @@ import {
 import { brand, type as typeTokens } from "@/lib/tokens";
 import type { RadarScore } from "@/lib/actions/radar";
 import { RADAR_GROUP_LABELS, type RadarGroup } from "@/lib/radar/dimensions";
+import { Sparkline } from "@/components/dashboard/sparkline";
 
 interface SkillRadarProps {
   current: RadarScore[];
@@ -92,6 +93,7 @@ function DimensionDetail({ dimensions }: { dimensions: RadarScore[] }) {
               }}
             />
           </div>
+          <Sparkline history={dim.scoreHistory} />
           <span
             className="text-xs font-mono w-8 text-right"
             style={{ color: scoreColor(dim.score) }}

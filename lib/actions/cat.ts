@@ -29,12 +29,14 @@ export async function savePlacementResults(
   }
 
   // 2. Write radar_cache entries
+  const now = new Date().toISOString();
   const radarRows = placement.radarScores.map((score) => ({
     user_id: user.id,
     dimension: score.slug,
     score: score.score,
     total_reviews: 0,
-    computed_at: new Date().toISOString(),
+    computed_at: now,
+    score_history: [{ score: score.score, date: now }],
   }));
 
   if (radarRows.length > 0) {

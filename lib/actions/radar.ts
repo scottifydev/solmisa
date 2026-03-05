@@ -8,12 +8,18 @@ import {
   type RadarGroup,
 } from "@/lib/radar/dimensions";
 
+export interface ScoreHistoryEntry {
+  score: number;
+  date: string;
+}
+
 export interface RadarScore {
   slug: string;
   name: string;
   group: RadarGroup;
   score: number;
   total_reviews: number;
+  scoreHistory: ScoreHistoryEntry[];
 }
 
 export interface RadarScoresResponse {
@@ -50,6 +56,7 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
         group: d.group,
         score: 0,
         total_reviews: 0,
+        scoreHistory: [],
       })),
       lifetime: RADAR_DIMENSIONS.map((d) => ({
         slug: d.slug,
@@ -57,6 +64,7 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
         group: d.group,
         score: 0,
         total_reviews: 0,
+        scoreHistory: [],
       })),
     };
 
@@ -155,6 +163,18 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
     return Math.round(score * 100);
   }
 
+  // Read existing score_history from radar_cache
+  const { data: cacheRows } = await supabase
+    .from("radar_cache")
+    .select("dimension, score_history")
+    .eq("user_id", user.id);
+
+  const historyMap = new Map<string, ScoreHistoryEntry[]>();
+  for (const row of cacheRows ?? []) {
+    const history = (row.score_history ?? []) as ScoreHistoryEntry[];
+    historyMap.set(row.dimension, history);
+  }
+
   const current: RadarScore[] = RADAR_DIMENSIONS.map((d) => {
     const stats = currentStats.get(d.slug);
     if (!stats || stats.weightedTotal === 0) {
@@ -164,6 +184,7 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
         group: d.group,
         score: 0,
         total_reviews: 0,
+        scoreHistory: historyMap.get(d.slug) ?? [],
       };
     }
     const accuracy = stats.weightedCorrect / stats.weightedTotal;
@@ -177,6 +198,7 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
       group: d.group,
       score: computeScore(accuracy, avgInterval, avgStage),
       total_reviews: stats.total,
+      scoreHistory: historyMap.get(d.slug) ?? [],
     };
   });
 
@@ -189,6 +211,7 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
         group: d.group,
         score: 0,
         total_reviews: 0,
+        scoreHistory: historyMap.get(d.slug) ?? [],
       };
     }
     const accuracy = stats.correct / stats.total;
@@ -202,8 +225,40 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
       group: d.group,
       score: computeScore(accuracy, avgInterval, avgStage),
       total_reviews: stats.total,
+      scoreHistory: historyMap.get(d.slug) ?? [],
     };
   });
+
+  // Materialize current scores to radar_cache with history append
+  // Only append a new history entry if the latest is from a different day
+  const dateStr = now.toISOString();
+  const todayStr = dateStr.slice(0, 10);
+  const upsertRows = current.map((dim) => {
+    const existing = historyMap.get(dim.slug) ?? [];
+    const lastEntry = existing[existing.length - 1];
+    const lastDate = lastEntry?.date?.slice(0, 10);
+    const shouldAppend = lastDate !== todayStr;
+    const updated = shouldAppend
+      ? [...existing, { score: dim.score, date: dateStr }].slice(-30)
+      : existing.map((e, i) =>
+          i === existing.length - 1 ? { score: dim.score, date: dateStr } : e,
+        );
+    return {
+      user_id: user.id,
+      dimension: dim.slug,
+      score: dim.score,
+      total_reviews: dim.total_reviews,
+      computed_at: dateStr,
+      score_history: updated,
+    };
+  });
+
+  if (upsertRows.length > 0) {
+    await supabase
+      .from("radar_cache")
+      .upsert(upsertRows, { onConflict: "user_id,dimension" })
+      .then(() => {});
+  }
 
   return { current, lifetime };
 }

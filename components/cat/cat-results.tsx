@@ -38,6 +38,7 @@ export function CATResults({
     group: s.group,
     score: s.score,
     total_reviews: 0,
+    scoreHistory: [],
   }));
 
   return (

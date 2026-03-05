@@ -134,4 +134,5 @@ export const DEMO_RADAR_SCORES: RadarScore[] = RADAR_DIMENSIONS.map((d) => ({
   group: d.group,
   score: DEMO_DIMENSION_SCORES[d.slug] ?? 0,
   total_reviews: Math.floor(Math.random() * 20) + 5,
+  scoreHistory: [],
 }));
