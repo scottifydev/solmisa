@@ -4,59 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
 
-const tabs = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/learn", label: "Learn" },
-  { href: "/review", label: "Review" },
-] as const;
-
-function GridIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      className={className}
-    >
-      <rect
-        x="2"
-        y="2"
-        width="7"
-        height="7"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="11"
-        y="2"
-        width="7"
-        height="7"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="2"
-        y="11"
-        width="7"
-        height="7"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="11"
-        y="11"
-        width="7"
-        height="7"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
+interface Tab {
+  href: string;
+  label: string;
+  icon: (props: { className?: string }) => React.JSX.Element;
+  badge?: number;
 }
 
 function BookIcon({ className }: { className?: string }) {
@@ -82,6 +34,22 @@ function BookIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function TargetIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="1" fill="currentColor" />
     </svg>
   );
 }
@@ -125,7 +93,7 @@ function RefreshIcon({ className }: { className?: string }) {
   );
 }
 
-function GearIcon({ className }: { className?: string }) {
+function UserIcon({ className }: { className?: string }) {
   return (
     <svg
       width="20"
@@ -134,65 +102,90 @@ function GearIcon({ className }: { className?: string }) {
       fill="none"
       className={className}
     >
-      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M8.5 2.5h3l.4 1.8a5.5 5.5 0 0 1 1.5.9l1.8-.5 1.5 2.6-1.4 1.2a5.5 5.5 0 0 1 0 1.8l1.4 1.2-1.5 2.6-1.8-.5a5.5 5.5 0 0 1-1.5.9l-.4 1.8h-3l-.4-1.8a5.5 5.5 0 0 1-1.5-.9l-1.8.5-1.5-2.6 1.4-1.2a5.5 5.5 0 0 1 0-1.8L3.3 7.3l1.5-2.6 1.8.5a5.5 5.5 0 0 1 1.5-.9l.4-1.8Z"
+        d="M3.5 17.5c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5"
         stroke="currentColor"
         strokeWidth="1.5"
-        strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </svg>
   );
 }
 
-const mobileIcons: Record<
-  string,
-  (props: { className?: string }) => React.JSX.Element
-> = {
-  "/dashboard": GridIcon,
-  "/learn": BookIcon,
-  "/review": RefreshIcon,
-};
-
 function isTabActive(pathname: string, href: string): boolean {
   if (href === "/learn")
     return pathname === "/learn" || pathname.startsWith("/learn/");
+  if (href === "/practice")
+    return pathname === "/practice" || pathname.startsWith("/practice/");
+  if (href === "/profile")
+    return (
+      pathname === "/profile" ||
+      pathname.startsWith("/profile/") ||
+      pathname === "/settings"
+    );
   return pathname.startsWith(href);
 }
 
 interface NavBarProps {
   streak?: number;
   reviewCount?: number;
+  newLessonCount?: number;
 }
 
-export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
+export function NavBar({
+  streak = 0,
+  reviewCount = 0,
+  newLessonCount = 0,
+}: NavBarProps) {
   const pathname = usePathname();
   const hasActiveStreak = streak > 0;
 
+  const tabs: Tab[] = [
+    {
+      href: "/learn",
+      label: "Learn",
+      icon: BookIcon,
+      badge: newLessonCount > 0 ? newLessonCount : undefined,
+    },
+    { href: "/practice", label: "Practice", icon: TargetIcon },
+    {
+      href: "/review",
+      label: "Review",
+      icon: RefreshIcon,
+      badge: reviewCount > 0 ? reviewCount : undefined,
+    },
+    { href: "/profile", label: "Profile", icon: UserIcon },
+  ];
+
   return (
     <>
-      {/* Desktop header */}
-      <header className="hidden sm:flex fixed top-0 left-0 right-0 z-40 h-14 items-center justify-between px-6 border-b border-steel bg-night/80 backdrop-blur-xl">
-        <Link href="/dashboard" className="shrink-0">
-          <Logo size={28} withWordmark wordmarkSize="md" />
-        </Link>
+      {/* Desktop sidebar */}
+      <aside className="hidden sm:flex fixed top-0 left-0 bottom-0 z-40 w-[200px] flex-col border-r border-steel bg-night/80 backdrop-blur-xl">
+        <div className="flex items-center h-14 px-5 border-b border-steel shrink-0">
+          <Link href="/profile">
+            <Logo size={28} withWordmark wordmarkSize="md" />
+          </Link>
+        </div>
 
-        <nav className="inline-flex items-center bg-obsidian rounded-full p-1">
+        <nav className="flex-1 flex flex-col gap-1 px-3 py-4">
           {tabs.map((tab) => {
             const active = isTabActive(pathname, tab.href);
+            const Icon = tab.icon;
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
                 className={`
-                  relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-body transition-colors
-                  ${active ? "bg-graphite text-ivory font-semibold" : "text-silver hover:text-ivory"}
+                  relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-body transition-colors
+                  ${active ? "bg-violet/10 text-violet font-semibold" : "text-silver hover:text-ivory hover:bg-steel/20"}
                 `}
               >
-                {tab.label}
-                {tab.href === "/review" && reviewCount > 0 && (
-                  <span className="bg-incorrect text-white font-mono text-xs rounded-full px-1.5 min-w-[20px] text-center leading-5">
-                    {reviewCount}
+                <Icon className="shrink-0" />
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className="ml-auto bg-incorrect text-white font-mono text-[10px] rounded-full px-1.5 min-w-[18px] text-center leading-[18px]">
+                    {tab.badge}
                   </span>
                 )}
               </Link>
@@ -200,44 +193,28 @@ export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
           })}
         </nav>
 
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="px-5 py-4 border-t border-steel">
           <span
             className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
             aria-label={`Streak: ${streak} days`}
           >
-            <span aria-hidden="true">🔥</span> {streak}
+            <span aria-hidden="true">🔥</span> {streak}d streak
           </span>
-          <Link
-            href="/settings"
-            aria-label="Settings"
-            className="text-silver hover:text-ivory transition-colors"
-          >
-            <GearIcon aria-hidden="true" />
-          </Link>
         </div>
-      </header>
+      </aside>
 
       {/* Mobile header */}
       <header className="flex sm:hidden fixed top-0 left-0 right-0 z-40 h-12 items-center justify-between px-4 border-b border-steel bg-night/80 backdrop-blur-xl">
-        <Link href="/dashboard" className="shrink-0">
+        <Link href="/profile" className="shrink-0">
           <Logo size={24} />
         </Link>
 
-        <div className="flex items-center gap-3">
-          <span
-            className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
-            aria-label={`Streak: ${streak} days`}
-          >
-            <span aria-hidden="true">🔥</span> {streak}
-          </span>
-          <Link
-            href="/settings"
-            aria-label="Settings"
-            className="text-silver hover:text-ivory transition-colors"
-          >
-            <GearIcon aria-hidden="true" />
-          </Link>
-        </div>
+        <span
+          className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+          aria-label={`Streak: ${streak} days`}
+        >
+          <span aria-hidden="true">🔥</span> {streak}
+        </span>
       </header>
 
       {/* Mobile bottom tab bar */}
@@ -250,7 +227,7 @@ export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
       >
         {tabs.map((tab) => {
           const active = isTabActive(pathname, tab.href);
-          const Icon = mobileIcons[tab.href];
+          const Icon = tab.icon;
           return (
             <Link
               key={tab.href}
@@ -260,11 +237,11 @@ export function NavBar({ streak = 0, reviewCount = 0 }: NavBarProps) {
                 ${active ? "text-violet" : "text-ash"}
               `}
             >
-              {Icon && <Icon aria-hidden="true" />}
+              <Icon aria-hidden="true" />
               <span>{tab.label}</span>
-              {tab.href === "/review" && reviewCount > 0 && (
+              {tab.badge && (
                 <span className="absolute top-1 right-0.5 bg-incorrect text-white font-mono text-[10px] rounded-full px-1 min-w-[16px] text-center leading-4">
-                  {reviewCount}
+                  {tab.badge}
                 </span>
               )}
             </Link>
