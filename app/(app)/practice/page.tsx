@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getPracticeData } from "@/lib/actions/practice";
+import { getPracticeData, getRecommendations } from "@/lib/actions/practice";
 import { getTracksWithProgress } from "@/lib/actions/lessons";
 import { TrackSelector } from "@/components/learn/track-selector";
 import { DrillCard } from "@/components/practice/drill-card";
+import { RecommendationCard } from "@/components/practice/recommendation-card";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata: Metadata = { title: "Practice" };
@@ -16,9 +17,10 @@ export default async function PracticePage({
   searchParams,
 }: PracticePageProps) {
   const params = await searchParams;
-  const [tracks, practiceData] = await Promise.all([
+  const [tracks, practiceData, recommendations] = await Promise.all([
     getTracksWithProgress(),
     getPracticeData(params.track),
+    getRecommendations(),
   ]);
 
   const { drills, trackSlug } = practiceData;
@@ -50,15 +52,25 @@ export default async function PracticePage({
       </Suspense>
 
       {/* Recommendations section — always visible */}
-      <div className="rounded-lg border border-violet/20 bg-violet/5 p-4 space-y-2">
+      <div className="space-y-3">
         <h2 className="text-xs font-mono uppercase tracking-wider text-ash">
           Suggested
         </h2>
-        <p className="text-sm text-silver">
-          {unlockedDrills.length === 0
-            ? "While you work through lessons, practice will unlock here. Start a lesson to begin."
-            : "Focus on areas where you want more confidence. Drills here never affect your review scores."}
-        </p>
+        {recommendations.length > 0 ? (
+          <div className="space-y-2">
+            {recommendations.map((rec) => (
+              <RecommendationCard key={rec.id} rec={rec} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-violet/20 bg-violet/5 p-4">
+            <p className="text-sm text-silver">
+              {unlockedDrills.length === 0
+                ? "While you work through lessons, practice will unlock here. Start a lesson to begin."
+                : "Focus on areas where you want more confidence. Drills here never affect your review scores."}
+            </p>
+          </div>
+        )}
       </div>
 
       {drills.length === 0 ? (
