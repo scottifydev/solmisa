@@ -463,6 +463,21 @@ export function StageRenderer({
           onComplete={advanceStage}
         />
       )}
+      {![
+        "aural_teach",
+        "theory_teach",
+        "interactive",
+        "guided_practice",
+        "rhythm",
+        "real_music_example",
+      ].includes(currentStage.type) && (
+        <div className="bg-obsidian border border-steel rounded-lg p-6 space-y-4">
+          <p className="text-silver text-sm">
+            This stage type is not yet supported. Skipping ahead.
+          </p>
+          <Button onClick={advanceStage}>Continue &rarr;</Button>
+        </div>
+      )}
     </div>
   );
 }

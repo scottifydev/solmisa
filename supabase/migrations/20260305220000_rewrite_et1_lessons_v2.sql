@@ -97,13 +97,13 @@ BEGIN
     WHERE id = v_lesson1_id;
 
     -- Ensure card template exists for this lesson
-    INSERT INTO card_templates (lesson_id, slug, card_category, front_template, back_template, radar_dimensions)
+    INSERT INTO card_templates (lesson_id, slug, card_category, response_type, prompt_text, radar_dimensions)
     VALUES (
       v_lesson1_id,
       'et_degree_1_basic',
       'perceptual',
+      'select_degree',
       'Listen to the note over the drone. Which degree is it?',
-      'Do (1) — the tonic. The resting point of the key.',
       ARRAY['degree_1']::TEXT[]
     )
     ON CONFLICT (slug) DO UPDATE SET
@@ -171,15 +171,13 @@ BEGIN
     WHERE id = v_lesson3_id;
 
     -- Ensure card templates exist
-    INSERT INTO card_templates (lesson_id, slug, card_category, front_template, back_template, radar_dimensions)
+    INSERT INTO card_templates (lesson_id, slug, card_category, response_type, prompt_text, radar_dimensions)
     VALUES
-      (v_lesson3_id, 'et_degree_3_basic', 'perceptual',
+      (v_lesson3_id, 'et_degree_3_basic', 'perceptual', 'select_degree',
        'Listen to the note over the drone. Which degree is it?',
-       'Mi (3) — the third degree. Gives the chord its quality.',
        ARRAY['degree_3']::TEXT[]),
-      (v_lesson3_id, 'et_degree_5_basic', 'perceptual',
+      (v_lesson3_id, 'et_degree_5_basic', 'perceptual', 'select_degree',
        'Listen to the note over the drone. Which degree is it?',
-       'Sol (5) — the fifth degree. The second most stable tone.',
        ARRAY['degree_5']::TEXT[])
     ON CONFLICT (slug) DO UPDATE SET
       lesson_id = EXCLUDED.lesson_id,
