@@ -273,7 +273,13 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
       )}
       {!changingKey &&
         currentCard.response_type !== "tap_rhythm" &&
-        currentCard.response_type !== "sing_self_assess" && (
+        currentCard.response_type !== "sing_self_assess" &&
+        [
+          "select_one",
+          "select_degree",
+          "select_interval",
+          "select_chord",
+        ].includes(currentCard.response_type) && (
           <ReviewCard
             key={currentCard.card_instance_id}
             card={currentCard}
@@ -285,6 +291,27 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
             onPlayResolution={handlePlayResolution}
             skipCadence={cadencePlayedForKey.current}
           />
+        )}
+      {!changingKey &&
+        ![
+          "tap_rhythm",
+          "sing_self_assess",
+          "select_one",
+          "select_degree",
+          "select_interval",
+          "select_chord",
+        ].includes(currentCard.response_type) && (
+          <div className="bg-obsidian border border-steel rounded-lg p-6 text-center space-y-4">
+            <p className="text-silver text-sm">
+              This exercise type is not available yet.
+            </p>
+            <button
+              onClick={() => handleAnswer(true, 0)}
+              className="px-6 py-2 rounded-lg bg-violet text-white font-body font-medium text-sm hover:bg-violet/90 transition-colors"
+            >
+              Skip
+            </button>
+          </div>
         )}
 
       {/* Score tally */}

@@ -24,6 +24,15 @@ import { RealMusicExampleStageView } from "@/components/lesson/stages/real-music
 import { useRef } from "react";
 import { useState as useStateAlias } from "react";
 
+// ─── Unsupported Stage Auto-Skip ─────────────────────────────
+
+function UnsupportedStageSkip({ onSkip }: { onSkip: () => void }) {
+  useEffect(() => {
+    onSkip();
+  }, [onSkip]);
+  return null;
+}
+
 // ─── Stage Pill ─────────────────────────────────────────────
 
 function StagePill({
@@ -52,22 +61,18 @@ function StagePill({
     );
   }
 
-  const styles: Record<LessonStageType, string> = {
+  const styles: Record<string, string> = {
     aural_teach: "bg-violet/10 text-violet border border-violet/40",
-    aural_quiz: "bg-warning/10 text-warning border border-warning/30",
     theory_teach: "bg-info/10 text-info border border-info/30",
-    theory_quiz: "bg-warning/10 text-warning border border-warning/30",
     rhythm: "bg-correct/10 text-correct border border-correct/30",
     interactive: "bg-violet/10 text-violet border border-violet/40",
     guided_practice: "bg-info/10 text-info border border-info/30",
     real_music_example: "bg-violet/10 text-violet border border-violet/40",
   };
 
-  const labels: Record<LessonStageType, string> = {
+  const labels: Record<string, string> = {
     aural_teach: "listen",
-    aural_quiz: "quiz",
     theory_teach: "theory",
-    theory_quiz: "quiz",
     rhythm: "rhythm",
     interactive: "interact",
     guided_practice: "practice",
@@ -76,9 +81,9 @@ function StagePill({
 
   return (
     <span
-      className={`text-[10px] px-2 py-[3px] rounded-sm font-mono tracking-wide uppercase ${styles[stage.type]}`}
+      className={`text-[10px] px-2 py-[3px] rounded-sm font-mono tracking-wide uppercase ${styles[stage.type] ?? "text-ash"}`}
     >
-      {labels[stage.type]}
+      {labels[stage.type] ?? stage.type}
     </span>
   );
 }
@@ -471,12 +476,7 @@ export function StageRenderer({
         "rhythm",
         "real_music_example",
       ].includes(currentStage.type) && (
-        <div className="bg-obsidian border border-steel rounded-lg p-6 space-y-4">
-          <p className="text-silver text-sm">
-            This stage type is not yet supported. Skipping ahead.
-          </p>
-          <Button onClick={advanceStage}>Continue &rarr;</Button>
-        </div>
+        <UnsupportedStageSkip onSkip={advanceStage} />
       )}
     </div>
   );
