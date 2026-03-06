@@ -14,6 +14,7 @@ interface LessonPlayerProps {
   lesson: Lesson;
   moduleTitle?: string;
   totalLessons?: number;
+  allowedKeys?: string[];
   userId?: string;
   showFeelingStates?: boolean;
 }
@@ -147,6 +148,7 @@ export function LessonPlayer({
   lesson,
   moduleTitle = "Module",
   totalLessons = 1,
+  allowedKeys = [],
   userId,
   showFeelingStates = false,
 }: LessonPlayerProps) {
@@ -233,7 +235,7 @@ export function LessonPlayer({
           lesson_num: lesson.lesson_order,
           total_lessons: totalLessons,
           drone_key: lesson.drone_key,
-          allowed_keys: [],
+          allowed_keys: allowedKeys,
           stages: lesson.stages,
         }}
         onComplete={handleComplete}

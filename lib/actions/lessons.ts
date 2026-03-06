@@ -8,9 +8,22 @@ import type {
   LessonStage,
   ModuleProgressStatus,
 } from "@/types/lesson";
+import { MODULE_KEY_POOLS } from "@/types/audio";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function getKeyPoolForModuleOrder(moduleOrder: number): string[] {
+  const keys = Object.keys(MODULE_KEY_POOLS)
+    .map(Number)
+    .sort((a, b) => a - b);
+  for (let i = keys.length - 1; i >= 0; i--) {
+    if (moduleOrder >= keys[i]!) {
+      return [...MODULE_KEY_POOLS[keys[i]!]!];
+    }
+  }
+  return [...MODULE_KEY_POOLS[1]!];
+}
 
 export interface ModuleListItem extends Module {
   progressStatus: ModuleProgressStatus;
@@ -30,7 +43,7 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
     .select("*")
     .order("module_order");
 
-  if (!modules) return [];
+  if (!modules || modules.length === 0) return [];
 
   const moduleIds = modules.map((m) => m.id);
 
@@ -171,7 +184,7 @@ export async function getLessonWithContext(
   const [{ data: module }, { count }] = await Promise.all([
     supabase
       .from("modules")
-      .select("title")
+      .select("title, module_order")
       .eq("id", lesson.module_id)
       .single(),
     supabase
@@ -197,7 +210,7 @@ export async function getLessonWithContext(
     },
     moduleTitle: module?.title ?? "Module",
     totalLessons: count ?? 1,
-    allowedKeys: [],
+    allowedKeys: getKeyPoolForModuleOrder(module?.module_order ?? 1),
   };
 }
 
@@ -240,11 +253,14 @@ export async function getModuleWithLessons(
   if (!mod) return null;
 
   const lessonIds = (lessons ?? []).map((l) => l.id);
-  const { data: progress } = await supabase
-    .from("lesson_progress")
-    .select("lesson_id, status, score")
-    .eq("user_id", user.id)
-    .in("lesson_id", lessonIds);
+  const { data: progress } =
+    lessonIds.length > 0
+      ? await supabase
+          .from("lesson_progress")
+          .select("lesson_id, status, score")
+          .eq("user_id", user.id)
+          .in("lesson_id", lessonIds)
+      : { data: [] };
 
   const progressMap = new Map((progress ?? []).map((p) => [p.lesson_id, p]));
 
@@ -366,7 +382,7 @@ export async function getModulesWithLessonsForTrack(
     .eq("track_id", track.id)
     .order("module_order");
 
-  if (!modules) return [];
+  if (!modules || modules.length === 0) return [];
 
   const moduleIds = modules.map((m) => m.id);
 
