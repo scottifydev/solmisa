@@ -16,17 +16,17 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   const {
@@ -34,7 +34,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect unauthenticated users to login (except auth pages and public pages)
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
+  const isAuthPage =
+    request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||
     request.nextUrl.pathname.startsWith("/reset-password");
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth/callback");
@@ -44,7 +45,9 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isAuthPage && !isAuthCallback && !isPublicPage) {
     const url = request.nextUrl.clone();
+    const returnTo = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = "/login";
+    url.searchParams.set("next", returnTo);
     return NextResponse.redirect(url);
   }
 
@@ -56,7 +59,13 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect authenticated users to onboarding if not complete
-  if (user && !isOnboarding && !isAuthPage && !isAuthCallback && !isPublicPage) {
+  if (
+    user &&
+    !isOnboarding &&
+    !isAuthPage &&
+    !isAuthCallback &&
+    !isPublicPage
+  ) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("onboarding_complete")

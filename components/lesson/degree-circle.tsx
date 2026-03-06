@@ -259,6 +259,7 @@ export function DegreeCircle({
     <svg
       viewBox={`0 0 ${size} ${size}`}
       width="100%"
+      overflow="visible"
       style={{ maxWidth: size }}
       role="img"
       aria-label={`Degree circle showing ${tonality} scale`}

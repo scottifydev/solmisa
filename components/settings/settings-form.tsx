@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+  useState,
+  useTransition,
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   updateProfile,
@@ -119,11 +126,24 @@ export function SettingsForm({
   guidedMode = false,
 }: SettingsFormProps) {
   const [toast, setToast] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const profileRef = useRef<{ save: () => Promise<void> }>(null);
+  const learningRef = useRef<{ save: () => Promise<void> }>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
+
+  const handleSaveAll = useCallback(() => {
+    startTransition(async () => {
+      await Promise.all([
+        profileRef.current?.save(),
+        learningRef.current?.save(),
+      ]);
+      showToast("Changes saved");
+    });
+  }, []);
 
   return (
     <div className="space-y-0">
@@ -131,13 +151,20 @@ export function SettingsForm({
         name={profile.name}
         instrument={profile.instrument}
         experienceLevel={profile.experience_level}
-        onSaved={() => showToast("Profile updated")}
+        ref={profileRef}
       />
       <LearningSection
         solfegeSystem={profile.primary_solfege_system}
         goals={profile.goals}
-        onSaved={() => showToast("Preferences updated")}
+        ref={learningRef}
       />
+
+      <div className="border-b border-steel pb-8 mb-8">
+        <Button onClick={handleSaveAll} loading={isPending}>
+          Save changes
+        </Button>
+      </div>
+
       <DisplaySection
         feelingStates={feelingStatesEnabled}
         guidedModeEnabled={guidedMode}
@@ -162,29 +189,35 @@ export function SettingsForm({
 
 // ─── Profile Section ────────────────────────────────────────
 
-function ProfileSection({
-  name,
-  instrument,
-  experienceLevel,
-  onSaved,
-}: {
-  name: string | null;
-  instrument: string | null;
-  experienceLevel: string | null;
-  onSaved: () => void;
-}) {
-  const [isPending, startTransition] = useTransition();
+interface SectionSaveHandle {
+  save: () => Promise<void>;
+}
 
-  const handleSubmit = (formData: FormData) => {
-    startTransition(async () => {
-      await updateProfile(formData);
-      onSaved();
-    });
-  };
+const ProfileSection = forwardRef<
+  SectionSaveHandle,
+  {
+    name: string | null;
+    instrument: string | null;
+    experienceLevel: string | null;
+  }
+>(function ProfileSection({ name, instrument, experienceLevel }, ref) {
+  const [nameVal, setNameVal] = useState(name ?? "");
+  const [instrumentVal, setInstrumentVal] = useState(instrument ?? "");
+  const [experienceVal, setExperienceVal] = useState(experienceLevel ?? "");
+
+  useImperativeHandle(ref, () => ({
+    async save() {
+      const fd = new FormData();
+      fd.set("name", nameVal);
+      fd.set("instrument", instrumentVal);
+      fd.set("experience_level", experienceVal);
+      await updateProfile(fd);
+    },
+  }));
 
   return (
     <Section title="Profile">
-      <form action={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div>
           <label htmlFor="name" className={labelClass}>
             Name
@@ -193,7 +226,8 @@ function ProfileSection({
             id="name"
             name="name"
             type="text"
-            defaultValue={name ?? ""}
+            value={nameVal}
+            onChange={(e) => setNameVal(e.target.value)}
             maxLength={100}
             className={inputClass}
           />
@@ -206,7 +240,8 @@ function ProfileSection({
           <select
             id="instrument"
             name="instrument"
-            defaultValue={instrument ?? ""}
+            value={instrumentVal}
+            onChange={(e) => setInstrumentVal(e.target.value)}
             className={selectClass}
           >
             <option value="">Select...</option>
@@ -225,7 +260,8 @@ function ProfileSection({
           <select
             id="experience_level"
             name="experience_level"
-            defaultValue={experienceLevel ?? ""}
+            value={experienceVal}
+            onChange={(e) => setExperienceVal(e.target.value)}
             className={selectClass}
           >
             <option value="">Select...</option>
@@ -236,29 +272,22 @@ function ProfileSection({
             ))}
           </select>
         </div>
-
-        <Button type="submit" loading={isPending}>
-          Save profile
-        </Button>
-      </form>
+      </div>
     </Section>
   );
-}
+});
 
 // ─── Learning Preferences Section ───────────────────────────
 
-function LearningSection({
-  solfegeSystem,
-  goals,
-  onSaved,
-}: {
-  solfegeSystem: string | null;
-  goals: string[] | null;
-  onSaved: () => void;
-}) {
+const LearningSection = forwardRef<
+  SectionSaveHandle,
+  {
+    solfegeSystem: string | null;
+    goals: string[] | null;
+  }
+>(function LearningSection({ solfegeSystem, goals }, ref) {
   const [system, setSystem] = useState(solfegeSystem ?? "numbers");
   const [selectedGoals, setSelectedGoals] = useState<string[]>(goals ?? []);
-  const [isPending, startTransition] = useTransition();
 
   const toggleGoal = (goal: string) => {
     setSelectedGoals((prev) =>
@@ -266,15 +295,14 @@ function LearningSection({
     );
   };
 
-  const handleSave = () => {
-    startTransition(async () => {
+  useImperativeHandle(ref, () => ({
+    async save() {
       await updateLearningPreferences({
         primary_solfege_system: system,
         goals: selectedGoals,
       });
-      onSaved();
-    });
-  };
+    },
+  }));
 
   return (
     <Section title="Learning Preferences">
@@ -338,14 +366,10 @@ function LearningSection({
             ))}
           </div>
         </div>
-
-        <Button onClick={handleSave} loading={isPending}>
-          Save preferences
-        </Button>
       </div>
     </Section>
   );
-}
+});
 
 // ─── Display Section ────────────────────────────────────────
 
@@ -616,6 +640,69 @@ function ReviewSection({
 
 // ─── Account Section ────────────────────────────────────────
 
+function DeleteConfirmModal({
+  open,
+  onClose,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) {
+  const [typed, setTyped] = useState("");
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-obsidian border border-steel rounded-xl p-6 max-w-md w-full mx-4 space-y-4 shadow-2xl">
+        <h3 className="font-display text-lg text-incorrect">Delete account</h3>
+        <p className="text-sm text-silver leading-relaxed">
+          This will permanently delete your account and all associated data.
+          This action cannot be undone.
+        </p>
+        <div>
+          <label
+            htmlFor="delete-confirm"
+            className="block text-sm text-silver mb-1.5"
+          >
+            Type <span className="font-mono text-ivory">DELETE</span> to confirm
+          </label>
+          <input
+            id="delete-confirm"
+            type="text"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            placeholder="DELETE"
+            autoComplete="off"
+            className="w-full bg-night border border-steel text-ivory rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-incorrect/50 placeholder:text-silver/30 font-mono"
+          />
+        </div>
+        <div className="flex gap-3 pt-2">
+          <Button
+            variant="incorrect"
+            onClick={onConfirm}
+            loading={loading}
+            disabled={typed !== "DELETE"}
+          >
+            Delete my account
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AccountSection({
   email,
   onPasswordReset,
@@ -625,7 +712,7 @@ function AccountSection({
 }) {
   const [isPendingPw, startPwTransition] = useTransition();
   const [isPendingDelete, startDeleteTransition] = useTransition();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handlePasswordReset = () => {
     startPwTransition(async () => {
@@ -670,40 +757,23 @@ function AccountSection({
             </Button>
           </form>
 
-          {!showDeleteConfirm ? (
-            <Button
-              variant="ghost"
-              className="text-incorrect hover:text-incorrect"
-              fullWidth
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              Delete account
-            </Button>
-          ) : (
-            <div className="bg-incorrect/10 border border-incorrect/30 rounded-lg p-4 space-y-3">
-              <p className="text-sm text-incorrect">
-                This will permanently delete your account and all data. This
-                cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  variant="incorrect"
-                  onClick={handleDelete}
-                  loading={isPendingDelete}
-                >
-                  Yes, delete my account
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+          <Button
+            variant="ghost"
+            className="text-incorrect hover:text-incorrect"
+            fullWidth
+            onClick={() => setShowDeleteModal(true)}
+          >
+            Delete account
+          </Button>
         </div>
       </div>
+
+      <DeleteConfirmModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        loading={isPendingDelete}
+      />
     </Section>
   );
 }

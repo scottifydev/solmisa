@@ -17,7 +17,7 @@ export default async function ReviewPage() {
         {hasCards ? (
           <EmptyState
             title="All caught up"
-            message="No cards are due right now. Your next review will appear when items are ready."
+            message="No cards are due right now. New reviews arrive as you progress."
           />
         ) : (
           <EmptyState

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import type { DemoReviewCard } from "@/lib/data/demo-data";
 import { AnswerCard } from "@/components/ui/answer-card";
+import { Button } from "@/components/ui/button";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { OnboardingTooltip } from "./onboarding-tooltip";
 
@@ -100,11 +101,10 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
               : "Each review strengthens the connection. Sign up to continue building your ear."}
           </p>
           <div className="flex flex-col gap-3">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-violet text-white font-body font-medium hover:bg-violet/90 transition-colors"
-            >
-              Create free account
+            <Link href="/signup">
+              <Button fullWidth size="lg">
+                Create free account
+              </Button>
             </Link>
             <Link
               href="/login"

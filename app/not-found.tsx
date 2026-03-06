@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
@@ -15,11 +16,8 @@ export default function NotFound() {
             moved.
           </p>
         </div>
-        <Link
-          href="/"
-          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-violet text-white text-sm font-body font-medium hover:bg-violet/90 transition-colors"
-        >
-          Back to home
+        <Link href="/">
+          <Button>Back to home</Button>
         </Link>
       </div>
     </div>
