@@ -28,7 +28,7 @@ function TrackCard({
   return (
     <button
       onClick={onClick}
-      className={`flex-shrink-0 w-[180px] rounded-lg border p-4 text-left transition-all snap-start ${
+      className={`rounded-lg border p-4 text-left transition-all ${
         isActive
           ? "border-violet bg-violet/5"
           : "border-steel bg-obsidian hover:border-silver/30"
@@ -87,7 +87,7 @@ export function TrackSelector({ tracks }: { tracks: TrackWithProgress[] }) {
   };
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {tracks.map((track) => (
         <TrackCard
           key={track.id}
