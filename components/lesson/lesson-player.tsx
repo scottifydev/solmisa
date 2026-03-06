@@ -175,16 +175,25 @@ export function LessonPlayer({
       try {
         const [seedResult, ctx] = await Promise.all([
           userId
-            ? seedLessonCardsV2(userId, lesson.id).catch(() => null)
+            ? seedLessonCardsV2(userId, lesson.id).catch((err) => {
+                console.warn("Card seeding failed:", err);
+                return null;
+              })
             : Promise.resolve(null),
           getCompletionContext(lesson.id).catch(() => context),
-          completeLesson(lesson.id).catch(() => {}),
+          completeLesson(lesson.id).catch(async (err) => {
+            console.warn("Lesson completion failed, retrying:", err);
+            await new Promise((r) => setTimeout(r, 1000));
+            return completeLesson(lesson.id).catch((retryErr) => {
+              console.error("Lesson completion retry failed:", retryErr);
+            });
+          }),
         ]);
 
         seededCards = seedResult?.cards ?? [];
         context = ctx;
       } catch (err) {
-        console.warn("Lesson completion save failed:", err);
+        console.error("Lesson completion save failed:", err);
       }
 
       setSaving(false);
