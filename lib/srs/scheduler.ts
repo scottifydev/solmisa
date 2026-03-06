@@ -119,17 +119,12 @@ function computeTierChange(
       }
     }
   } else {
-    // Demote if 2 wrong in last 5
-    const recentReviews = Math.min(
-      item.total_reviews,
-      TIER_RULES.demotionThreshold.outOf,
-    );
-    const recentCorrect = Math.min(item.total_correct, recentReviews);
-    const recentWrong = recentReviews - recentCorrect;
-
+    // Demote on consecutive failures: streak was already 0 before this wrong answer
+    // (correct_streak resets to 0 on first wrong, so streak===0 here means
+    // the previous review was also wrong — i.e. 2+ wrong in a row)
     if (
-      recentWrong >= TIER_RULES.demotionThreshold.wrong &&
-      recentReviews >= TIER_RULES.demotionThreshold.outOf
+      item.correct_streak === 0 &&
+      item.total_reviews >= TIER_RULES.demotionThreshold.outOf
     ) {
       if (currentTier === "stretch") return { tier: "core", promoted: false };
       if (currentTier === "core") return { tier: "intro", promoted: false };

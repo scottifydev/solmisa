@@ -40,6 +40,7 @@ export default async function LessonPage({ params }: Props) {
       lesson={data.lesson}
       moduleTitle={data.moduleTitle}
       totalLessons={data.totalLessons}
+      allowedKeys={data.allowedKeys}
       userId={user?.id}
       showFeelingStates={feelingStates}
     />
