@@ -3,15 +3,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   Module,
+  ModuleUnlockCriteria,
   Lesson,
   LessonSummary,
   LessonStage,
   ModuleProgressStatus,
 } from "@/types/lesson";
 import { MODULE_KEY_POOLS } from "@/types/audio";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "@/lib/utils/validation";
 
 function getKeyPoolForModuleOrder(moduleOrder: number): string[] {
   const keys = Object.keys(MODULE_KEY_POOLS)
@@ -29,6 +28,86 @@ export interface ModuleListItem extends Module {
   progressStatus: ModuleProgressStatus;
   lessonsCompleted: number;
   lessonCount: number;
+}
+
+interface LessonRow {
+  id: string;
+  title: string;
+  lesson_order: number;
+  module_id: string;
+}
+
+interface ProgressRow {
+  lesson_id: string;
+  status: string;
+}
+
+function computeModuleProgress(
+  modules: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    module_order: number;
+    track_id: string;
+    unlock_criteria: ModuleUnlockCriteria | null;
+  }>,
+  allLessons: LessonRow[],
+  progress: ProgressRow[],
+): ModuleListItem[] {
+  const completedIds = new Set(
+    progress.filter((p) => p.status === "completed").map((p) => p.lesson_id),
+  );
+  const inProgressIds = new Set(
+    progress.filter((p) => p.status === "in_progress").map((p) => p.lesson_id),
+  );
+
+  const lessonsByModule = new Map<string, LessonRow[]>();
+  for (const lesson of allLessons) {
+    const existing = lessonsByModule.get(lesson.module_id) ?? [];
+    existing.push(lesson);
+    lessonsByModule.set(lesson.module_id, existing);
+  }
+
+  let prevModuleCompleted = true;
+
+  return modules.map((mod) => {
+    const lessons = lessonsByModule.get(mod.id) ?? [];
+    const completedCount = lessons.filter((l) => completedIds.has(l.id)).length;
+    const hasInProgress = lessons.some((l) => inProgressIds.has(l.id));
+
+    let progressStatus: ModuleProgressStatus;
+    if (completedCount === lessons.length && lessons.length > 0) {
+      progressStatus = "completed";
+    } else if (completedCount > 0 || hasInProgress) {
+      progressStatus = "in_progress";
+    } else if (prevModuleCompleted) {
+      progressStatus = "available";
+    } else {
+      progressStatus = "locked";
+    }
+
+    prevModuleCompleted = progressStatus === "completed";
+
+    return {
+      id: mod.id,
+      title: mod.title,
+      description: mod.description,
+      module_order: mod.module_order,
+      track_id: mod.track_id,
+      unlock_criteria: mod.unlock_criteria,
+      progressStatus,
+      lessonsCompleted: completedCount,
+      lessonCount: lessons.length,
+      lessons: lessons.map(
+        (l): LessonSummary => ({
+          id: l.id,
+          title: l.title,
+          lesson_order: l.lesson_order,
+          isCompleted: completedIds.has(l.id),
+        }),
+      ),
+    };
+  });
 }
 
 export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
@@ -59,66 +138,7 @@ export async function getModulesWithLessons(): Promise<ModuleListItem[]> {
       .eq("user_id", user.id),
   ]);
 
-  const completedIds = new Set(
-    (progress ?? [])
-      .filter((p) => p.status === "completed")
-      .map((p) => p.lesson_id),
-  );
-
-  const inProgressIds = new Set(
-    (progress ?? [])
-      .filter((p) => p.status === "in_progress")
-      .map((p) => p.lesson_id),
-  );
-
-  const lessonsByModule = new Map<string, typeof allLessons>();
-  for (const lesson of allLessons ?? []) {
-    const existing = lessonsByModule.get(lesson.module_id) ?? [];
-    existing.push(lesson);
-    lessonsByModule.set(lesson.module_id, existing);
-  }
-
-  let prevModuleCompleted = true; // Module 1 is always available
-
-  return modules.map((mod) => {
-    const lessons = lessonsByModule.get(mod.id) ?? [];
-    const completedCount = lessons.filter((l) => completedIds.has(l.id)).length;
-    const hasInProgress = lessons.some((l) => inProgressIds.has(l.id));
-
-    let progressStatus: ModuleProgressStatus;
-    if (completedCount === lessons.length && lessons.length > 0) {
-      progressStatus = "completed";
-    } else if (completedCount > 0 || hasInProgress) {
-      progressStatus = "in_progress";
-    } else if (prevModuleCompleted) {
-      progressStatus = "available";
-    } else {
-      progressStatus = "locked";
-    }
-
-    // Only unlock next module if this one is completed
-    prevModuleCompleted = progressStatus === "completed";
-
-    return {
-      id: mod.id,
-      title: mod.title,
-      description: mod.description,
-      module_order: mod.module_order,
-      track_id: mod.track_id,
-      unlock_criteria: mod.unlock_criteria,
-      progressStatus,
-      lessonsCompleted: completedCount,
-      lessonCount: lessons.length,
-      lessons: lessons.map(
-        (l): LessonSummary => ({
-          id: l.id,
-          title: l.title,
-          lesson_order: l.lesson_order,
-          isCompleted: completedIds.has(l.id),
-        }),
-      ),
-    };
-  });
+  return computeModuleProgress(modules, allLessons ?? [], progress ?? []);
 }
 
 export async function getLesson(lessonId: string): Promise<Lesson | null> {
@@ -398,65 +418,7 @@ export async function getModulesWithLessonsForTrack(
       .eq("user_id", user.id),
   ]);
 
-  const completedIds = new Set(
-    (progress ?? [])
-      .filter((p) => p.status === "completed")
-      .map((p) => p.lesson_id),
-  );
-
-  const inProgressIds = new Set(
-    (progress ?? [])
-      .filter((p) => p.status === "in_progress")
-      .map((p) => p.lesson_id),
-  );
-
-  const lessonsByModule = new Map<string, typeof allLessons>();
-  for (const lesson of allLessons ?? []) {
-    const existing = lessonsByModule.get(lesson.module_id) ?? [];
-    existing.push(lesson);
-    lessonsByModule.set(lesson.module_id, existing);
-  }
-
-  let prevModuleCompleted = true;
-
-  return modules.map((mod) => {
-    const lessons = lessonsByModule.get(mod.id) ?? [];
-    const completedCount = lessons.filter((l) => completedIds.has(l.id)).length;
-    const hasInProgress = lessons.some((l) => inProgressIds.has(l.id));
-
-    let progressStatus: ModuleProgressStatus;
-    if (completedCount === lessons.length && lessons.length > 0) {
-      progressStatus = "completed";
-    } else if (completedCount > 0 || hasInProgress) {
-      progressStatus = "in_progress";
-    } else if (prevModuleCompleted) {
-      progressStatus = "available";
-    } else {
-      progressStatus = "locked";
-    }
-
-    prevModuleCompleted = progressStatus === "completed";
-
-    return {
-      id: mod.id,
-      title: mod.title,
-      description: mod.description,
-      module_order: mod.module_order,
-      track_id: mod.track_id,
-      unlock_criteria: mod.unlock_criteria,
-      progressStatus,
-      lessonsCompleted: completedCount,
-      lessonCount: lessons.length,
-      lessons: lessons.map(
-        (l): LessonSummary => ({
-          id: l.id,
-          title: l.title,
-          lesson_order: l.lesson_order,
-          isCompleted: completedIds.has(l.id),
-        }),
-      ),
-    };
-  });
+  return computeModuleProgress(modules, allLessons ?? [], progress ?? []);
 }
 
 export interface NextLessonSuggestion {

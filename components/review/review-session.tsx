@@ -113,8 +113,8 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         newStage = result.new_stage;
         tierPromoted = result.tier_promoted;
         newTier = result.new_difficulty_tier;
-      } catch {
-        // Don't block the session on network errors
+      } catch (err) {
+        console.warn("Review submit failed, continuing session:", err);
       }
 
       setResults((prev) => [

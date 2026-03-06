@@ -69,17 +69,6 @@ export type ModuleProgressStatus =
   | "in_progress"
   | "completed";
 
-export interface LessonProgress {
-  id: string;
-  user_id: string;
-  lesson_id: string;
-  status: LessonProgressStatus;
-  current_stage_index: number;
-  score: number | null;
-  started_at: string | null;
-  completed_at: string | null;
-}
-
 export interface ModuleProgress {
   id: string;
   user_id: string;
@@ -315,14 +304,6 @@ export interface LessonCompletionResult {
   duration_ms: number;
 }
 
-export interface StageCompletionResult {
-  stage_index: number;
-  stage_type: LessonStageType;
-  completed: boolean;
-  engagement_score?: number;
-  response_time_ms?: number;
-}
-
 // ─── v2 Domain Types ─────────────────────────────────────────
 
 export type DrillType =
@@ -395,13 +376,4 @@ export interface PracticeRecommendation {
   tool_url: string | null;
   description: string | null;
   display_order: number;
-}
-
-export interface RadarCache {
-  id: string;
-  user_id: string;
-  dimension: string;
-  score: number;
-  total_reviews: number;
-  computed_at: string;
 }
