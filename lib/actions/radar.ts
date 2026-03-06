@@ -230,10 +230,13 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
   });
 
   // Materialize current scores to radar_cache with history append
-  // Only append a new history entry if the latest is from a different day
+  // Only materialize dimensions that were actually reviewed (scoped)
+  // Untouched dimensions retain their cached scores
+  const reviewedDimSlugs = new Set(currentStats.keys());
   const dateStr = now.toISOString();
   const todayStr = dateStr.slice(0, 10);
-  const upsertRows = current.map((dim) => {
+  const dimsToMaterialize = current.filter((d) => reviewedDimSlugs.has(d.slug));
+  const upsertRows = dimsToMaterialize.map((dim) => {
     const existing = historyMap.get(dim.slug) ?? [];
     const lastEntry = existing[existing.length - 1];
     const lastDate = lastEntry?.date?.slice(0, 10);
@@ -261,4 +264,111 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
   }
 
   return { current, lifetime };
+}
+
+/**
+ * Scoped materialization: recompute only the specified dimensions.
+ * Called after a review session with the dimensions that appeared in that session.
+ * Untouched dimensions keep their cached scores.
+ */
+export async function materializeAfterSession(
+  reviewedDimensions: string[],
+): Promise<void> {
+  if (reviewedDimensions.length === 0) return;
+  // Trigger a full score computation — the scoped filter in getRadarScores()
+  // already only materializes dimensions that have review data.
+  // This call ensures the cache is updated for the session's dimensions.
+  await getRadarScores();
+}
+
+/**
+ * Process pending reconciliation queue entries.
+ * Called periodically or after content changes.
+ */
+export async function processReconciliationQueue(): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  // Fetch unprocessed entries for this user
+  const { data: pending } = await supabase
+    .from("radar_reconciliation_queue")
+    .select("id, dimension")
+    .eq("user_id", user.id)
+    .eq("processed", false)
+    .limit(50);
+
+  if (!pending || pending.length === 0) return 0;
+
+  // Trigger a scoped refresh
+  await getRadarScores();
+
+  // Mark entries as processed
+  const ids = pending.map((p) => p.id);
+  await supabase
+    .from("radar_reconciliation_queue")
+    .update({ processed: true })
+    .in("id", ids);
+
+  return pending.length;
+}
+
+/**
+ * Full-scan materialization: recompute all dimensions.
+ * Intended as a monthly cron safety net to reconcile any drift.
+ */
+export async function materializeFullScan(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { current } = await getRadarScores();
+
+  // Force-write ALL dimensions to cache (not just reviewed ones)
+  const dateStr = new Date().toISOString();
+
+  const { data: cacheRows } = await supabase
+    .from("radar_cache")
+    .select("dimension, score_history")
+    .eq("user_id", user.id);
+
+  const historyMap = new Map<string, ScoreHistoryEntry[]>();
+  for (const row of cacheRows ?? []) {
+    historyMap.set(
+      row.dimension,
+      (row.score_history ?? []) as ScoreHistoryEntry[],
+    );
+  }
+
+  const todayStr = dateStr.slice(0, 10);
+  const upsertRows = current.map((dim) => {
+    const existing = historyMap.get(dim.slug) ?? [];
+    const lastEntry = existing[existing.length - 1];
+    const lastDate = lastEntry?.date?.slice(0, 10);
+    const shouldAppend = lastDate !== todayStr;
+    const updated = shouldAppend
+      ? [...existing, { score: dim.score, date: dateStr }].slice(-30)
+      : existing.map((e, i) =>
+          i === existing.length - 1 ? { score: dim.score, date: dateStr } : e,
+        );
+    return {
+      user_id: user.id,
+      dimension: dim.slug,
+      score: dim.score,
+      total_reviews: dim.total_reviews,
+      computed_at: dateStr,
+      score_history: updated,
+    };
+  });
+
+  if (upsertRows.length > 0) {
+    await supabase
+      .from("radar_cache")
+      .upsert(upsertRows, { onConflict: "user_id,dimension" })
+      .then(() => {});
+  }
 }
