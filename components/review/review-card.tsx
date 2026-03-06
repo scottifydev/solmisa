@@ -22,6 +22,7 @@ interface ReviewCardProps {
   onPlayDegree?: (degree: number) => void;
   onPlayResolution?: (degree: number) => Promise<void>;
   showConfidence?: boolean;
+  skipCadence?: boolean;
 }
 
 interface OptionData {
@@ -123,6 +124,8 @@ function DegreeDot({ degree }: { degree: number }) {
 
 // ─── Main Review Card ───────────────────────────────────────
 
+const CADENCE_DEGREE_GAP_MS = 700;
+
 export function ReviewCard({
   card,
   index,
@@ -132,6 +135,7 @@ export function ReviewCard({
   onPlayDegree,
   onPlayResolution,
   showConfidence = true,
+  skipCadence = false,
 }: ReviewCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -184,8 +188,10 @@ export function ReviewCard({
     if (isPerceptual) {
       const playAudio = async () => {
         setPlaying(true);
-        if (onPlayCadence) await onPlayCadence();
-        // Find the degree from the correct answer
+        if (!skipCadence && onPlayCadence) {
+          await onPlayCadence();
+          await new Promise((r) => setTimeout(r, CADENCE_DEGREE_GAP_MS));
+        }
         const correctOpt = options.find((o) => o.id === correctAnswer);
         if (correctOpt?.degree && onPlayDegree) onPlayDegree(correctOpt.degree);
         setPlaying(false);
@@ -207,6 +213,7 @@ export function ReviewCard({
     if (playing || revealed) return;
     setPlaying(true);
     if (onPlayCadence) await onPlayCadence();
+    await new Promise((r) => setTimeout(r, CADENCE_DEGREE_GAP_MS));
     const correctOpt = options.find((o) => o.id === correctAnswer);
     if (correctOpt?.degree && onPlayDegree) onPlayDegree(correctOpt.degree);
     setPlaying(false);

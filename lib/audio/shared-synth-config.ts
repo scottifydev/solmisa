@@ -15,7 +15,7 @@ export const PIANO_FM_TIMBRE: Record<string, any> = {
 export const DEGREE_SYNTH_OPTIONS: Record<string, any> = {
   ...PIANO_FM_TIMBRE,
   envelope: { attack: 0.01, decay: 0.8, sustain: 0.4, release: 1.0 },
-  volume: 0,
+  volume: 5,
 };
 
 // Block-chord envelope: crisp onset, short sustain, quick release
