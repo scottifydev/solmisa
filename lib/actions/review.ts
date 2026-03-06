@@ -102,7 +102,7 @@ export async function getReviewQueue(
       playback: template?.playback ?? null,
       feedback: template?.feedback ?? {
         correct: {
-          text: "Correct!",
+          text: "Correct",
           show_answer: true,
           play_confirmation: false,
         },

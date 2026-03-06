@@ -296,7 +296,7 @@ export async function getSmartSuggestion(): Promise<SmartSuggestion> {
   return {
     type: "lesson",
     title: "All caught up",
-    subtitle: "Check back later for new items to review.",
+    subtitle: "Reviews complete. New material arrives as you progress.",
     href: "/learn",
     buttonLabel: "Browse Lessons",
   };

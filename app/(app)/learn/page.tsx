@@ -78,7 +78,7 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
       {modules.length === 0 ? (
         <EmptyState
           title={`${trackName} content coming soon`}
-          message="Lessons are being prepared for this track. Check back soon!"
+          message="More drills unlock as you complete lessons."
         />
       ) : (
         <div className="space-y-4">

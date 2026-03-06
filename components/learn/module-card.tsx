@@ -93,54 +93,68 @@ function LessonRow({
   lesson,
   moduleOrder,
   isAvailable,
+  prerequisiteTitle,
 }: {
   lesson: LessonSummary;
   moduleOrder: number;
   isAvailable: boolean;
+  prerequisiteTitle?: string;
 }) {
-  const content = (
-    <div
-      className={`flex items-center gap-3 py-2.5 px-3 rounded-md transition-colors ${
-        isAvailable ? "hover:bg-graphite/50 cursor-pointer" : "opacity-40"
-      }`}
-    >
-      {lesson.isCompleted ? (
-        <div className="w-5 h-5 rounded-full bg-correct/20 flex items-center justify-center">
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-correct"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-      ) : isAvailable ? (
-        <div className="w-5 h-5 rounded-full bg-violet/20 flex items-center justify-center">
-          <div className="w-1.5 h-1.5 rounded-full bg-violet" />
-        </div>
-      ) : (
-        <div className="w-5 h-5 rounded-full border border-steel" />
+  const inner = (
+    <>
+      <div className="flex items-center gap-3">
+        {lesson.isCompleted ? (
+          <div className="w-5 h-5 rounded-full bg-correct/20 flex items-center justify-center">
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-correct"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        ) : isAvailable ? (
+          <div className="w-5 h-5 rounded-full bg-violet/20 flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-violet" />
+          </div>
+        ) : (
+          <div className="w-5 h-5 rounded-full border border-steel" />
+        )}
+        <span className="text-[10px] font-mono text-ash">
+          {moduleOrder}.{lesson.lesson_order}
+        </span>
+        <span
+          className={`text-sm ${lesson.isCompleted || isAvailable ? "text-ivory" : "text-silver"}`}
+        >
+          {lesson.title}
+        </span>
+      </div>
+      {!isAvailable && prerequisiteTitle && (
+        <p className="text-[11px] text-ash italic ml-8 mt-0.5">
+          Complete &ldquo;{prerequisiteTitle}&rdquo; to unlock
+        </p>
       )}
-      <span className="text-[10px] font-mono text-ash">
-        {moduleOrder}.{lesson.lesson_order}
-      </span>
-      <span
-        className={`text-sm ${lesson.isCompleted || isAvailable ? "text-ivory" : "text-silver"}`}
-      >
-        {lesson.title}
-      </span>
-    </div>
+    </>
   );
 
-  if (!isAvailable) return content;
+  if (!isAvailable) {
+    return <div className="py-2.5 px-3 rounded-md opacity-40">{inner}</div>;
+  }
 
-  return <Link href={`/learn/${lesson.id}`}>{content}</Link>;
+  return (
+    <Link
+      href={`/learn/${lesson.id}`}
+      className="block py-2.5 px-3 rounded-md transition-colors hover:bg-graphite/50"
+    >
+      {inner}
+    </Link>
+  );
 }
 
 export function ModuleCard({
@@ -237,14 +251,20 @@ export function ModuleCard({
       {/* Expandable lesson list */}
       {expanded && lessons && lessons.length > 0 && (
         <div className="border-t border-steel px-3 py-2 space-y-0.5">
-          {lessons.map((lesson, i) => (
-            <LessonRow
-              key={lesson.id}
-              lesson={lesson}
-              moduleOrder={module.module_order}
-              isAvailable={getLessonAvailability(i)}
-            />
-          ))}
+          {lessons.map((lesson, i) => {
+            const available = getLessonAvailability(i);
+            const prerequisiteTitle =
+              !available && i > 0 ? lessons[i - 1]?.title : undefined;
+            return (
+              <LessonRow
+                key={lesson.id}
+                lesson={lesson}
+                moduleOrder={module.module_order}
+                isAvailable={available}
+                prerequisiteTitle={prerequisiteTitle}
+              />
+            );
+          })}
         </div>
       )}
     </div>

@@ -113,17 +113,42 @@ function UserIcon({ className }: { className?: string }) {
   );
 }
 
+function GearIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16.17 12.5a1.39 1.39 0 0 0 .28 1.53l.05.05a1.69 1.69 0 1 1-2.39 2.39l-.05-.05a1.39 1.39 0 0 0-1.53-.28 1.39 1.39 0 0 0-.84 1.27v.14a1.69 1.69 0 1 1-3.38 0v-.07A1.39 1.39 0 0 0 7.4 16.2a1.39 1.39 0 0 0-1.53.28l-.05.05a1.69 1.69 0 1 1-2.39-2.39l.05-.05a1.39 1.39 0 0 0 .28-1.53 1.39 1.39 0 0 0-1.27-.84h-.14a1.69 1.69 0 0 1 0-3.38h.07A1.39 1.39 0 0 0 3.8 7.4a1.39 1.39 0 0 0-.28-1.53l-.05-.05a1.69 1.69 0 1 1 2.39-2.39l.05.05a1.39 1.39 0 0 0 1.53.28h.07a1.39 1.39 0 0 0 .84-1.27v-.14a1.69 1.69 0 0 1 3.38 0v.07a1.39 1.39 0 0 0 .84 1.27 1.39 1.39 0 0 0 1.53-.28l.05-.05a1.69 1.69 0 1 1 2.39 2.39l-.05.05a1.39 1.39 0 0 0-.28 1.53v.07a1.39 1.39 0 0 0 1.27.84h.14a1.69 1.69 0 0 1 0 3.38h-.07a1.39 1.39 0 0 0-1.27.84Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function isTabActive(pathname: string, href: string): boolean {
   if (href === "/learn")
     return pathname === "/learn" || pathname.startsWith("/learn/");
   if (href === "/practice")
     return pathname === "/practice" || pathname.startsWith("/practice/");
   if (href === "/profile")
-    return (
-      pathname === "/profile" ||
-      pathname.startsWith("/profile/") ||
-      pathname === "/settings"
-    );
+    return pathname === "/profile" || pathname.startsWith("/profile/");
+  if (href === "/settings")
+    return pathname === "/settings" || pathname.startsWith("/settings/");
   return pathname.startsWith(href);
 }
 
@@ -194,6 +219,19 @@ export function NavBar({
               </Link>
             );
           })}
+
+          <div className="mt-auto pt-2">
+            <Link
+              href="/settings"
+              className={`
+                relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-body transition-colors
+                ${isTabActive(pathname, "/settings") ? "bg-violet/10 text-violet font-semibold" : "text-silver hover:text-ivory hover:bg-steel/20"}
+              `}
+            >
+              <GearIcon className="shrink-0" />
+              <span>Settings</span>
+            </Link>
+          </div>
         </div>
 
         <div className="px-5 py-4 border-t border-steel">
@@ -212,12 +250,21 @@ export function NavBar({
           <Logo size={24} />
         </Link>
 
-        <span
-          className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
-          aria-label={`Streak: ${streak} days`}
-        >
-          <span aria-hidden="true">🔥</span> {streak}
-        </span>
+        <div className="flex items-center gap-3">
+          <span
+            className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
+            aria-label={`Streak: ${streak} days`}
+          >
+            <span aria-hidden="true">🔥</span> {streak}
+          </span>
+          <Link
+            href="/settings"
+            className={`p-1 rounded-md transition-colors ${isTabActive(pathname, "/settings") ? "text-violet" : "text-silver hover:text-ivory"}`}
+            aria-label="Settings"
+          >
+            <GearIcon />
+          </Link>
+        </div>
       </header>
 
       {/* Mobile bottom tab bar */}

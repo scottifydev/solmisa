@@ -110,7 +110,7 @@ export default async function PracticePage({
       {unlockedDrills.length === 0 ? (
         <div className="rounded-lg border border-violet/20 bg-violet/5 p-6 text-center">
           <p className="text-sm text-silver">
-            Complete your first lesson to unlock practice drills.
+            More drills unlock as you complete lessons in this track.
           </p>
           <Link
             href="/learn"

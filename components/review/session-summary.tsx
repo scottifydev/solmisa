@@ -187,7 +187,7 @@ export function SessionSummary({
       <div className="bg-obsidian border border-steel rounded-lg p-8 text-center space-y-6">
         <AnimatedCheckmark />
 
-        <h1 className="font-display text-xl text-ivory">Session Complete!</h1>
+        <h1 className="font-display text-xl text-ivory">Session complete</h1>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3">
@@ -268,8 +268,8 @@ export function SessionSummary({
           <div className="bg-warning/10 border border-warning/20 rounded-md p-4">
             <span className="text-warning font-display">
               {streakDays <= 1
-                ? "Streak started!"
-                : `Day ${streakDays} streak!`}
+                ? "Streak started"
+                : `${streakDays} days consistent`}
             </span>
           </div>
         )}

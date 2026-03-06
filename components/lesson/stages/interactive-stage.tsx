@@ -61,7 +61,7 @@ function DegreeCircleExplore({
   );
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center overflow-visible">
       <DegreeCircle
         activeDegrees={activeDegree !== undefined ? [activeDegree] : []}
         unlockedDegrees={degrees}

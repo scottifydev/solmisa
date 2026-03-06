@@ -148,7 +148,7 @@ function AuralTeachView({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 overflow-visible">
       <div className="space-y-6">
         <div className="bg-obsidian border border-steel rounded-lg p-6">
           <h2 className="font-display text-lg font-bold text-ivory mb-4">
@@ -165,7 +165,7 @@ function AuralTeachView({
         </div>
       </div>
       {stage.show_degree_circle && (
-        <div className="flex items-start justify-center">
+        <div className="flex items-start justify-center overflow-visible">
           <DegreeCircle
             activeDegrees={activeDegree !== undefined ? [activeDegree] : []}
             unlockedDegrees={stage.audio_degrees}
@@ -205,7 +205,7 @@ function TheoryTeachView({
         )}
       </div>
       {stage.show_degree_circle && stage.degree !== undefined && (
-        <div className="flex justify-center">
+        <div className="flex justify-center overflow-visible">
           <DegreeCircle
             activeDegrees={[stage.degree]}
             size={240}

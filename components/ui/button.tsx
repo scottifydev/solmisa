@@ -2,6 +2,12 @@
 
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 
+// 3-tier button system:
+//   1. primary (violet bg) — main CTA, one per view
+//   2. secondary/outline — supporting actions
+//   3. ghost — tertiary/nav actions
+// Semantic variants (correct/warning/incorrect) are for review feedback only.
+
 type ButtonVariant =
   | "primary"
   | "secondary"
