@@ -139,10 +139,10 @@ const PIANO_SYNTH_OPTIONS: Record<string, any> = {
   harmonicity: 3,
   modulationIndex: 1.5,
   oscillator: { type: "sine" },
-  envelope: { attack: 0.005, decay: 0.6, sustain: 0.08, release: 1.4 },
+  envelope: { attack: 0.005, decay: 0.6, sustain: 0.3, release: 2.0 },
   modulation: { type: "square" },
   modulationEnvelope: { attack: 0.002, decay: 0.15, sustain: 0, release: 0.2 },
-  volume: -3,
+  volume: 0,
 };
 
 // ─── Playback Engine ────────────────────────────────────────

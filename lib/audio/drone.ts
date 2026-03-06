@@ -387,10 +387,19 @@ export class DroneGenerator {
 
     // Build cadence synth - piano-like timbre
     this.cadenceSynth?.dispose();
-    this.cadenceSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
+    this.cadenceSynth = new Tone.PolySynth(Tone.FMSynth, {
+      harmonicity: 3,
+      modulationIndex: 1.5,
+      oscillator: { type: "sine" },
       envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.4 },
-      volume: -6,
+      modulation: { type: "square" },
+      modulationEnvelope: {
+        attack: 0.002,
+        decay: 0.15,
+        sustain: 0,
+        release: 0.2,
+      },
+      volume: -4,
     }).toDestination();
 
     const chords = buildCadenceChords(
