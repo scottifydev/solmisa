@@ -48,6 +48,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
 
   const drone = useDrone();
   const playback = usePlayback();
+  const cadencePlayedForKey = useRef(false);
 
   const currentCard = queue[currentIndex];
   const total = queue.length;
@@ -146,6 +147,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
         const nextKey = getCardKey(nextCard);
         if (nextKey !== currentKey) {
           setChangingKey(true);
+          cadencePlayedForKey.current = false;
           try {
             await drone.changeKey(nextKey);
             await new Promise((r) => setTimeout(r, KEY_CHANGE_DELAY_MS));
@@ -165,6 +167,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
     if (!currentCard) return;
     const key = getCardKey(currentCard);
     await drone.playCadence({ key });
+    cadencePlayedForKey.current = true;
   }, [currentCard, drone, getCardKey]);
 
   const handlePlayDegree = useCallback(
@@ -280,6 +283,7 @@ export function ReviewSession({ initialQueue }: ReviewSessionProps) {
             onPlayCadence={handlePlayCadence}
             onPlayDegree={handlePlayDegree}
             onPlayResolution={handlePlayResolution}
+            skipCadence={cadencePlayedForKey.current}
           />
         )}
 
