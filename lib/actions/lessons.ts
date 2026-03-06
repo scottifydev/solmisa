@@ -290,23 +290,15 @@ export async function getTracksWithProgress(): Promise<TrackWithProgress[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const [
-    { data: tracks },
-    { data: lessons },
-    { data: progress },
-    { data: trackProgress },
-  ] = await Promise.all([
-    supabase.from("skill_tracks").select("*").order("display_order"),
-    supabase.from("lessons").select("id, track_id, lesson_order, module_id"),
-    supabase
-      .from("lesson_progress")
-      .select("lesson_id, status")
-      .eq("user_id", user.id),
-    supabase
-      .from("track_progress")
-      .select("track_id, lessons_completed")
-      .eq("user_id", user.id),
-  ]);
+  const [{ data: tracks }, { data: lessons }, { data: progress }] =
+    await Promise.all([
+      supabase.from("skill_tracks").select("*").order("display_order"),
+      supabase.from("lessons").select("id, track_id, lesson_order, module_id"),
+      supabase
+        .from("lesson_progress")
+        .select("lesson_id, status")
+        .eq("user_id", user.id),
+    ]);
 
   if (!tracks) return [];
 
@@ -314,10 +306,6 @@ export async function getTracksWithProgress(): Promise<TrackWithProgress[]> {
     (progress ?? [])
       .filter((p) => p.status === "completed")
       .map((p) => p.lesson_id),
-  );
-
-  const trackProgressMap = new Map(
-    (trackProgress ?? []).map((tp) => [tp.track_id, tp.lessons_completed]),
   );
 
   return tracks.map((track) => {

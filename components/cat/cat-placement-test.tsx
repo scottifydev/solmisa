@@ -172,7 +172,7 @@ export function CATPlacementTest({
         startTimeRef.current = Date.now();
       }, 400);
     },
-    [answering, currentItem, catState, drone, onComplete],
+    [answering, currentItem, catState, drone, onComplete, quietEnvironment],
   );
 
   const handleSkip = useCallback(() => {

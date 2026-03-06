@@ -31,7 +31,7 @@ interface GuidedPracticeStageProps {
 
 export function GuidedPracticeStageView({
   stage,
-  stageIndex,
+  stageIndex: _stageIndex,
   droneKey,
   drone,
   playback,

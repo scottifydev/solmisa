@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   RADAR_DIMENSIONS,
-  DIMENSION_MAP,
   decayWeight,
   type RadarGroup,
 } from "@/lib/radar/dimensions";

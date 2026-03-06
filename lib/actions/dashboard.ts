@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { ReviewStatsResponse, SrsStageGroup } from "@/types/srs";
 import { stageToGroup } from "@/lib/srs/stages";
 import type { RadarGroup } from "@/lib/radar/dimensions";
-import { RADAR_GROUP_LABELS } from "@/lib/radar/dimensions";
 
 export async function getNavStats(): Promise<{
   streak: number;

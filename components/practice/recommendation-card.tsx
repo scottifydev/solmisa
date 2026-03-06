@@ -2,13 +2,6 @@
 
 import type { PracticeRecommendation } from "@/lib/actions/practice";
 
-const TOOL_ICONS: Record<string, string> = {
-  internal_drill: "target",
-  external_app: "link",
-  instrument: "music",
-  singing: "mic",
-};
-
 const TOOL_LABELS: Record<string, string> = {
   internal_drill: "Drill",
   external_app: "App",
