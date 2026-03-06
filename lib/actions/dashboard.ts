@@ -357,9 +357,9 @@ export async function getTrackProgress(): Promise<TrackProgressItem[]> {
 
     // Find next incomplete lesson's module
     const nextLesson = trackLessons.find((l) => !progressMap.has(l.id));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentModule = nextLesson
-      ? ((nextLesson.modules as any)?.title ?? null)
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((nextLesson.modules as any)?.title ?? null)
       : null;
 
     return {
