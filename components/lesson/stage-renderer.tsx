@@ -121,7 +121,7 @@ function AuralTeachView({
           await playback.playDegree({
             degree: deg as DiatonicDegree,
             key,
-            duration: 0.8,
+            duration: 2,
           });
         }
         setActiveDegree(stage.highlight_degree);
@@ -143,7 +143,7 @@ function AuralTeachView({
     await playback.playDegree({
       degree: degree as DiatonicDegree,
       key,
-      duration: 0.8,
+      duration: 2,
     });
   };
 

@@ -6,6 +6,7 @@ import type {
   RandomKeyOptions,
 } from "@/types/audio";
 import { MODULE_KEY_POOLS } from "@/types/audio";
+import { CADENCE_SYNTH_OPTIONS } from "./shared-synth-config";
 
 // ─── Note / Chord Helpers ────────────────────────────────────
 
@@ -385,22 +386,11 @@ export class DroneGenerator {
       );
     }
 
-    // Build cadence synth - piano-like timbre
     this.cadenceSynth?.dispose();
-    this.cadenceSynth = new Tone.PolySynth(Tone.FMSynth, {
-      harmonicity: 3,
-      modulationIndex: 1.5,
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.4 },
-      modulation: { type: "square" },
-      modulationEnvelope: {
-        attack: 0.002,
-        decay: 0.15,
-        sustain: 0,
-        release: 0.2,
-      },
-      volume: -4,
-    }).toDestination();
+    this.cadenceSynth = new Tone.PolySynth(
+      Tone.FMSynth,
+      CADENCE_SYNTH_OPTIONS,
+    ).toDestination();
 
     const chords = buildCadenceChords(
       key as NoteName,
