@@ -6,11 +6,7 @@ import type {
   ConfidenceLevel,
 } from "./types";
 import { ITEM_BANK } from "./item-bank";
-import {
-  RADAR_DIMENSIONS,
-  RADAR_GROUP_LABELS,
-  type RadarGroup,
-} from "@/lib/radar/dimensions";
+import { RADAR_DIMENSIONS, type RadarGroup } from "@/lib/radar/dimensions";
 
 const MAX_ITEMS = 20;
 const SE_CONVERGENCE_THRESHOLD = 0.5;
@@ -116,7 +112,6 @@ export function processResponse(
       if (est.dimension !== item.dimension) return est;
 
       // IRT 1PL EAP update (simplified)
-      const b = (item.difficulty - 3) * 1.0;
       const p = iccProbability(est.theta, item.difficulty);
       const residual = (correct ? 1 : 0) - p;
 

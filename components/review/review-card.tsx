@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { ReviewQueueItem, ConfidenceRating } from "@/types/srs";
 import { SrsBadge } from "@/components/ui/srs-badge";
 import { degreeColors, brand } from "@/lib/tokens";
@@ -33,7 +33,6 @@ interface OptionData {
 
 // ─── Audiation Pause Durations ──────────────────────────────
 
-const RHYTHM_PAUSE_MS = 800;
 const REVEAL_DELAY_PERCEPTUAL = 400; // after resolution
 const REVEAL_DELAY_DECLARATIVE = 1000;
 const REVEAL_DELAY_RHYTHM = 1000;
@@ -147,7 +146,10 @@ export function ReviewCard({
     undefined,
   );
 
-  const options = (card.options_data as unknown as OptionData[]) ?? [];
+  const options = useMemo(
+    () => (card.options_data as unknown as OptionData[]) ?? [],
+    [card.options_data],
+  );
   const correctAnswer = (card.answer_data as { correct_answer?: string })
     ?.correct_answer;
   const isPerceptual = card.card_category === "perceptual";

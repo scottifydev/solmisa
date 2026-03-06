@@ -59,7 +59,7 @@ export function DrillRunner({ drill }: DrillRunnerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const generateNext = useCallback(() => {
+  const _generateNext = useCallback(() => {
     const newKey = pickRandom(keys, lastKeyRef.current);
     lastKeyRef.current = newKey;
     setCurrentKey(newKey);

@@ -23,7 +23,6 @@ function DegreeCircleExplore({
   droneKey,
   drone,
   playback,
-  interactionCount,
   onInteraction,
   showFeelingStates = false,
 }: {
@@ -31,7 +30,6 @@ function DegreeCircleExplore({
   droneKey: string | null;
   drone: ReturnType<typeof useDrone>;
   playback: ReturnType<typeof usePlayback>;
-  interactionCount: number;
   onInteraction: () => void;
   showFeelingStates?: boolean;
 }) {
@@ -97,7 +95,7 @@ function PlaceholderInteractive({
 
 export function InteractiveStageView({
   stage,
-  stageIndex,
+  stageIndex: _stageIndex,
   droneKey,
   drone,
   playback,
@@ -105,7 +103,6 @@ export function InteractiveStageView({
   showFeelingStates = false,
 }: InteractiveStageProps) {
   const [interactions, setInteractions] = useState(0);
-  const startTime = useRef(Date.now());
 
   const minRequired = stage.min_interactions ?? 0;
   const canContinue = interactions >= minRequired;
@@ -131,7 +128,6 @@ export function InteractiveStageView({
           droneKey={droneKey}
           drone={drone}
           playback={playback}
-          interactionCount={interactions}
           onInteraction={handleInteraction}
           showFeelingStates={showFeelingStates}
         />
