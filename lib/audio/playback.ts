@@ -17,6 +17,7 @@ import {
   loadSample,
   type SampleTimbre,
 } from "./timbre";
+import { DEGREE_SYNTH_OPTIONS } from "./shared-synth-config";
 
 // ─── Music Theory Maps ──────────────────────────────────────
 
@@ -132,19 +133,6 @@ const PLAYBACK_DEFAULTS: Required<PlaybackEffectsConfig> = {
   reverbDecay: 1.5,
 };
 
-// ─── Piano-like FM Synth Config ─────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PIANO_SYNTH_OPTIONS: Record<string, any> = {
-  harmonicity: 3,
-  modulationIndex: 1.5,
-  oscillator: { type: "sine" },
-  envelope: { attack: 0.005, decay: 0.6, sustain: 0.3, release: 2.0 },
-  modulation: { type: "square" },
-  modulationEnvelope: { attack: 0.002, decay: 0.15, sustain: 0, release: 0.2 },
-  volume: 0,
-};
-
 // ─── Playback Engine ────────────────────────────────────────
 
 export class PlaybackEngine {
@@ -178,7 +166,7 @@ export class PlaybackEngine {
 
   private getSynth(): Tone.FMSynth {
     if (!this.synth) {
-      this.synth = new Tone.FMSynth(PIANO_SYNTH_OPTIONS).connect(this.filter);
+      this.synth = new Tone.FMSynth(DEGREE_SYNTH_OPTIONS).connect(this.filter);
     }
     return this.synth;
   }
@@ -187,7 +175,7 @@ export class PlaybackEngine {
     if (!this.polySynth) {
       this.polySynth = new Tone.PolySynth(
         Tone.FMSynth,
-        PIANO_SYNTH_OPTIONS,
+        DEGREE_SYNTH_OPTIONS,
       ).connect(this.filter);
     }
     return this.polySynth;
@@ -400,13 +388,13 @@ export class PlaybackEngine {
       const poly = this.getPolySynth();
       // Play bass note separately with more volume
       const bassSynth = this.getSynth();
-      bassSynth.volume.value = 0; // slightly louder than polySynth at -3
+      bassSynth.volume.value = 3; // slightly louder bass
       bassSynth.triggerAttackRelease(notes[0]!, duration, Tone.now());
       if (notes.length > 1) {
         poly.triggerAttackRelease(notes.slice(1), duration, Tone.now());
       }
       await this.wait(duration * 1000 + 100);
-      bassSynth.volume.value = -3; // restore
+      bassSynth.volume.value = 0; // restore
     } else {
       // Arpeggiated
       const synth = this.getSynth();
