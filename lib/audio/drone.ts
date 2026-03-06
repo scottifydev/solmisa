@@ -194,6 +194,8 @@ export class DroneGenerator {
   private targetVolume = 0.35;
   private isPlaying = false;
   private cadenceSynth: Tone.PolySynth | null = null;
+  private cadenceFilter: Tone.Filter | null = null;
+  private cadenceReverb: Tone.Reverb | null = null;
   private effectsConfig: Required<DroneEffectsConfig>;
 
   constructor(
@@ -371,6 +373,23 @@ export class DroneGenerator {
     Object.assign(this.effectsConfig, config);
   }
 
+  private getCadenceChain(): Tone.ToneAudioNode {
+    if (!this.cadenceReverb) {
+      this.cadenceReverb = new Tone.Reverb({
+        decay: 1.5,
+        wet: 0.12,
+        preDelay: 0.01,
+      }).toDestination();
+      this.cadenceFilter = new Tone.Filter({
+        type: "lowpass",
+        frequency: 2000,
+        rolloff: -12,
+        Q: 0.5,
+      }).connect(this.cadenceReverb);
+    }
+    return this.cadenceFilter!;
+  }
+
   async playCadence(options?: Partial<CadenceOptions>): Promise<void> {
     const key = stripOctave(options?.key ?? this.currentKey ?? "C");
     const tempo = options?.tempo ?? 100;
@@ -390,7 +409,7 @@ export class DroneGenerator {
     this.cadenceSynth = new Tone.PolySynth(
       Tone.FMSynth,
       CADENCE_SYNTH_OPTIONS,
-    ).toDestination();
+    ).connect(this.getCadenceChain());
 
     const chords = buildCadenceChords(
       key as NoteName,
@@ -429,6 +448,10 @@ export class DroneGenerator {
     this.stop();
     this.cadenceSynth?.dispose();
     this.cadenceSynth = null;
+    this.cadenceFilter?.dispose();
+    this.cadenceFilter = null;
+    this.cadenceReverb?.dispose();
+    this.cadenceReverb = null;
     this.filterLfo.stop();
     this.filterLfo.dispose();
     this.filter.dispose();
