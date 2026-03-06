@@ -19,8 +19,8 @@ const config: Config = {
         // Text
         ivory: "#eae8e4",
         silver: "#a09bb3",
-        ash: "#65607a",
-        shadow: "#3d3852",
+        ash: "#8882a0",
+        shadow: "#65607a",
 
         // Violet system (primary accent)
         violet: {

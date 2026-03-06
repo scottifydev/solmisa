@@ -133,7 +133,7 @@ export function SkillRadar({
   return (
     <div className="rounded-xl border border-steel bg-obsidian p-5">
       <div className="flex items-center justify-between mb-3.5">
-        <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono">
+        <div className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono">
           Skills Radar
         </div>
         <div className="flex gap-1">
@@ -160,7 +160,11 @@ export function SkillRadar({
         </div>
       </div>
 
-      <div className="relative">
+      <div
+        className="relative"
+        role="img"
+        aria-label={`Skills radar chart showing ${grouped.map((g) => `${g.label}: ${g.score} out of 100`).join(", ")}`}
+      >
         <ResponsiveContainer width="100%" height={280}>
           <RadarChart data={grouped} cx="50%" cy="50%" outerRadius="70%">
             <PolarGrid stroke={brand.steel} />
@@ -190,7 +194,7 @@ export function SkillRadar({
         </ResponsiveContainer>
         {!hasData && emptyMessage && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-silver/60 text-xs font-mono text-center bg-obsidian/80 px-3 py-1.5 rounded-md">
+            <p className="text-ash text-xs font-mono text-center bg-obsidian/80 px-3 py-1.5 rounded-md">
               {emptyMessage}
             </p>
           </div>

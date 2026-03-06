@@ -127,7 +127,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
         <h1 className="font-display text-2xl font-bold text-ivory tracking-tight">
           Review Session
         </h1>
-        <p className="text-silver/60 text-[13px] font-mono mt-1">
+        <p className="text-ash text-[13px] font-mono mt-1">
           {correctCount}/{results.length} correct
         </p>
       </div>
@@ -157,7 +157,7 @@ export function AnonymousReviewSession({ cards }: AnonymousReviewSessionProps) {
         {/* Card header */}
         <div className="flex items-center justify-between mb-5">
           <SrsBadge stage={currentCard.stage} size="sm" />
-          <span className="text-[12px] text-silver/60 font-mono">
+          <span className="text-[12px] text-ash font-mono">
             {currentIndex + 1}/{total}
           </span>
         </div>

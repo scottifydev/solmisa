@@ -165,7 +165,7 @@ export function DemoLesson({ onBack, onComplete }: DemoLessonProps) {
         >
           &larr; Exit
         </button>
-        <span className="text-silver/60 text-xs font-mono">
+        <span className="text-ash text-xs font-mono">
           Module 1 &middot; Lesson 1
         </span>
       </div>

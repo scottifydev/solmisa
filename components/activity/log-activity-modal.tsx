@@ -106,7 +106,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                 <div>
                   <label
                     htmlFor="activity-duration"
-                    className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5"
+                    className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono block mb-1.5"
                   >
                     Duration (minutes)
                   </label>
@@ -126,7 +126,7 @@ export function LogActivityModal({ open, onClose }: LogActivityModalProps) {
                 <div>
                   <label
                     htmlFor="activity-notes"
-                    className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono block mb-1.5"
+                    className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono block mb-1.5"
                   >
                     Notes (optional)
                   </label>

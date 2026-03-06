@@ -78,7 +78,7 @@ export function OnboardingAssessment({
             style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
-        <span className="text-[11px] font-mono text-silver/60 shrink-0">
+        <span className="text-[11px] font-mono text-ash shrink-0">
           {currentIndex + 1}/{totalQuestions}
         </span>
       </div>

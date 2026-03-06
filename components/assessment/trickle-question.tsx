@@ -27,7 +27,7 @@ export function TrickleQuestion({ question }: TrickleQuestionProps) {
   return (
     <div className="rounded-xl border border-steel bg-obsidian p-5">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono">
+        <div className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono">
           Quick Question
         </div>
         <button

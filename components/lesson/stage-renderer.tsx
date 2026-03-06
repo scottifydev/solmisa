@@ -46,7 +46,7 @@ function StagePill({
   }
   if (!current) {
     return (
-      <span className="text-[10px] px-2 py-[3px] rounded-sm font-mono tracking-wide uppercase text-shadow">
+      <span className="text-[10px] px-2 py-[3px] rounded-sm font-mono tracking-wide uppercase text-ash">
         {index + 1}
       </span>
     );

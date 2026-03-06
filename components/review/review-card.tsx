@@ -305,7 +305,7 @@ export function ReviewCard({
       "bg-violet/10 border-violet text-ivory ring-1 ring-violet/30 cursor-pointer",
     correct: "bg-correct/10 border-correct text-correct",
     incorrect: "bg-incorrect/10 border-incorrect text-incorrect",
-    dimmed: "border-steel/50 text-shadow",
+    dimmed: "border-steel/50 text-ash",
   };
 
   return (

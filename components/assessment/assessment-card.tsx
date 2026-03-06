@@ -58,7 +58,7 @@ export function AssessmentCard({
       {showSkip && onSkip && (
         <button
           onClick={onSkip}
-          className="text-silver/60 text-xs hover:text-silver transition-colors font-mono"
+          className="text-ash text-xs hover:text-silver transition-colors font-mono"
         >
           Skip this question
         </button>
