@@ -29,10 +29,6 @@ export function isSampleTimbre(timbre: string): timbre is SampleTimbre {
   return (SAMPLE_TIMBRES as readonly string[]).includes(timbre);
 }
 
-export function isSynthTimbre(timbre: Timbre): boolean {
-  return !isSampleTimbre(timbre);
-}
-
 export function randomSampleTimbre(): SampleTimbre {
   return SAMPLE_TIMBRES[Math.floor(Math.random() * SAMPLE_TIMBRES.length)]!;
 }
@@ -90,9 +86,4 @@ export async function loadSample(
 
   loadingPromises.set(url, promise);
   return promise;
-}
-
-export function clearSampleCache(): void {
-  bufferCache.clear();
-  loadingPromises.clear();
 }

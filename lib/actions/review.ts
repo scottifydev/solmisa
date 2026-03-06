@@ -12,6 +12,7 @@ import type {
   SrsStageKey,
   CardCategory,
 } from "@/types/srs";
+import { UUID_RE } from "@/lib/utils/validation";
 
 export async function getReviewQueue(
   limitOverride?: number,
@@ -215,9 +216,6 @@ export async function getReviewQueue(
     stage_breakdown,
   };
 }
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function submitReview(
   req: ReviewAnswerRequest,

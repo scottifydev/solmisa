@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { isValidSlug } from "@/lib/utils/validation";
 
 export interface DrillItem {
   id: string;
@@ -120,6 +121,8 @@ export interface DrillConfig {
 export async function getDrillConfig(
   drillSlug: string,
 ): Promise<DrillConfig | null> {
+  if (!isValidSlug(drillSlug)) return null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -148,13 +151,15 @@ export async function logDrillSession(
   durationMinutes: number,
   itemsAttempted: number,
 ) {
+  if (!isValidSlug(drillSlug)) return;
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase.from("activity_logs").insert({
+  const { error } = await supabase.from("activity_logs").insert({
     user_id: user.id,
     activity_type: "drill_session",
     duration_minutes: durationMinutes,
@@ -163,6 +168,7 @@ export async function logDrillSession(
       items_attempted: itemsAttempted,
     }),
   });
+  if (error) console.warn("Failed to log drill session:", error.message);
 }
 
 // ─── Focus Practice (weak dimension → drill mapping) ─────

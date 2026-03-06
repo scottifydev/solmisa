@@ -183,8 +183,8 @@ export function LessonPlayer({
 
         seededCards = seedResult?.cards ?? [];
         context = ctx;
-      } catch {
-        // Don't block completion screen
+      } catch (err) {
+        console.warn("Lesson completion save failed:", err);
       }
 
       setSaving(false);

@@ -126,32 +126,6 @@ export interface BlockScoringConfig {
   scoring_mode: "binary" | "partial_credit" | "pitch_tolerance";
 }
 
-export interface CardTemplate {
-  id: string;
-  lesson_id: string;
-  slug: string;
-  card_category: CardCategory;
-  response_type: ResponseType;
-  prompt_text: string;
-  difficulty_tiers: Record<DifficultyTier, DifficultyTierConfig>;
-  playback: PlaybackConfig | null;
-  feedback: FeedbackConfig;
-  block_scoring: BlockScoringConfig | null;
-  dimensions: string[];
-  radar_dimensions: string[];
-  is_parametric: boolean;
-}
-
-export interface CardInstance {
-  id: string;
-  template_id: string;
-  instance_parameters: Record<string, unknown> | null;
-  prompt_rendered: string;
-  answer_data: Record<string, unknown>;
-  options_data: Record<string, unknown>[] | null;
-  audio_ref: string | null;
-}
-
 export interface SrsItemState {
   id: string;
   user_id: string;
