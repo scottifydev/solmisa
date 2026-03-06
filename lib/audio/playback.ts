@@ -182,7 +182,7 @@ export class PlaybackEngine {
   }
 
   async playDegree(options: PlayDegreeOptions): Promise<void> {
-    const { degree, key, octave = 4, duration = 1, timbre } = options;
+    const { degree, key, octave = 4, duration = 2, timbre } = options;
     this.isActive = true;
     this.stopRequested = false;
 
