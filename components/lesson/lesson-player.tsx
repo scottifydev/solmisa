@@ -205,6 +205,25 @@ export function LessonPlayer({
     return <CompletionSummary lesson={lesson} data={completionData} />;
   }
 
+  if (!lesson.stages || lesson.stages.length === 0) {
+    return (
+      <div className="max-w-lg mx-auto p-6 text-center space-y-4">
+        <h1 className="font-display text-2xl font-bold text-ivory">
+          {lesson.title}
+        </h1>
+        <p className="text-silver text-sm">
+          This lesson is being written. Check back soon.
+        </p>
+        <Link
+          href="/learn"
+          className="inline-block text-sm text-violet hover:text-violet/80 transition-colors"
+        >
+          &larr; Back to learning
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <StageRenderer
