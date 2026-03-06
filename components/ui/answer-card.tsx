@@ -71,7 +71,6 @@ export function AnswerCard({
       }
       className={`
         relative w-full rounded-xl border-2 p-4 text-left transition-all font-body
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/50
         ${stateClasses[effectiveState]}
       `}
       style={borderColor ? { borderColor } : undefined}

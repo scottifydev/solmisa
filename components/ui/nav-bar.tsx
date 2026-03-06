@@ -161,14 +161,17 @@ export function NavBar({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden sm:flex fixed top-0 left-0 bottom-0 z-40 w-[200px] flex-col border-r border-steel bg-night/80 backdrop-blur-xl">
+      <nav
+        aria-label="Main navigation"
+        className="hidden sm:flex fixed top-0 left-0 bottom-0 z-40 w-[200px] flex-col border-r border-steel bg-night/80 backdrop-blur-xl"
+      >
         <div className="flex items-center h-14 px-5 border-b border-steel shrink-0">
           <Link href="/profile">
             <Logo size={28} withWordmark wordmarkSize="md" />
           </Link>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-1 px-3 py-4">
+        <div className="flex-1 flex flex-col gap-1 px-3 py-4">
           {tabs.map((tab) => {
             const active = isTabActive(pathname, tab.href);
             const Icon = tab.icon;
@@ -191,7 +194,7 @@ export function NavBar({
               </Link>
             );
           })}
-        </nav>
+        </div>
 
         <div className="px-5 py-4 border-t border-steel">
           <span
@@ -201,7 +204,7 @@ export function NavBar({
             <span aria-hidden="true">🔥</span> {streak}d streak
           </span>
         </div>
-      </aside>
+      </nav>
 
       {/* Mobile header */}
       <header className="flex sm:hidden fixed top-0 left-0 right-0 z-40 h-12 items-center justify-between px-4 border-b border-steel bg-night/80 backdrop-blur-xl">
@@ -219,6 +222,7 @@ export function NavBar({
 
       {/* Mobile bottom tab bar */}
       <nav
+        aria-label="Main navigation"
         className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-night border-t border-steel"
         style={{
           height: "calc(64px + env(safe-area-inset-bottom))",

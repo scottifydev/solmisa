@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -21,6 +21,11 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#08080c",
+  colorScheme: "dark",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "Solmisa — Train Your Ear",
@@ -38,12 +43,21 @@ export const metadata: Metadata = {
     title: "Solmisa — Train Your Ear",
     description:
       "Music ear training built on research. Develop relative pitch through spaced repetition.",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "Solmisa — Train Your Ear",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Solmisa — Train Your Ear",
     description:
       "Music ear training built on research. Develop relative pitch through spaced repetition.",
+    images: ["/og-image.svg"],
   },
 };
 

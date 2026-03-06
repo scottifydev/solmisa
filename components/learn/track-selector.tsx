@@ -35,7 +35,7 @@ function TrackCard({
       }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-mono uppercase tracking-wider text-shadow">
+        <span className="text-xs font-mono uppercase tracking-wider text-ash">
           {TRACK_ICONS[track.slug] ?? track.slug}
         </span>
         {track.has_new_lessons && (
@@ -52,7 +52,7 @@ function TrackCard({
       </h3>
 
       {track.current_lesson_label && (
-        <p className="text-[11px] text-shadow mb-3">
+        <p className="text-[11px] text-ash mb-3">
           {track.current_lesson_label}
         </p>
       )}
@@ -69,7 +69,7 @@ function TrackCard({
           }}
         />
       </div>
-      <p className="text-[10px] text-shadow mt-1 font-mono">
+      <p className="text-[10px] text-ash mt-1 font-mono">
         {track.lessons_completed}/{track.total_lessons}
       </p>
     </button>

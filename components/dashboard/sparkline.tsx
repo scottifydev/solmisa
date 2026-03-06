@@ -27,7 +27,7 @@ export function Sparkline({
   height = 20,
 }: SparklineProps) {
   if (history.length < 3) {
-    return <span className="text-[9px] font-mono text-ash/50 italic">--</span>;
+    return <span className="text-[9px] font-mono text-ash italic">--</span>;
   }
 
   const scores = history.map((e) => e.score);

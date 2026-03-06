@@ -212,7 +212,7 @@ export function CATPlacementTest({
             }}
           />
         </div>
-        <span className="text-[11px] font-mono text-silver/60 shrink-0">
+        <span className="text-[11px] font-mono text-ash shrink-0">
           Q{itemNumber}
         </span>
       </div>
@@ -310,7 +310,7 @@ export function CATPlacementTest({
         </div>
         <button
           onClick={onSkipAll}
-          className="text-silver/60 text-xs hover:text-silver transition-colors font-mono"
+          className="text-ash text-xs hover:text-silver transition-colors font-mono"
         >
           I&apos;m a complete beginner
         </button>

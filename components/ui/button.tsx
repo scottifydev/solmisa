@@ -56,7 +56,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={`
           inline-flex items-center justify-center font-body font-medium transition-colors
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/50
           disabled:opacity-50 disabled:pointer-events-none
           ${variantClasses[variant]}
           ${sizeClasses[size]}

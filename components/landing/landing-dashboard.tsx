@@ -12,7 +12,6 @@ import {
 import { SrsBar } from "./srs-bar";
 import { AnonymousReviewSession } from "./anonymous-review-session";
 import { DemoLesson } from "./demo-lesson";
-import { OnboardingTooltip } from "./onboarding-tooltip";
 import { SkillRadar } from "@/components/dashboard/skill-radar";
 import { AudioProvider } from "@/components/audio-provider";
 
@@ -20,7 +19,6 @@ type View = "dashboard" | "review" | "lesson";
 
 export function LandingDashboard() {
   const [view, setView] = useState<View>("dashboard");
-  const [showDashboardTip, setShowDashboardTip] = useState(true);
 
   if (view === "review") {
     return (
@@ -56,37 +54,27 @@ export function LandingDashboard() {
         <h1 className="font-display text-[26px] font-bold text-ivory tracking-tight">
           Train your ear, built on research
         </h1>
-        <p className="text-silver/60 text-[13px] font-mono mt-1">
-          {DEMO_STATS.dueToday} reviews due &bull; try the demo below
+        <p className="text-ash text-[13px] font-mono mt-1">
+          Here&apos;s what your daily practice looks like
         </p>
       </div>
 
       {/* Side-by-side CTAs */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <button
-            onClick={() => {
-              setShowDashboardTip(false);
-              setView("review");
-            }}
-            className="w-full p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all cursor-pointer text-left flex items-center gap-3"
-          >
-            <span className="text-2xl shrink-0">&#x1F504;</span>
-            <div>
-              <div className="text-[15px] font-bold text-ivory font-body">
-                Start Reviews
-              </div>
-              <div className="text-[12px] text-violet font-mono">
-                {DEMO_STATS.dueToday} items due now
-              </div>
+        <button
+          onClick={() => setView("review")}
+          className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/8 to-warning/5 hover:from-violet/15 hover:to-warning/10 transition-all cursor-pointer text-left flex items-center gap-3"
+        >
+          <span className="text-2xl shrink-0">&#x1F504;</span>
+          <div>
+            <div className="text-[15px] font-bold text-ivory font-body">
+              Start Reviews
             </div>
-          </button>
-          <OnboardingTooltip
-            text="Try a quick review session — test your ear with scale degrees"
-            show={showDashboardTip}
-            onDismiss={() => setShowDashboardTip(false)}
-          />
-        </div>
+            <div className="text-[12px] text-violet font-mono">
+              {DEMO_STATS.dueToday} items due now
+            </div>
+          </div>
+        </button>
         <button
           onClick={() => setView("lesson")}
           className="flex-1 p-4 sm:p-5 rounded-xl border border-violet/20 bg-gradient-to-br from-violet/10 to-transparent hover:from-violet/15 transition-all cursor-pointer text-left flex items-center gap-3"
@@ -139,18 +127,7 @@ export function LandingDashboard() {
       />
 
       {/* SRS breakdown */}
-      <div className="rounded-xl border border-steel bg-obsidian p-5">
-        <div className="text-[10px] tracking-[1.5px] uppercase text-silver/60 font-mono mb-3.5">
-          SRS Progress
-        </div>
-        <SrsBar
-          stages={DEMO_STATS.byStage.map((s) => ({
-            stage: s.stage,
-            count: s.count,
-          }))}
-          total={DEMO_STATS.totalCards}
-        />
-      </div>
+      <SrsProgressSection />
 
       {/* Signup CTA */}
       <Link
@@ -166,5 +143,40 @@ export function LandingDashboard() {
         </p>
       </Link>
     </main>
+  );
+}
+
+function SrsProgressSection() {
+  const [showExplainer, setShowExplainer] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-steel bg-obsidian p-5">
+      <div className="flex items-center gap-2 mb-3.5">
+        <div className="text-[10px] tracking-[1.5px] uppercase text-ash font-mono">
+          Review Progress
+        </div>
+        <button
+          onClick={() => setShowExplainer(!showExplainer)}
+          className="text-[10px] text-violet/70 hover:text-violet font-mono transition-colors"
+        >
+          {showExplainer ? "Hide" : "What\u2019s this?"}
+        </button>
+      </div>
+      {showExplainer && (
+        <p className="text-silver text-xs leading-relaxed mb-3">
+          Items move through five stages as you learn them. New items start at
+          the beginning and advance as you answer correctly over time. The
+          further along an item is, the less often you need to review it.
+        </p>
+      )}
+      <SrsBar
+        stages={DEMO_STATS.byStage.map((s) => ({
+          stage: s.stage,
+          count: s.count,
+        }))}
+        total={DEMO_STATS.totalCards}
+        plainLabels
+      />
+    </div>
   );
 }

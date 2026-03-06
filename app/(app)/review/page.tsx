@@ -14,22 +14,24 @@ export default async function ReviewPage() {
 
     return (
       <div className="max-w-lg mx-auto p-6">
-        <EmptyState
-          icon={<span className="text-5xl">&#x1F3AF;</span>}
-          title="All caught up!"
-          message={
-            !hasCards
-              ? "Complete lessons to create review cards."
-              : "No cards are due right now. Check back later!"
-          }
-          action={{ label: "Go to lessons", href: "/learn" }}
-        />
+        {hasCards ? (
+          <EmptyState
+            title="All caught up"
+            message="No cards are due right now. Your next review will appear when items are ready."
+          />
+        ) : (
+          <EmptyState
+            title="Your review queue is empty"
+            message="Complete a lesson to add your first review items."
+            action={{ label: "Start a lesson", href: "/learn" }}
+          />
+        )}
         <div className="mt-4 text-center">
           <Link
             href="/learn"
             className="text-violet text-sm hover:text-violet/80 transition-colors"
           >
-            ← Back to learning
+            &larr; Back to learning
           </Link>
         </div>
       </div>

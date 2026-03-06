@@ -72,7 +72,7 @@ export function CATResults({
               <div className="text-ivory text-sm font-medium">
                 {TRACK_NAMES[track.trackSlug] ?? track.trackSlug}
               </div>
-              <div className="text-silver/60 text-[10px] font-mono mt-0.5">
+              <div className="text-ash text-[10px] font-mono mt-0.5">
                 {confidenceLabel(track.confidence)} placement
               </div>
             </div>
@@ -89,7 +89,7 @@ export function CATResults({
       {placement.lowConfidenceDimensions.length > 0 && (
         <button
           onClick={() => setShowDetails(!showDetails)}
-          className="text-silver/60 text-xs hover:text-silver transition-colors font-mono w-full text-left"
+          className="text-ash text-xs hover:text-silver transition-colors font-mono w-full text-left"
         >
           {showDetails ? "Hide details" : "Show details"}
         </button>

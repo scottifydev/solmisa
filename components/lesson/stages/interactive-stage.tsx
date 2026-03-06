@@ -141,7 +141,7 @@ export function InteractiveStageView({
       )}
 
       {minRequired > 0 && !canContinue && (
-        <p className="text-xs text-shadow text-center font-mono">
+        <p className="text-xs text-ash text-center font-mono">
           {interactions}/{minRequired} interactions
         </p>
       )}

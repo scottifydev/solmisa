@@ -9,12 +9,23 @@ const srsIcons: Record<SrsStage, string> = {
   mastered: "\u{1F451}",
 };
 
+const plainLanguageLabels: Record<SrsStage, string> = {
+  apprentice: "Just started",
+  journeyman: "Getting familiar",
+  adept: "Building confidence",
+  virtuoso: "Nearly there",
+  mastered: "Fully learned",
+};
+
 interface SrsBarProps {
   stages: { stage: SrsStage; count: number }[];
   total: number;
+  plainLabels?: boolean;
 }
 
-export function SrsBar({ stages, total }: SrsBarProps) {
+export function SrsBar({ stages, total, plainLabels }: SrsBarProps) {
+  const labels = plainLabels ? plainLanguageLabels : srsStageLabels;
+
   return (
     <div className="space-y-3">
       {/* Stacked bar */}
@@ -37,8 +48,8 @@ export function SrsBar({ stages, total }: SrsBarProps) {
         {stages.map(({ stage, count }) => (
           <div key={stage} className="flex items-center gap-1.5">
             <span className="text-xs">{srsIcons[stage]}</span>
-            <span className="text-[11px] text-silver/60 font-mono">
-              {srsStageLabels[stage]}
+            <span className="text-[11px] text-ash font-mono">
+              {labels[stage]}
             </span>
             <span
               className="text-[13px] font-bold"

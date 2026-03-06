@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import {
   getPracticeData,
   getRecommendations,
@@ -32,12 +33,9 @@ export default async function PracticePage({
       getGuidedMode(),
     ]);
 
-  const { drills, trackSlug } = practiceData;
-  const trackName =
-    tracks.find((t) => t.slug === trackSlug)?.name ?? "Practice";
+  const { drills } = practiceData;
 
   const unlockedDrills = drills.filter((d) => d.unlocked);
-  const lockedDrills = drills.filter((d) => !d.unlocked);
 
   if (guidedMode) {
     return (
@@ -109,40 +107,28 @@ export default async function PracticePage({
         )}
       </div>
 
-      {drills.length === 0 ? (
-        <EmptyState
-          title={`${trackName} drills coming soon`}
-          message="Practice drills are being prepared for this track. Check back soon!"
-        />
+      {unlockedDrills.length === 0 ? (
+        <div className="rounded-lg border border-violet/20 bg-violet/5 p-6 text-center">
+          <p className="text-sm text-silver">
+            Complete your first lesson to unlock practice drills.
+          </p>
+          <Link
+            href="/learn"
+            className="inline-block mt-4 text-sm font-body font-semibold text-violet hover:text-violet/80 transition-colors"
+          >
+            Go to lessons &rarr;
+          </Link>
+        </div>
       ) : (
-        <div className="space-y-6">
-          {/* Unlocked drills */}
-          {unlockedDrills.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-ash">
-                Available
-              </h2>
-              <div className="space-y-2">
-                {unlockedDrills.map((drill) => (
-                  <DrillCard key={drill.id} drill={drill} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Locked drills */}
-          {lockedDrills.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-ash">
-                Locked
-              </h2>
-              <div className="space-y-2">
-                {lockedDrills.map((drill) => (
-                  <DrillCard key={drill.id} drill={drill} />
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="space-y-3">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-ash">
+            Available
+          </h2>
+          <div className="space-y-2">
+            {unlockedDrills.map((drill) => (
+              <DrillCard key={drill.id} drill={drill} />
+            ))}
+          </div>
         </div>
       )}
     </div>
