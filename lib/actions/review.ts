@@ -13,6 +13,7 @@ import type {
   CardCategory,
 } from "@/types/srs";
 import { UUID_RE } from "@/lib/utils/validation";
+import { evaluateUnlocks } from "@/lib/chains/unlock-evaluator";
 
 export async function getReviewQueue(
   limitOverride?: number,
@@ -232,7 +233,9 @@ export async function submitReview(
   // Get current card state
   const { data: cardState } = await supabase
     .from("user_card_state")
-    .select("*, card_instances!inner(card_templates!inner(card_category))")
+    .select(
+      "*, card_instances!inner(template_id, card_templates!inner(card_category))",
+    )
     .eq("id", req.user_card_state_id)
     .eq("user_id", user.id)
     .single();
@@ -284,6 +287,15 @@ export async function submitReview(
     p_new_difficulty_tier: result.new_difficulty_tier,
   });
   if (rpcError) throw new Error("Failed to process review");
+
+  // Chain unlock check (Flow mode integration)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const templateId = (cardState.card_instances as any)?.template_id as
+    | string
+    | undefined;
+  if (templateId) {
+    await evaluateUnlocks(user.id, templateId, result.new_stage);
+  }
 
   return {
     new_stage: result.new_stage,

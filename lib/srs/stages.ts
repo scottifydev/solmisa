@@ -107,7 +107,7 @@ const STAGE_ORDER: SrsStageKey[] = [
   "mastered",
 ];
 
-function stageIndex(key: SrsStageKey): number {
+export function stageIndex(key: SrsStageKey): number {
   return STAGE_ORDER.indexOf(key);
 }
 

@@ -9,12 +9,14 @@ export async function getNavStats(): Promise<{
   streak: number;
   reviewCount: number;
   newLessonCount: number;
+  flowDueCount: number;
 }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { streak: 0, reviewCount: 0, newLessonCount: 0 };
+  if (!user)
+    return { streak: 0, reviewCount: 0, newLessonCount: 0, flowDueCount: 0 };
 
   const now = new Date().toISOString();
   const [
@@ -40,10 +42,37 @@ export async function getNavStats(): Promise<{
 
   const newLessons = Math.max(0, (totalLessons ?? 0) - (completedLessons ?? 0));
 
+  // Flow due count: get chain link template IDs, find instances, count due states
+  let flowDueCount = 0;
+  const { data: chainLinks } = await supabase
+    .from("chain_links")
+    .select("card_template_id");
+
+  if (chainLinks && chainLinks.length > 0) {
+    const templateIds = chainLinks.map((l) => l.card_template_id);
+    const { data: instances } = await supabase
+      .from("card_instances")
+      .select("id")
+      .in("template_id", templateIds);
+
+    if (instances && instances.length > 0) {
+      const instanceIds = instances.map((i) => i.id);
+      const { count: flowCount } = await supabase
+        .from("user_card_state")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .neq("srs_stage", "mastered")
+        .lte("next_review_at", now)
+        .in("card_instance_id", instanceIds);
+      flowDueCount = flowCount ?? 0;
+    }
+  }
+
   return {
     streak: profile?.streak_days ?? 0,
     reviewCount: dueToday ?? 0,
     newLessonCount: newLessons,
+    flowDueCount,
   };
 }
 
