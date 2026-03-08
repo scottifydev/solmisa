@@ -36,7 +36,7 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
     case "staff_to_name":
       return (
         <StaffToName
-          keySignature={(parameters.key_signature as string) ?? "C"}
+          keySignature={card.chainRootKey}
           options={options}
           correctAnswer={correctAnswer}
           onAnswer={onAnswer}
@@ -141,12 +141,11 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
 
     case "select_one":
     default: {
-      const keySig = parameters?.key_signature as string | undefined;
       return (
         <div className="flex flex-col items-center gap-4">
-          {keySig && (
+          {card.chainRootKey && (
             <div className="w-full max-w-[200px]">
-              <KeySignatureDisplay keySignature={keySig} />
+              <KeySignatureDisplay keySignature={card.chainRootKey} />
             </div>
           )}
           <OptionGrid
