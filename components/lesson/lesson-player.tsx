@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { completeLesson, getCompletionContext } from "@/lib/actions/lessons";
 import type { CompletionContext } from "@/lib/actions/lessons";
 import { seedLessonCardsV2 } from "@/lib/lessons/seed-cards";
+import { activateChainsForLesson } from "@/lib/chains/lesson-chain-bridge";
 import { StageRenderer } from "./stage-renderer";
 
 interface LessonPlayerProps {
@@ -192,6 +193,13 @@ export function LessonPlayer({
 
         seededCards = seedResult?.cards ?? [];
         context = ctx;
+
+        // Activate any chains unlocked by completing this lesson's module
+        if (userId) {
+          await activateChainsForLesson(userId, lesson.id).catch((err) => {
+            console.warn("Chain activation failed:", err);
+          });
+        }
       } catch (err) {
         console.error("Lesson completion save failed:", err);
       }
