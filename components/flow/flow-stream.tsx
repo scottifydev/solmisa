@@ -125,16 +125,6 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         totalLinks={card.totalLinks}
       />
 
-      {/* Prompt */}
-      {card.promptRendered && phase === "presenting" && (
-        <p
-          className="text-center text-sm font-medium"
-          style={{ color: brand.ivory }}
-        >
-          {card.promptRendered}
-        </p>
-      )}
-
       {/* Card content */}
       {phase === "presenting" && (
         <FlowCard card={card} onAnswer={handleAnswer} />
