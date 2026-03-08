@@ -8,7 +8,7 @@ export async function activateStarterChains(userId: string): Promise<number> {
     .from("chain_definitions")
     .select("id, slug, total_links")
     .eq("is_published", true)
-    .eq("unlock_condition->type", "cold_start");
+    .eq("unlock_condition->>type", "cold_start");
 
   if (!coldStartChains || coldStartChains.length === 0) return 0;
 
@@ -100,7 +100,7 @@ export async function evaluateNeighborUnlocks(
     .from("chain_definitions")
     .select("id, slug, unlock_condition")
     .eq("is_published", true)
-    .eq("unlock_condition->type", "neighbor_mastery");
+    .eq("unlock_condition->>type", "neighbor_mastery");
 
   if (!neighborChains || neighborChains.length === 0) return [];
 
