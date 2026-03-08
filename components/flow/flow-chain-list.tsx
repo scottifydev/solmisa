@@ -43,7 +43,7 @@ export function FlowChainList({ state }: FlowChainListProps) {
       </div>
 
       {/* Start Flow button */}
-      {state.hasChains && state.totalDue > 0 && (
+      {state.hasChains && (
         <Link
           href="/flow/stream"
           className="block w-full rounded-xl py-3.5 text-center text-sm font-semibold transition-colors"
@@ -52,7 +52,9 @@ export function FlowChainList({ state }: FlowChainListProps) {
             color: brand.night,
           }}
         >
-          Start Flow ({state.totalDue} due)
+          {state.totalDue > 0
+            ? `Start Flow (${state.totalDue} due)`
+            : "Start Flow"}
         </Link>
       )}
 
