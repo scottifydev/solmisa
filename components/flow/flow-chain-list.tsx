@@ -37,7 +37,9 @@ export function FlowChainList({ state }: FlowChainListProps) {
         <h1 className="font-display text-2xl font-bold text-ivory">Flow</h1>
         <p className="text-sm text-silver">
           {state.hasChains
-            ? `${state.chains.length} chain${state.chains.length !== 1 ? "s" : ""} active \u2014 ${state.totalDue} card${state.totalDue !== 1 ? "s" : ""} due`
+            ? state.totalDue > 0
+              ? `${state.totalDue} card${state.totalDue !== 1 ? "s" : ""} due`
+              : "Your spaced-repetition stream."
             : "No chains available yet. Complete lessons to unlock chains."}
         </p>
       </div>
@@ -58,91 +60,93 @@ export function FlowChainList({ state }: FlowChainListProps) {
         </Link>
       )}
 
-      {state.chains.length > 0 && (
+      {state.chains.filter((c) => c.completedOnce).length > 0 && (
         <ul className="space-y-3">
-          {state.chains.map((chain) => (
-            <li
-              key={chain.slug}
-              className="rounded-xl border border-steel bg-obsidian overflow-hidden"
-            >
-              <div className="p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ivory">
-                    {chain.name}
-                  </span>
-                  {chain.dueCount > 0 && (
-                    <span className="rounded-full bg-violet/20 px-2 py-0.5 text-xs font-medium text-violet">
-                      {chain.dueCount} due
+          {state.chains
+            .filter((c) => c.completedOnce)
+            .map((chain) => (
+              <li
+                key={chain.slug}
+                className="rounded-xl border border-steel bg-obsidian overflow-hidden"
+              >
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-ivory">
+                      {chain.name}
                     </span>
-                  )}
-                </div>
-
-                {/* Progress bar */}
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-1.5 flex-1 rounded-full overflow-hidden"
-                    style={{ backgroundColor: brand.steel }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${(chain.highestUnlocked / chain.totalLinks) * 100}%`,
-                        backgroundColor: chain.completedOnce
-                          ? brand.correct
-                          : brand.violet,
-                      }}
-                    />
+                    {chain.dueCount > 0 && (
+                      <span className="rounded-full bg-violet/20 px-2 py-0.5 text-xs font-medium text-violet">
+                        {chain.dueCount} due
+                      </span>
+                    )}
                   </div>
-                  <span className="text-xs text-ash">
-                    {chain.highestUnlocked}/{chain.totalLinks}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-between">
-                  {/* Focus link */}
-                  <Link
-                    href={`/flow/stream?chain=${chain.slug}`}
-                    className="text-xs font-medium transition-colors"
-                    style={{ color: brand.silver }}
-                  >
-                    Focus
-                  </Link>
-                  {chain.completedOnce && (
-                    <button
-                      onClick={() => handleToggleMap(chain.slug)}
-                      className="text-xs font-medium transition-colors"
-                      style={{ color: brand.violet }}
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-1.5 flex-1 rounded-full overflow-hidden"
+                      style={{ backgroundColor: brand.steel }}
                     >
-                      {expandedSlug === chain.slug ? "Hide Map" : "View Map"}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Expanded chain map */}
-              {expandedSlug === chain.slug && (
-                <div
-                  className="border-t px-4 py-5"
-                  style={{ borderColor: brand.steel }}
-                >
-                  {loading ? (
-                    <div className="flex justify-center py-6">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet border-t-transparent" />
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${(chain.highestUnlocked / chain.totalLinks) * 100}%`,
+                          backgroundColor: chain.completedOnce
+                            ? brand.correct
+                            : brand.violet,
+                        }}
+                      />
                     </div>
-                  ) : mapData ? (
-                    <ChainMap chain={mapData.chain} links={mapData.links} />
-                  ) : (
-                    <p
-                      className="text-center text-xs"
-                      style={{ color: brand.ash }}
+                    <span className="text-xs text-ash">
+                      {chain.highestUnlocked}/{chain.totalLinks}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    {/* Focus link */}
+                    <Link
+                      href={`/flow/stream?chain=${chain.slug}`}
+                      className="text-xs font-medium transition-colors"
+                      style={{ color: brand.silver }}
                     >
-                      Unable to load map data.
-                    </p>
-                  )}
+                      Focus
+                    </Link>
+                    {chain.completedOnce && (
+                      <button
+                        onClick={() => handleToggleMap(chain.slug)}
+                        className="text-xs font-medium transition-colors"
+                        style={{ color: brand.violet }}
+                      >
+                        {expandedSlug === chain.slug ? "Hide Map" : "View Map"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-            </li>
-          ))}
+
+                {/* Expanded chain map */}
+                {expandedSlug === chain.slug && (
+                  <div
+                    className="border-t px-4 py-5"
+                    style={{ borderColor: brand.steel }}
+                  >
+                    {loading ? (
+                      <div className="flex justify-center py-6">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet border-t-transparent" />
+                      </div>
+                    ) : mapData ? (
+                      <ChainMap chain={mapData.chain} links={mapData.links} />
+                    ) : (
+                      <p
+                        className="text-center text-xs"
+                        style={{ color: brand.ash }}
+                      >
+                        Unable to load map data.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </li>
+            ))}
         </ul>
       )}
     </div>
