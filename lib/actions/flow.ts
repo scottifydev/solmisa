@@ -228,6 +228,108 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
   };
 }
 
+export interface ChainMapLink {
+  position: number;
+  description: string;
+  srsStage: SrsStageKey | null;
+  isUnlocked: boolean;
+}
+
+export interface ChainMapData {
+  chain: {
+    name: string;
+    slug: string;
+    rootKey: string;
+    totalLinks: number;
+  };
+  links: ChainMapLink[];
+}
+
+export async function getChainMapData(
+  chainSlug: string,
+): Promise<ChainMapData | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  // Get chain definition
+  const { data: chain } = await supabase
+    .from("chain_definitions")
+    .select("id, slug, name, root_key, total_links")
+    .eq("slug", chainSlug)
+    .single();
+
+  if (!chain) return null;
+
+  // Get user progress for this chain
+  const { data: progress } = await supabase
+    .from("user_chain_progress")
+    .select("highest_unlocked_position")
+    .eq("user_id", user.id)
+    .eq("chain_id", chain.id)
+    .maybeSingle();
+
+  const highestUnlocked = progress?.highest_unlocked_position ?? 0;
+
+  // Get all chain links with their card templates
+  const { data: chainLinks } = await supabase
+    .from("chain_links")
+    .select("position, description, card_template_id")
+    .eq("chain_id", chain.id)
+    .order("position");
+
+  if (!chainLinks) return null;
+
+  // For each link, find the SRS stage via card_instances → user_card_state
+  const links: ChainMapLink[] = [];
+
+  for (const link of chainLinks) {
+    const isUnlocked = link.position <= highestUnlocked;
+    let srsStage: SrsStageKey | null = null;
+
+    if (isUnlocked) {
+      const { data: instance } = await supabase
+        .from("card_instances")
+        .select("id")
+        .eq("template_id", link.card_template_id)
+        .limit(1)
+        .maybeSingle();
+
+      if (instance) {
+        const { data: cardState } = await supabase
+          .from("user_card_state")
+          .select("srs_stage")
+          .eq("user_id", user.id)
+          .eq("card_instance_id", instance.id)
+          .maybeSingle();
+
+        if (cardState) {
+          srsStage = cardState.srs_stage as SrsStageKey;
+        }
+      }
+    }
+
+    links.push({
+      position: link.position,
+      description: link.description ?? `Link ${link.position}`,
+      srsStage,
+      isUnlocked,
+    });
+  }
+
+  return {
+    chain: {
+      name: chain.name,
+      slug: chain.slug,
+      rootKey: chain.root_key,
+      totalLinks: chain.total_links,
+    },
+    links,
+  };
+}
+
 export async function activateFlow(): Promise<number> {
   const supabase = await createClient();
   const {
