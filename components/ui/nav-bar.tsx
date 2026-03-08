@@ -143,6 +143,8 @@ function GearIcon({ className }: { className?: string }) {
 function isTabActive(pathname: string, href: string): boolean {
   if (href === "/learn")
     return pathname === "/learn" || pathname.startsWith("/learn/");
+  if (href === "/flow")
+    return pathname === "/flow" || pathname.startsWith("/flow/");
   if (href === "/practice")
     return pathname === "/practice" || pathname.startsWith("/practice/");
   if (href === "/profile")
@@ -152,16 +154,44 @@ function isTabActive(pathname: string, href: string): boolean {
   return pathname.startsWith(href);
 }
 
+function FlowIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M3 10c2-4 5-4 7 0s5 4 7 0"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M3 14c2-4 5-4 7 0s5 4 7 0"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
+    </svg>
+  );
+}
+
 interface NavBarProps {
   streak?: number;
   reviewCount?: number;
   newLessonCount?: number;
+  flowDueCount?: number;
 }
 
 export function NavBar({
   streak = 0,
   reviewCount = 0,
   newLessonCount = 0,
+  flowDueCount = 0,
 }: NavBarProps) {
   const pathname = usePathname();
   const hasActiveStreak = streak > 0;
@@ -172,6 +202,12 @@ export function NavBar({
       label: "Learn",
       icon: BookIcon,
       badge: newLessonCount > 0 ? newLessonCount : undefined,
+    },
+    {
+      href: "/flow",
+      label: "Flow",
+      icon: FlowIcon,
+      badge: flowDueCount > 0 ? flowDueCount : undefined,
     },
     { href: "/practice", label: "Practice", icon: TargetIcon },
     {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { brand } from "@/lib/tokens";
 import type { FlowState } from "@/lib/chains/types";
 import type { ChainMapData } from "@/lib/actions/flow";
@@ -41,6 +42,20 @@ export function FlowChainList({ state }: FlowChainListProps) {
         </p>
       </div>
 
+      {/* Start Flow button */}
+      {state.hasChains && state.totalDue > 0 && (
+        <Link
+          href="/flow/stream"
+          className="block w-full rounded-xl py-3.5 text-center text-sm font-semibold transition-colors"
+          style={{
+            backgroundColor: brand.violet,
+            color: brand.night,
+          }}
+        >
+          Start Flow ({state.totalDue} due)
+        </Link>
+      )}
+
       {state.chains.length > 0 && (
         <ul className="space-y-3">
           {state.chains.map((chain) => (
@@ -48,7 +63,7 @@ export function FlowChainList({ state }: FlowChainListProps) {
               key={chain.slug}
               className="rounded-xl border border-steel bg-obsidian overflow-hidden"
             >
-              <div className="p-4 space-y-1">
+              <div className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-ivory">
                     {chain.name}
@@ -59,11 +74,37 @@ export function FlowChainList({ state }: FlowChainListProps) {
                     </span>
                   )}
                 </div>
+
+                {/* Progress bar */}
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-1.5 flex-1 rounded-full overflow-hidden"
+                    style={{ backgroundColor: brand.steel }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${(chain.highestUnlocked / chain.totalLinks) * 100}%`,
+                        backgroundColor: chain.completedOnce
+                          ? brand.correct
+                          : brand.violet,
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-ash">
+                    {chain.highestUnlocked}/{chain.totalLinks}
+                  </span>
+                </div>
+
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-ash">
-                    {chain.highestUnlocked} / {chain.totalLinks} links unlocked
-                    {chain.completedOnce ? " \u2014 completed" : ""}
-                  </p>
+                  {/* Focus link */}
+                  <Link
+                    href={`/flow/stream?chain=${chain.slug}`}
+                    className="text-xs font-medium transition-colors"
+                    style={{ color: brand.silver }}
+                  >
+                    Focus
+                  </Link>
                   {chain.completedOnce && (
                     <button
                       onClick={() => handleToggleMap(chain.slug)}
