@@ -133,13 +133,25 @@ export async function getNextStreamCard(
     (l) => !l.userCardStateId && l.cardInstanceId,
   );
 
-  // 4. Selection priority: due first (most overdue), then new (lowest position)
+  // Practice cards: have state, not yet due, not mastered (fallback when pool is empty)
+  const practiceCards = allLinks.filter(
+    (l) =>
+      l.userCardStateId &&
+      l.nextReviewAt &&
+      l.nextReviewAt > now &&
+      l.srsStage !== "mastered",
+  );
+
+  // 4. Selection priority: due first (most overdue), then new (lowest position), then practice (soonest due)
   dueCards.sort((a, b) =>
     (a.nextReviewAt ?? "").localeCompare(b.nextReviewAt ?? ""),
   );
   newCards.sort((a, b) => a.linkPosition - b.linkPosition);
+  practiceCards.sort((a, b) =>
+    (a.nextReviewAt ?? "").localeCompare(b.nextReviewAt ?? ""),
+  );
 
-  const selected = dueCards[0] ?? newCards[0];
+  const selected = dueCards[0] ?? newCards[0] ?? practiceCards[0];
   if (!selected) return null;
 
   const modality = selectModality(
