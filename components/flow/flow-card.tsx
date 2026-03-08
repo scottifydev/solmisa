@@ -11,6 +11,7 @@ import { PartialFill } from "./modalities/partial-fill";
 import { DragRank } from "./modalities/drag-rank";
 import { StaffAccidentalInput } from "./modalities/staff-accidental-input";
 import { AudioToName } from "./modalities/audio-to-name";
+import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 
 interface FlowCardProps {
   card: FlowStreamCard;
@@ -139,14 +140,23 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
       );
 
     case "select_one":
-    default:
+    default: {
+      const keySig = parameters?.key_signature as string | undefined;
       return (
-        <OptionGrid
-          prompt={promptRendered}
-          options={options}
-          correctAnswer={correctAnswer}
-          onAnswer={onAnswer}
-        />
+        <div className="flex flex-col items-center gap-4">
+          {keySig && (
+            <div className="w-full max-w-[200px]">
+              <KeySignatureDisplay keySignature={keySig} />
+            </div>
+          )}
+          <OptionGrid
+            prompt={promptRendered}
+            options={options}
+            correctAnswer={correctAnswer}
+            onAnswer={onAnswer}
+          />
+        </div>
       );
+    }
   }
 }
