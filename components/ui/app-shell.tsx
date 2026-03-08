@@ -6,6 +6,7 @@ interface AppShellProps {
   streak?: number;
   reviewCount?: number;
   newLessonCount?: number;
+  flowDueCount?: number;
 }
 
 export function AppShell({
@@ -13,6 +14,7 @@ export function AppShell({
   streak,
   reviewCount,
   newLessonCount,
+  flowDueCount,
 }: AppShellProps) {
   return (
     <div className="min-h-screen bg-night text-ivory font-body">
@@ -26,6 +28,7 @@ export function AppShell({
         streak={streak}
         reviewCount={reviewCount}
         newLessonCount={newLessonCount}
+        flowDueCount={flowDueCount}
       />
       <main
         id="main-content"

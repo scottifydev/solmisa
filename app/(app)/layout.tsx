@@ -7,7 +7,8 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { streak, reviewCount, newLessonCount } = await getNavStats();
+  const { streak, reviewCount, newLessonCount, flowDueCount } =
+    await getNavStats();
 
   return (
     <AudioProvider>
@@ -15,6 +16,7 @@ export default async function AppLayout({
         streak={streak}
         reviewCount={reviewCount}
         newLessonCount={newLessonCount}
+        flowDueCount={flowDueCount}
       >
         {children}
       </AppShell>
