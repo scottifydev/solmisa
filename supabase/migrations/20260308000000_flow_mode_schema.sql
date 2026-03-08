@@ -213,7 +213,7 @@ BEGIN
       END,
       ARRAY['key_signatures'],
       jsonb_build_object(
-        'answer_data', jsonb_build_object('correct_answer', r.slug),
+        'answer_data', jsonb_build_object('correct_answer', 'a'),
         'options_data', jsonb_build_array(
           jsonb_build_object('id', 'a', 'label', r.id_opt_a),
           jsonb_build_object('id', 'b', 'label', r.id_opt_b),
@@ -247,7 +247,7 @@ BEGIN
       END,
       ARRAY['key_signatures'],
       jsonb_build_object(
-        'answer_data', jsonb_build_object('correct_accidentals', r.acc_list, 'ordered', true),
+        'answer_data', jsonb_build_object('correct_answer', 'a', 'correct_accidentals', r.acc_list, 'ordered', true),
         'options_data', jsonb_build_array(
           jsonb_build_object('id', 'a', 'label', r.sp_opt_a),
           jsonb_build_object('id', 'b', 'label', r.sp_opt_b),
@@ -278,7 +278,7 @@ BEGIN
       r.name || ', but raise the 4th degree. What mode?',
       ARRAY['key_signatures'],
       jsonb_build_object(
-        'answer_data', jsonb_build_object('correct_answer', 'lydian'),
+        'answer_data', jsonb_build_object('correct_answer', 'a'),
         'options_data', jsonb_build_array(
           jsonb_build_object('id', 'a', 'label', 'Lydian'),
           jsonb_build_object('id', 'b', 'label', 'Ionian'),
@@ -340,7 +340,7 @@ BEGIN
       'What is the relative minor of ' || r.name || '?',
       ARRAY['key_signatures'],
       jsonb_build_object(
-        'answer_data', jsonb_build_object('correct_answer', r.rel_minor),
+        'answer_data', jsonb_build_object('correct_answer', 'a'),
         'options_data', jsonb_build_array(
           jsonb_build_object('id', 'a', 'label', r.rm_opt_a),
           jsonb_build_object('id', 'b', 'label', r.rm_opt_b),
@@ -371,7 +371,7 @@ BEGIN
       'What is the V chord in ' || r.name || '?',
       ARRAY['key_signatures'],
       jsonb_build_object(
-        'answer_data', jsonb_build_object('correct_answer', r.v_chord),
+        'answer_data', jsonb_build_object('correct_answer', 'a'),
         'options_data', jsonb_build_array(
           jsonb_build_object('id', 'a', 'label', r.vc_opt_a),
           jsonb_build_object('id', 'b', 'label', r.vc_opt_b),
