@@ -35,5 +35,17 @@ export function KeySignatureDisplay({
     }
   }, [keySignature, clef]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{
+        borderRadius: 12,
+        padding: 16,
+        background: "rgba(183, 148, 246, 0.03)",
+        boxShadow:
+          "0 0 20px rgba(183, 148, 246, 0.08), inset 0 0 30px rgba(183, 148, 246, 0.04)",
+      }}
+    />
+  );
 }
