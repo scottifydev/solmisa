@@ -12,7 +12,7 @@ import {
 } from "vexflow";
 import type { NotationData, NoteEvent } from "./types";
 
-const IVORY = "#F5F0EB";
+const IVORY = "#eae8e4";
 const STAFF_LINE_COLOR = IVORY;
 const NOTE_COLOR = IVORY;
 
