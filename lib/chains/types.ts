@@ -47,6 +47,6 @@ export interface FlowAnswerRequest {
   user_card_state_id: string;
   correct: boolean;
   response_time_ms: number;
-  confidence?: "certain" | "guessing";
+  confidence?: "easy" | "good" | "hard" | "knew_it" | "blanked";
   consecutiveMissCount?: number;
 }
