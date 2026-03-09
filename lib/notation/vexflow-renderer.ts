@@ -13,8 +13,8 @@ import {
 } from "vexflow";
 import type { NotationData, NoteEvent } from "./types";
 
-const STAFF_LINE_COLOR = "#2e2e3e"; // steel — subtle, recessed
-const NOTE_COLOR = "#c4b5fd"; // violet-300 — bright lavender, neon signage
+const STAFF_LINE_COLOR = "#3a3a4e"; // bumped steel — visible grid, not competing
+const NOTE_COLOR = "#ede9fe"; // violet-100 — near-white with faint lavender warmth
 
 export interface RenderOptions {
   width?: number;
