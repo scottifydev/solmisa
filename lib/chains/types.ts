@@ -48,4 +48,5 @@ export interface FlowAnswerRequest {
   correct: boolean;
   response_time_ms: number;
   confidence?: "certain" | "guessing";
+  consecutiveMissCount?: number;
 }
