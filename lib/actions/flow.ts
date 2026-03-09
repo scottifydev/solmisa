@@ -12,6 +12,7 @@ import { getNextStreamCard as buildNextCard } from "@/lib/chains/stream-builder"
 import { evaluateUnlocks } from "@/lib/chains/unlock-evaluator";
 import {
   evaluateNeighborUnlocks,
+  evaluateCrossTopicUnlocks,
   activateStarterChains,
 } from "@/lib/chains/chain-activator";
 import { UUID_RE } from "@/lib/utils/validation";
@@ -108,6 +109,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
   newStage: SrsStageKey;
   unlockResult: UnlockResult | null;
   neighborUnlocks: string[];
+  crossTopicUnlocks: string[];
 }> {
   const supabase = await createClient();
   const {
@@ -186,6 +188,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
   // Evaluate chain unlocks
   let unlockResult: UnlockResult | null = null;
   let neighborUnlocks: string[] = [];
+  let crossTopicUnlocks: string[] = [];
 
   if (cardTemplateId) {
     unlockResult = await evaluateUnlocks(
@@ -203,8 +206,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     }
   }
 
-  // Update chain progress stats
-  // Find the chain for this card template
+  // Find the chain for this card template (needed for progress stats + cross-topic)
   const { data: chainLink } = await supabase
     .from("chain_links")
     .select("chain_id")
@@ -212,6 +214,24 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     .limit(1)
     .maybeSingle();
 
+  // Evaluate cross-topic unlocks when a link is unlocked
+  if (unlockResult && chainLink) {
+    const { data: chainDef } = await supabase
+      .from("chain_definitions")
+      .select("topic")
+      .eq("id", chainLink.chain_id)
+      .single();
+
+    if (chainDef?.topic) {
+      crossTopicUnlocks = await evaluateCrossTopicUnlocks(
+        user.id,
+        chainDef.topic,
+        unlockResult.newPosition,
+      );
+    }
+  }
+
+  // Update chain progress stats
   if (chainLink) {
     const { data: currentProgress } = await supabase
       .from("user_chain_progress")
@@ -234,6 +254,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     newStage: result.new_stage,
     unlockResult,
     neighborUnlocks,
+    crossTopicUnlocks,
   };
 }
 
