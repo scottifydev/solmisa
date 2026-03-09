@@ -31,10 +31,15 @@ export function KeySignatureDisplay({
       );
       result.svg.style.width = "100%";
       result.svg.style.height = "auto";
-      result.svg.style.maxWidth = "200px";
       result.svg.style.filter = "drop-shadow(0 0 4px rgba(139, 92, 246, 0.3))";
     }
   }, [keySignature, clef]);
 
-  return <div ref={containerRef} className={className} style={{}} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ display: "flex", justifyContent: "center" }}
+    />
+  );
 }

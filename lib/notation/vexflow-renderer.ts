@@ -8,12 +8,13 @@ import {
   Dot,
   Beam,
   Annotation,
+  Barline,
   type StaveNoteStruct,
 } from "vexflow";
 import type { NotationData, NoteEvent } from "./types";
 
 const STAFF_LINE_COLOR = "#2e2e3e"; // steel — subtle, recessed
-const NOTE_COLOR = "#22222f"; // graphite — clef, key sig, notes
+const NOTE_COLOR = "#c4b5fd"; // violet-300 — bright lavender, neon signage
 
 export interface RenderOptions {
   width?: number;
@@ -71,7 +72,7 @@ export function renderNotation(
 
   const renderer = new Renderer(container, Renderer.Backends.SVG);
   const estimatedWidth = options.width ?? estimateWidth(data, options);
-  const height = options.height ?? 180;
+  const height = options.height ?? 200;
   renderer.resize(estimatedWidth, height);
 
   const context = renderer.getContext();
@@ -200,17 +201,26 @@ export function renderKeySignature(
   clef: "treble" | "bass" = "treble",
 ): RenderResult {
   const renderer = new Renderer(container, Renderer.Backends.SVG);
-  const width = 200;
-  const height = 120;
+
+  // Estimate width based on number of accidentals in key signature
+  const accidentalCount = countAccidentals(keySignature);
+  const clefWidth = 40;
+  const accWidth = accidentalCount * 14;
+  const padding = 30;
+  const staffWidth = clefWidth + accWidth + padding;
+  const width = staffWidth + 20;
+  const height = 160;
   renderer.resize(width, height);
 
   const context = renderer.getContext();
   context.setFillStyle(NOTE_COLOR);
   context.setStrokeStyle(STAFF_LINE_COLOR);
 
-  const stave = new Stave(10, 10, 170);
+  const stave = new Stave(10, 20, staffWidth);
   stave.addClef(clef);
   stave.addKeySignature(keySignature);
+  stave.setBegBarType(Barline.type.NONE);
+  stave.setEndBarType(Barline.type.NONE);
   stave.setStyle({
     fillStyle: STAFF_LINE_COLOR,
     strokeStyle: STAFF_LINE_COLOR,
@@ -226,6 +236,32 @@ export function renderKeySignature(
     totalWidth: width,
     totalHeight: height,
   };
+}
+
+function countAccidentals(key: string): number {
+  const sharpKeys: Record<string, number> = {
+    C: 0,
+    G: 1,
+    D: 2,
+    A: 3,
+    E: 4,
+    B: 5,
+    "F#": 6,
+    "C#": 7,
+  };
+  const flatKeys: Record<string, number> = {
+    C: 0,
+    F: 1,
+    Bb: 2,
+    Eb: 3,
+    Ab: 4,
+    Db: 5,
+    Gb: 6,
+    Cb: 7,
+  };
+  // Handle minor keys (e.g. "Am", "Dm")
+  const normalized = key.replace("m", "");
+  return sharpKeys[normalized] ?? flatKeys[normalized] ?? 3;
 }
 
 export function renderScale(
