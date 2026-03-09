@@ -1,0 +1,184 @@
+[
+  {
+    "id": "interval_p8_ode_joy",
+    "title": "Ode to Joy — opening leap (P8 context)",
+    "attribution": "Ludwig van Beethoven",
+    "source": "PD",
+    "interval": "P8",
+    "key": "C",
+    "tempo": 120,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "C4", "duration": 2, "start": 0 },
+      { "pitch": "C5", "duration": 2, "start": 2 }
+    ]
+  },
+  {
+    "id": "interval_p5_twinkle",
+    "title": "Twinkle Twinkle — opening (P5 leap)",
+    "attribution": "French folk melody",
+    "source": "PD",
+    "interval": "P5",
+    "key": "C",
+    "tempo": 100,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "C4", "duration": 1, "start": 0 },
+      { "pitch": "C4", "duration": 1, "start": 1 },
+      { "pitch": "G4", "duration": 1, "start": 2 },
+      { "pitch": "G4", "duration": 1, "start": 3 }
+    ]
+  },
+  {
+    "id": "interval_p4_amazing_grace",
+    "title": "Amazing Grace — pickup to downbeat (P4)",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "interval": "P4",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "notes": [
+      { "pitch": "D4", "duration": 1, "start": 0 },
+      { "pitch": "G4", "duration": 2, "start": 1 }
+    ]
+  },
+  {
+    "id": "interval_M3_morning_grieg",
+    "title": "Morning Mood (M3 motif)",
+    "attribution": "Edvard Grieg, Peer Gynt Suite (1875)",
+    "source": "PD",
+    "interval": "M3",
+    "key": "E",
+    "tempo": 60,
+    "time_signature": "6/8",
+    "notes": [
+      { "pitch": "E4", "duration": 1, "start": 0 },
+      { "pitch": "G#4", "duration": 1, "start": 1 },
+      { "pitch": "B4", "duration": 1, "start": 2 }
+    ]
+  },
+  {
+    "id": "interval_m3_greensleeves",
+    "title": "Greensleeves — opening (m3 step)",
+    "attribution": "English folk song",
+    "source": "PD",
+    "interval": "m3",
+    "key": "Am",
+    "tempo": 100,
+    "time_signature": "3/4",
+    "notes": [
+      { "pitch": "A3", "duration": 1, "start": 0 },
+      { "pitch": "C4", "duration": 2, "start": 1 }
+    ]
+  },
+  {
+    "id": "interval_M2_joy_world",
+    "title": "Joy to the World — descending (M2 steps)",
+    "attribution": "Lowell Mason (1839)",
+    "source": "PD",
+    "interval": "M2",
+    "key": "D",
+    "tempo": 100,
+    "time_signature": "2/4",
+    "notes": [
+      { "pitch": "D5", "duration": 1.5, "start": 0 },
+      { "pitch": "C#5", "duration": 0.5, "start": 1.5 },
+      { "pitch": "B4", "duration": 1, "start": 2 },
+      { "pitch": "A4", "duration": 1, "start": 3 }
+    ]
+  },
+  {
+    "id": "interval_m2_jaws",
+    "title": "Für Elise — opening (m2 motif)",
+    "attribution": "Ludwig van Beethoven (1810)",
+    "source": "PD",
+    "interval": "m2",
+    "key": "Am",
+    "tempo": 80,
+    "time_signature": "3/8",
+    "notes": [
+      { "pitch": "E5", "duration": 0.5, "start": 0 },
+      { "pitch": "D#5", "duration": 0.5, "start": 0.5 },
+      { "pitch": "E5", "duration": 0.5, "start": 1 },
+      { "pitch": "D#5", "duration": 0.5, "start": 1.5 },
+      { "pitch": "E5", "duration": 0.5, "start": 2 },
+      { "pitch": "B4", "duration": 0.5, "start": 2.5 }
+    ]
+  },
+  {
+    "id": "interval_M6_nbc",
+    "title": "My Bonnie Lies Over the Ocean — (M6 leap)",
+    "attribution": "Scottish folk song",
+    "source": "PD",
+    "interval": "M6",
+    "key": "Bb",
+    "tempo": 108,
+    "time_signature": "3/4",
+    "notes": [
+      { "pitch": "F4", "duration": 1, "start": 0 },
+      { "pitch": "D5", "duration": 2, "start": 1 },
+      { "pitch": "C5", "duration": 1, "start": 3 }
+    ]
+  },
+  {
+    "id": "interval_m6_love_story",
+    "title": "In the Hall of the Mountain King (m6 context)",
+    "attribution": "Edvard Grieg, Peer Gynt Suite (1875)",
+    "source": "PD",
+    "interval": "m6",
+    "key": "Bm",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "B3", "duration": 1, "start": 0 },
+      { "pitch": "C#4", "duration": 1, "start": 1 },
+      { "pitch": "D4", "duration": 1, "start": 2 },
+      { "pitch": "E4", "duration": 1, "start": 3 },
+      { "pitch": "F#4", "duration": 1, "start": 4 },
+      { "pitch": "D4", "duration": 1, "start": 5 }
+    ]
+  },
+  {
+    "id": "interval_M7_springtime",
+    "title": "Composed M7 leap",
+    "attribution": "Composed for Solmisa",
+    "source": "Original",
+    "interval": "M7",
+    "key": "C",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "C4", "duration": 2, "start": 0 },
+      { "pitch": "B4", "duration": 2, "start": 2 }
+    ]
+  },
+  {
+    "id": "interval_m7_somewhere",
+    "title": "Composed m7 leap",
+    "attribution": "Composed for Solmisa",
+    "source": "Original",
+    "interval": "m7",
+    "key": "C",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "C4", "duration": 2, "start": 0 },
+      { "pitch": "Bb4", "duration": 2, "start": 2 }
+    ]
+  },
+  {
+    "id": "interval_tritone_maria",
+    "title": "Composed tritone leap",
+    "attribution": "Composed for Solmisa",
+    "source": "Original",
+    "interval": "A4",
+    "key": "C",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "notes": [
+      { "pitch": "C4", "duration": 2, "start": 0 },
+      { "pitch": "F#4", "duration": 2, "start": 2 }
+    ]
+  }
+]
