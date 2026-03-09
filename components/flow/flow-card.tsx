@@ -25,6 +25,7 @@ import { MultiStepSelect } from "./modalities/multi-step-select";
 import { MultiSelect } from "./modalities/multi-select";
 import { TimedSelect } from "./modalities/timed-select";
 import { StaffAudioSelect } from "./modalities/staff-audio-select";
+import { ScaleSculptor } from "./modalities/scale-sculptor";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 import type { NotationData } from "@/lib/notation/types";
@@ -368,6 +369,18 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           options={options}
           correctAnswer={correctAnswer}
           prompt={promptRendered}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "scale_sculptor":
+      return (
+        <ScaleSculptor
+          root={(parameters.root as string) ?? "C4"}
+          startMode={(parameters.start_mode as string) ?? "ionian"}
+          targetMode={(parameters.target_mode as string) ?? "dorian"}
+          prompt={promptRendered}
+          hintDegrees={parameters.hint_degrees as number[] | undefined}
           onAnswer={onAnswer}
         />
       );
