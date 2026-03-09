@@ -32,6 +32,7 @@ export function KeySignatureDisplay({
       result.svg.style.width = "100%";
       result.svg.style.height = "auto";
       result.svg.style.maxWidth = "200px";
+      result.svg.style.filter = "drop-shadow(0 0 4px rgba(139, 92, 246, 0.3))";
     }
   }, [keySignature, clef]);
 
@@ -42,9 +43,8 @@ export function KeySignatureDisplay({
       style={{
         borderRadius: 12,
         padding: 16,
-        background: "rgba(183, 148, 246, 0.03)",
-        boxShadow:
-          "0 0 20px rgba(183, 148, 246, 0.08), inset 0 0 30px rgba(183, 148, 246, 0.04)",
+        background: "#0f0f16",
+        border: "1px solid #181821",
       }}
     />
   );
