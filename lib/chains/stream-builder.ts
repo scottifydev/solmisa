@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SrsStageKey } from "@/types/srs";
 import type { FlowStreamCard } from "./types";
-import { selectModality } from "./modality-selector";
+import { selectModality, selectClefForKeySig } from "./modality-selector";
+import { stageToGroup } from "@/lib/srs/stages";
 
 interface LinkWithState {
   chainSlug: string;
@@ -162,6 +163,30 @@ export async function getNextStreamCard(
     selected.srsStage,
   );
 
+  // Clef override for key signature chains at adept+
+  let parameters = selected.parameters;
+  const isKeySigChain = selected.chainSlug.startsWith("key_");
+  if (isKeySigChain && selected.srsStage) {
+    const group = stageToGroup(selected.srsStage);
+    if (group === "adept" || group === "virtuoso" || group === "mastered") {
+      // Check Note Reading bass progress: any bass chain at position 3+
+      const { data: bassProgress } = await supabase
+        .from("user_chain_progress")
+        .select("highest_unlocked_position, chain_definitions!inner(slug)")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .like("chain_definitions.slug", "note_bass_%")
+        .gte("highest_unlocked_position", 3)
+        .limit(1);
+
+      const hasNoteReadingBass = !!bassProgress && bassProgress.length > 0;
+      const clef = selectClefForKeySig(group, hasNoteReadingBass);
+      if (clef) {
+        parameters = { ...parameters, clef };
+      }
+    }
+  }
+
   return {
     userCardStateId: selected.userCardStateId,
     cardInstanceId: selected.cardInstanceId!,
@@ -169,7 +194,7 @@ export async function getNextStreamCard(
     promptRendered: selected.promptRendered ?? "",
     answerData: selected.answerData ?? {},
     optionsData: selected.optionsData,
-    parameters: selected.parameters,
+    parameters,
     feedback: selected.feedback,
     chainSlug: selected.chainSlug,
     chainName: selected.chainName,
