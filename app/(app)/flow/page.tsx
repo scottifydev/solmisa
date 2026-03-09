@@ -30,5 +30,10 @@ export default async function FlowPage() {
 
   const flowState = await getFlowState();
 
+  // Auto-start: skip landing page when cards are due
+  if (flowState.totalDue > 0) {
+    redirect("/flow/stream");
+  }
+
   return <FlowChainList state={flowState} />;
 }

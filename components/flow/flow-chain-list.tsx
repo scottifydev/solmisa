@@ -37,9 +37,7 @@ export function FlowChainList({ state }: FlowChainListProps) {
         <h1 className="font-display text-2xl font-bold text-ivory">Flow</h1>
         <p className="text-sm text-silver">
           {state.hasChains
-            ? state.totalDue > 0
-              ? `${state.totalDue} card${state.totalDue !== 1 ? "s" : ""} due`
-              : "Your spaced-repetition stream."
+            ? "All caught up. New material unlocks as you progress."
             : "No chains available yet. Complete lessons to unlock chains."}
         </p>
       </div>
@@ -54,9 +52,7 @@ export function FlowChainList({ state }: FlowChainListProps) {
             color: brand.night,
           }}
         >
-          {state.totalDue > 0
-            ? `Start Flow (${state.totalDue} due)`
-            : "Start Flow"}
+          Start
         </Link>
       )}
 
