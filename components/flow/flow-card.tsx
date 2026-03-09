@@ -12,6 +12,11 @@ import { DragRank } from "./modalities/drag-rank";
 import { StaffAccidentalInput } from "./modalities/staff-accidental-input";
 import { AudioToName } from "./modalities/audio-to-name";
 import { AudioSelect } from "./modalities/audio-select";
+import { StaffNoteDisplay } from "./modalities/staff-note-display";
+import { StaffMultiNote } from "./modalities/staff-multi-note";
+import { StaffIntervalDisplay } from "./modalities/staff-interval-display";
+import { StaffChordDisplay } from "./modalities/staff-chord-display";
+import { FeelingStateMatch } from "./modalities/feeling-state-match";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 
@@ -150,6 +155,76 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           options={options}
           correctAnswer={correctAnswer}
           prompt={promptRendered}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_note_display":
+      return (
+        <StaffNoteDisplay
+          clef={(parameters.clef as "treble" | "bass") ?? "treble"}
+          note={(parameters.note as string) ?? "C4"}
+          showAccidental={parameters.show_accidental as boolean | undefined}
+          options={options}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_multi_note":
+      return (
+        <StaffMultiNote
+          clef={(parameters.clef as "treble" | "bass") ?? "treble"}
+          notes={(parameters.notes as string[]) ?? ["C4"]}
+          options={options}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_interval_display":
+      return (
+        <StaffIntervalDisplay
+          clef={(parameters.clef as "treble" | "bass") ?? "treble"}
+          notes={(parameters.notes as [string, string]) ?? ["C4", "G4"]}
+          layout={(parameters.layout as "harmonic" | "melodic") ?? "melodic"}
+          options={options}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_chord_display":
+      return (
+        <StaffChordDisplay
+          clef={(parameters.clef as "treble" | "bass" | "grand") ?? "treble"}
+          notes={(parameters.notes as string[]) ?? ["C4", "E4", "G4"]}
+          showFiguredBass={parameters.figured_bass as string | undefined}
+          options={options}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "feeling_state_match":
+      return (
+        <FeelingStateMatch
+          audioConfig={
+            (parameters.audio_config as AudioConfig) ?? {
+              mode: "scale_bare" as AudioMode,
+              root: (parameters.root as string) ?? "C4",
+              scaleType: parameters.scale_type as string | undefined,
+            }
+          }
+          options={options.map((o) => ({
+            ...o,
+            tint: (
+              (optionsData ?? []).find((od) => (od.id as string) === o.id) as
+                | Record<string, unknown>
+                | undefined
+            )?.tint as string | undefined,
+          }))}
+          correctAnswer={correctAnswer}
           onAnswer={onAnswer}
         />
       );
