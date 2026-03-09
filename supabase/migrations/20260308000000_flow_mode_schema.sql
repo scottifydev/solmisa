@@ -208,8 +208,10 @@ BEGIN
       'flow_' || r.slug || '_identify', NULL, 'declarative', 'select_one',
       CASE
         WHEN r.acc_count = 0 THEN 'What major key has no sharps or flats?'
-        WHEN r.acc_type = 'sharp' THEN 'What major key has ' || r.acc_count || ' sharp(s)?'
-        ELSE 'What major key has ' || r.acc_count || ' flat(s)?'
+        WHEN r.acc_type = 'sharp' AND r.acc_count = 1 THEN 'What major key has 1 sharp?'
+        WHEN r.acc_type = 'sharp' THEN 'What major key has ' || r.acc_count || ' sharps?'
+        WHEN r.acc_count = 1 THEN 'What major key has 1 flat?'
+        ELSE 'What major key has ' || r.acc_count || ' flats?'
       END,
       ARRAY['key_signatures'],
       jsonb_build_object(
