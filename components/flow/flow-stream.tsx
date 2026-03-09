@@ -7,8 +7,6 @@ import { getNextStreamCard, submitFlowAnswer } from "@/lib/actions/flow";
 import { FlowCard } from "./flow-card";
 import { FeedbackPanel } from "./feedback-panel";
 import { DynamicsIndicator } from "./dynamics-indicator";
-
-import { FloatingStats } from "./floating-stats";
 import { UnlockNotification } from "./unlock-notification";
 
 type StreamPhase = "presenting" | "feedback" | "transitioning" | "unlock";
@@ -22,7 +20,6 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   const [card, setCard] = useState<FlowStreamCard>(initialCard);
   const [phase, setPhase] = useState<StreamPhase>("presenting");
   const [pendingUnlock, setPendingUnlock] = useState<UnlockResult | null>(null);
-  const [stats, setStats] = useState({ answered: 0, correct: 0, unlocks: 0 });
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
 
@@ -32,13 +29,18 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   const [lastBreakthrough, setLastBreakthrough] = useState(false);
   const [lastWasRecovery, setLastWasRecovery] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(false);
-  const [pendingFeedbackUnlock, setPendingFeedbackUnlock] =
-    useState<UnlockResult | null>(null);
   const [streak, setStreak] = useState(0);
   const [lastAnswerResult, setLastAnswerResult] = useState<{
     correct: boolean;
     timeMs: number;
     wasRecovery: boolean;
+  } | null>(null);
+
+  // Store pending answer data for deferred submission
+  const pendingAnswerRef = useRef<{
+    userCardStateId: string;
+    correct: boolean;
+    missCount: number;
   } | null>(null);
 
   const loadNextCard = useCallback(async () => {
@@ -61,11 +63,10 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   }, [focusChain]);
 
   const handleAnswer = useCallback(
-    async (correct: boolean) => {
+    (correct: boolean) => {
       const cid = card.cardInstanceId;
       const prevMisses = missCountMap.get(cid) ?? 0;
 
-      // Update miss tracking
       if (correct) {
         setLastBreakthrough(prevMisses >= 2);
         setLastWasRecovery(prevMisses > 0);
@@ -98,56 +99,54 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         wasRecovery: prevMisses > 0 && correct,
       });
 
-      if (!card.userCardStateId) {
-        setStats((s) => ({
-          answered: s.answered + 1,
-          correct: s.correct + (correct ? 1 : 0),
-          unlocks: s.unlocks,
-        }));
-        setPhase("feedback");
-        setPendingFeedbackUnlock(null);
-        return;
-      }
-
-      try {
-        const result = await submitFlowAnswer({
-          user_card_state_id: card.userCardStateId,
+      // Store pending answer for deferred submission (with confidence)
+      if (card.userCardStateId) {
+        pendingAnswerRef.current = {
+          userCardStateId: card.userCardStateId,
           correct,
-          response_time_ms: 3000,
-          consecutiveMissCount: currentMissCount,
-        });
-
-        setStats((s) => ({
-          answered: s.answered + 1,
-          correct: s.correct + (correct ? 1 : 0),
-          unlocks: s.unlocks + (result.unlockResult ? 1 : 0),
-        }));
-
-        setPendingFeedbackUnlock(result.unlockResult);
-        setPhase("feedback");
-      } catch {
-        setStats((s) => ({
-          answered: s.answered + 1,
-          correct: s.correct + (correct ? 1 : 0),
-          unlocks: s.unlocks,
-        }));
-        setPhase("feedback");
-        setPendingFeedbackUnlock(null);
+          missCount: currentMissCount,
+        };
+      } else {
+        pendingAnswerRef.current = null;
       }
+
+      setPhase("feedback");
     },
-    [card.userCardStateId, card.cardInstanceId, missCountMap, loadNextCard],
+    [card.userCardStateId, card.cardInstanceId, missCountMap],
   );
 
-  const handleContinue = useCallback(() => {
-    if (pendingFeedbackUnlock) {
-      setPendingUnlock(pendingFeedbackUnlock);
-      setPendingFeedbackUnlock(null);
-      setPhase("unlock");
-    } else {
-      setPhase("transitioning");
-      setTimeout(() => loadNextCard(), 300);
-    }
-  }, [pendingFeedbackUnlock, loadNextCard]);
+  const handleAdvance = useCallback(
+    async (confidence: "easy" | "good" | "hard" | "knew_it" | "blanked") => {
+      // Submit the answer with confidence, then advance
+      const pending = pendingAnswerRef.current;
+      let unlockResult: UnlockResult | null = null;
+
+      if (pending) {
+        try {
+          const result = await submitFlowAnswer({
+            user_card_state_id: pending.userCardStateId,
+            correct: pending.correct,
+            response_time_ms: 3000,
+            confidence,
+            consecutiveMissCount: pending.missCount,
+          });
+          unlockResult = result.unlockResult;
+        } catch {
+          // Submission failed, continue without unlock
+        }
+        pendingAnswerRef.current = null;
+      }
+
+      if (unlockResult) {
+        setPendingUnlock(unlockResult);
+        setPhase("unlock");
+      } else {
+        setPhase("transitioning");
+        setTimeout(() => loadNextCard(), 300);
+      }
+    },
+    [loadNextCard],
+  );
 
   const handleUnlockDismiss = useCallback(() => {
     setPendingUnlock(null);
@@ -194,14 +193,14 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         </DynamicsIndicator>
       )}
 
-      {/* Feedback panel */}
+      {/* Feedback panel with auto-continue + confidence pills */}
       {phase === "feedback" && (
         <FeedbackPanel
           card={card}
           correct={lastCorrect}
           missCount={missCountMap.get(card.cardInstanceId) ?? 0}
           wasRecovery={lastWasRecovery}
-          onContinue={handleContinue}
+          onAdvance={handleAdvance}
         />
       )}
 
@@ -220,15 +219,6 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
             onDismiss={handleUnlockDismiss}
           />
         </div>
-      )}
-
-      {/* Floating stats */}
-      {stats.answered > 0 && (
-        <FloatingStats
-          cardsAnswered={stats.answered}
-          correctCount={stats.correct}
-          unlocks={stats.unlocks}
-        />
       )}
     </div>
   );

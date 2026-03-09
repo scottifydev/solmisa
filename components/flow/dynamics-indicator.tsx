@@ -498,30 +498,24 @@ export function DynamicsIndicator({
         <div className="relative z-10">{children}</div>
       </div>
 
-      {/* Bottom overlay: marking + hairpin + tempo */}
-      {(streak > 0 || isBreak) && (
+      {/* Dynamics marking — bottom-right corner, ambient */}
+      {(streak > 0 || isBreak) && displayText && (
         <div
-          className="mt-3 flex items-center justify-center gap-3"
+          className="pointer-events-none absolute bottom-2 right-3 z-20"
           style={{ transition: "opacity 0.3s ease-out" }}
         >
-          <CrescendoHairpin streak={streak} isBreak={isBreak} />
-
-          {displayText && (
-            <span
-              style={{
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                fontStyle: "italic",
-                fontSize: "14px",
-                color: isBreak ? brand.incorrect : brand.violet,
-                letterSpacing: "0.5px",
-                transition: "color 0.3s ease-out",
-              }}
-            >
-              {displayText}
-            </span>
-          )}
-
-          <CrescendoHairpin streak={streak} isBreak={isBreak} />
+          <span
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontSize: "12px",
+              color: isBreak ? brand.incorrect : brand.silver,
+              letterSpacing: "0.3px",
+              transition: "color 0.3s ease-out",
+            }}
+          >
+            {displayText}
+          </span>
         </div>
       )}
 

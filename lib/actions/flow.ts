@@ -159,7 +159,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     card_category: cardCategory,
     correct: req.correct,
     response_time_ms: req.response_time_ms,
-    confidence: req.confidence === "certain" ? "sure" : req.confidence,
+    confidence: req.confidence === "hard" ? "guessing" : undefined,
   });
 
   // Enforce 48h back-off for repeated misses (4+ consecutive)
