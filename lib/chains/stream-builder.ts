@@ -28,6 +28,7 @@ interface LinkWithState {
 export async function getNextStreamCard(
   userId: string,
   focusChainSlug?: string | null,
+  recentCardIds?: string[],
 ): Promise<FlowStreamCard | null> {
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -152,7 +153,23 @@ export async function getNextStreamCard(
     (a.nextReviewAt ?? "").localeCompare(b.nextReviewAt ?? ""),
   );
 
-  const selected = dueCards[0] ?? newCards[0] ?? practiceCards[0];
+  // 5. Deprioritize recently-shown cards to avoid repetition
+  const recentSet = new Set(recentCardIds ?? []);
+  const deprioritize = (cards: LinkWithState[]) => {
+    if (recentSet.size === 0) return cards;
+    const fresh = cards.filter(
+      (c) => c.cardInstanceId && !recentSet.has(c.cardInstanceId),
+    );
+    return fresh.length > 0 ? fresh : cards;
+  };
+
+  const selected =
+    deprioritize(dueCards)[0] ??
+    deprioritize(newCards)[0] ??
+    deprioritize(practiceCards)[0] ??
+    dueCards[0] ??
+    newCards[0] ??
+    practiceCards[0];
   if (!selected) return null;
 
   const modality = selectModality(
