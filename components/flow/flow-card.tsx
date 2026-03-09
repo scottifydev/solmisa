@@ -25,6 +25,7 @@ import { MultiStepSelect } from "./modalities/multi-step-select";
 import { MultiSelect } from "./modalities/multi-select";
 import { TimedSelect } from "./modalities/timed-select";
 import { StaffAudioSelect } from "./modalities/staff-audio-select";
+import { StaffPlacement } from "./modalities/staff-placement";
 import { ScaleSculptor } from "./modalities/scale-sculptor";
 import { SequenceBuilder } from "./modalities/sequence-builder";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
@@ -127,6 +128,21 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
       return (
         <StaffAccidentalInput
           clef={(parameters.clef as "treble" | "bass") ?? "treble"}
+          accidentalType={
+            (parameters.accidental_type as "sharp" | "flat") ?? "sharp"
+          }
+          expectedPositions={(answerData.expected_positions as string[]) ?? []}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_placement":
+      return (
+        <StaffPlacement
+          clef={
+            (parameters.clef as "treble" | "bass" | "alto" | "tenor") ??
+            "treble"
+          }
           accidentalType={
             (parameters.accidental_type as "sharp" | "flat") ?? "sharp"
           }
