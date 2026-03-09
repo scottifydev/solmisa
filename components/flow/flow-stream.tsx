@@ -5,7 +5,7 @@ import { brand } from "@/lib/tokens";
 import type { FlowStreamCard, UnlockResult } from "@/lib/chains/types";
 import { getNextStreamCard, submitFlowAnswer } from "@/lib/actions/flow";
 import { FlowCard } from "./flow-card";
-import { ChainContextBar } from "./chain-context-bar";
+
 import { FloatingStats } from "./floating-stats";
 import { UnlockNotification } from "./unlock-notification";
 
@@ -118,13 +118,6 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
-      {/* Context bar */}
-      <ChainContextBar
-        chainName={card.chainName}
-        linkPosition={card.linkPosition}
-        totalLinks={card.totalLinks}
-      />
-
       {/* Card content */}
       {phase === "presenting" && (
         <FlowCard card={card} onAnswer={handleAnswer} />
