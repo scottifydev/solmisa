@@ -1,0 +1,450 @@
+[
+  {
+    "id": "authentic_bwv269",
+    "title": "BWV 269 — Nun lob, mein Seel (final cadence)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "authentic",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "D5", "duration": 1, "start": 0 },
+        { "pitch": "C5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "F4", "duration": 1, "start": 0 },
+        { "pitch": "E4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "B3", "duration": 1, "start": 0 },
+        { "pitch": "C4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "G3", "duration": 1, "start": 0 },
+        { "pitch": "C3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "authentic_bwv253",
+    "title": "BWV 253 — Ach bleib bei uns (final cadence)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "authentic",
+    "key": "D",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "E5", "duration": 1, "start": 0 },
+        { "pitch": "D5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "A4", "duration": 1, "start": 0 },
+        { "pitch": "F#4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "C#4", "duration": 1, "start": 0 },
+        { "pitch": "D4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "A3", "duration": 1, "start": 0 },
+        { "pitch": "D3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "authentic_bwv256",
+    "title": "BWV 256 — Christus, der ist mein Leben (phrase ending)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "authentic",
+    "key": "F",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "E5", "duration": 1, "start": 0 },
+        { "pitch": "F5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "C5", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "F4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "C4", "duration": 1, "start": 0 },
+        { "pitch": "F3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "authentic_bwv267",
+    "title": "BWV 267 — An Wasserflüssen Babylon (cadence)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "authentic",
+    "key": "G",
+    "tempo": 66,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "A4", "duration": 1, "start": 0 },
+        { "pitch": "G4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "D4", "duration": 1, "start": 0 },
+        { "pitch": "D4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "F#4", "duration": 1, "start": 0 },
+        { "pitch": "G4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "D3", "duration": 1, "start": 0 },
+        { "pitch": "G2", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "plagal_bwv270",
+    "title": "BWV 270 — Befiehl du deine Wege (IV-I ending)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "plagal",
+    "key": "Bb",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "Eb5", "duration": 1, "start": 0 },
+        { "pitch": "D5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "Bb4", "duration": 1, "start": 0 },
+        { "pitch": "Bb4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "F4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "Eb3", "duration": 1, "start": 0 },
+        { "pitch": "Bb2", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "plagal_amen",
+    "title": "Traditional Amen cadence",
+    "attribution": "Traditional church music",
+    "source": "PD",
+    "cadence_type": "plagal",
+    "key": "C",
+    "tempo": 60,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "C5", "duration": 2, "start": 0 },
+        { "pitch": "C5", "duration": 2, "start": 2 }
+      ],
+      "alto": [
+        { "pitch": "F4", "duration": 2, "start": 0 },
+        { "pitch": "E4", "duration": 2, "start": 2 }
+      ],
+      "tenor": [
+        { "pitch": "A3", "duration": 2, "start": 0 },
+        { "pitch": "G3", "duration": 2, "start": 2 }
+      ],
+      "bass": [
+        { "pitch": "F3", "duration": 2, "start": 0 },
+        { "pitch": "C3", "duration": 2, "start": 2 }
+      ]
+    }
+  },
+  {
+    "id": "plagal_bwv258",
+    "title": "BWV 258 — Wo Gott der Herr (plagal close)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "plagal",
+    "key": "G",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "B4", "duration": 1, "start": 0 },
+        { "pitch": "B4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "G4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "D4", "duration": 1, "start": 0 },
+        { "pitch": "D4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "C3", "duration": 1, "start": 0 },
+        { "pitch": "G2", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "plagal_bwv255",
+    "title": "BWV 255 — Was mein Gott will (IV-I motion)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "plagal",
+    "key": "D",
+    "tempo": 66,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "D5", "duration": 1, "start": 0 },
+        { "pitch": "D5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "F#4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "B3", "duration": 1, "start": 0 },
+        { "pitch": "A3", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "G3", "duration": 1, "start": 0 },
+        { "pitch": "D3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "half_bwv269_mid",
+    "title": "BWV 269 — mid-phrase half cadence",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "half",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "E5", "duration": 1, "start": 0 },
+        { "pitch": "D5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "C5", "duration": 1, "start": 0 },
+        { "pitch": "B4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "G4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "C3", "duration": 1, "start": 0 },
+        { "pitch": "G3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "half_bwv271",
+    "title": "BWV 271 — Gib dich zufrieden (half cadence)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "half",
+    "key": "Em",
+    "tempo": 66,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "A4", "duration": 1, "start": 0 },
+        { "pitch": "B4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "F#4", "duration": 1, "start": 0 },
+        { "pitch": "F#4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "D4", "duration": 1, "start": 0 },
+        { "pitch": "D#4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "D3", "duration": 1, "start": 0 },
+        { "pitch": "B2", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "half_bwv254",
+    "title": "BWV 254 — phrase pause on V",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "half",
+    "key": "F",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "Bb4", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "F4", "duration": 1, "start": 0 },
+        { "pitch": "F4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "D4", "duration": 1, "start": 0 },
+        { "pitch": "C4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "Bb2", "duration": 1, "start": 0 },
+        { "pitch": "C3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "half_bwv260",
+    "title": "BWV 260 — Es ist genug (half cadence on V)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "half",
+    "key": "A",
+    "tempo": 66,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "C#5", "duration": 1, "start": 0 },
+        { "pitch": "B4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "E4", "duration": 1, "start": 0 },
+        { "pitch": "E4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "A3", "duration": 1, "start": 0 },
+        { "pitch": "G#3", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "A2", "duration": 1, "start": 0 },
+        { "pitch": "E3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "deceptive_bwv264",
+    "title": "BWV 264 — Allein Gott (V-vi deceptive)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "deceptive",
+    "key": "G",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "B4", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "F#4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "D4", "duration": 1, "start": 0 },
+        { "pitch": "D4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "D3", "duration": 1, "start": 0 },
+        { "pitch": "E3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "deceptive_bwv252",
+    "title": "BWV 252 — Nun danket (V-vi surprise)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "deceptive",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "D5", "duration": 1, "start": 0 },
+        { "pitch": "C5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "B4", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "G4", "duration": 1, "start": 0 },
+        { "pitch": "E4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "G3", "duration": 1, "start": 0 },
+        { "pitch": "A3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "deceptive_bwv262",
+    "title": "BWV 262 — Alle Menschen (deceptive resolution)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "deceptive",
+    "key": "D",
+    "tempo": 66,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "E5", "duration": 1, "start": 0 },
+        { "pitch": "D5", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "C#5", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "A4", "duration": 1, "start": 0 },
+        { "pitch": "F#4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "A3", "duration": 1, "start": 0 },
+        { "pitch": "B3", "duration": 2, "start": 1 }
+      ]
+    }
+  },
+  {
+    "id": "deceptive_bwv266",
+    "title": "BWV 266 — Herr Jesu Christ (V to vi)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "cadence_type": "deceptive",
+    "key": "F",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [
+        { "pitch": "A4", "duration": 1, "start": 0 },
+        { "pitch": "A4", "duration": 2, "start": 1 }
+      ],
+      "alto": [
+        { "pitch": "F4", "duration": 1, "start": 0 },
+        { "pitch": "F4", "duration": 2, "start": 1 }
+      ],
+      "tenor": [
+        { "pitch": "C4", "duration": 1, "start": 0 },
+        { "pitch": "C4", "duration": 2, "start": 1 }
+      ],
+      "bass": [
+        { "pitch": "C3", "duration": 1, "start": 0 },
+        { "pitch": "D3", "duration": 2, "start": 1 }
+      ]
+    }
+  }
+]

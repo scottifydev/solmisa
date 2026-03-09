@@ -1,0 +1,240 @@
+[
+  {
+    "id": "hf_amazing_grace_T",
+    "title": "Amazing Grace — tonic (I)",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "harmonic_function": "tonic",
+    "chord_numeral": "I",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "B4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "D4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_amazing_grace_S",
+    "title": "Amazing Grace — subdominant (IV)",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "harmonic_function": "subdominant",
+    "chord_numeral": "IV",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_amazing_grace_D",
+    "title": "Amazing Grace — dominant (V)",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "harmonic_function": "dominant",
+    "chord_numeral": "V",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "B4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "D4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "D3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_saints_T",
+    "title": "When the Saints — tonic (I in C)",
+    "attribution": "American spiritual",
+    "source": "PD",
+    "harmonic_function": "tonic",
+    "chord_numeral": "I",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_saints_D",
+    "title": "When the Saints — dominant (V in C)",
+    "attribution": "American spiritual",
+    "source": "PD",
+    "harmonic_function": "dominant",
+    "chord_numeral": "V",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "B4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_saints_S",
+    "title": "When the Saints — subdominant (IV in C)",
+    "attribution": "American spiritual",
+    "source": "PD",
+    "harmonic_function": "subdominant",
+    "chord_numeral": "IV",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_bach_269_T",
+    "title": "BWV 269 — tonic (I in C)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "harmonic_function": "tonic",
+    "chord_numeral": "I",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_bach_269_D",
+    "title": "BWV 269 — dominant (V in C)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "harmonic_function": "dominant",
+    "chord_numeral": "V",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "B4", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_bach_269_S",
+    "title": "BWV 269 — subdominant (IV in C)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "harmonic_function": "subdominant",
+    "chord_numeral": "IV",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_bach_253_T",
+    "title": "BWV 253 — tonic (i in Am)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "harmonic_function": "tonic",
+    "chord_numeral": "i",
+    "key": "Am",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "A4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "A2", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_bach_253_D",
+    "title": "BWV 253 — dominant (V in Am)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "harmonic_function": "dominant",
+    "chord_numeral": "V",
+    "key": "Am",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "B4", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "G#4", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "E4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "E3", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_simple_gifts_T",
+    "title": "Simple Gifts — tonic (I in F)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "harmonic_function": "tonic",
+    "chord_numeral": "I",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_simple_gifts_D",
+    "title": "Simple Gifts — dominant (V in F)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "harmonic_function": "dominant",
+    "chord_numeral": "V",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "E4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "hf_simple_gifts_S",
+    "title": "Simple Gifts — subdominant (IV in F)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "harmonic_function": "subdominant",
+    "chord_numeral": "IV",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "A3", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "Bb3", "duration": 2, "start": 0 }]
+    }
+  }
+]

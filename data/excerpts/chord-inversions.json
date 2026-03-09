@@ -1,0 +1,206 @@
+[
+  {
+    "id": "inv_root_bach_bwv269_I",
+    "title": "BWV 269 — I chord, root position",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "root",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_first_bach_bwv269_I6",
+    "title": "BWV 269 — I6 chord, first inversion",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "first",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "E4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "E3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_second_bach_bwv269_I64",
+    "title": "BWV 269 — I64 chord, second inversion",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "second",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_root_bach_bwv253_V",
+    "title": "BWV 253 — V chord, root position (G major)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "root",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "B4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_first_bach_bwv253_V6",
+    "title": "BWV 253 — V6 chord, first inversion",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "first",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "G5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "B2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_root_amazing_grace_IV",
+    "title": "Amazing Grace — IV chord, root position",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "inversion": "root",
+    "chord_type": "major",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_first_amazing_grace_IV6",
+    "title": "Amazing Grace — IV6, first inversion",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "inversion": "first",
+    "chord_type": "major",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "A3", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "E3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_root_minor_bach_ii",
+    "title": "BWV 269 — ii chord, root position (D minor)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "root",
+    "chord_type": "minor",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "F5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "D3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_first_minor_bach_ii6",
+    "title": "BWV 269 — ii6 chord, first inversion",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "inversion": "first",
+    "chord_type": "minor",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_second_saints_V64",
+    "title": "When the Saints — V64 (cadential)",
+    "attribution": "American spiritual",
+    "source": "PD",
+    "inversion": "second",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_root_simple_gifts_I",
+    "title": "Simple Gifts — I chord, root position (F major)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "inversion": "root",
+    "chord_type": "major",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "inv_first_simple_gifts_I6",
+    "title": "Simple Gifts — I6, first inversion",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "inversion": "first",
+    "chord_type": "major",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "A3", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "A2", "duration": 2, "start": 0 }]
+    }
+  }
+]

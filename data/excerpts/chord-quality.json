@@ -1,0 +1,194 @@
+[
+  {
+    "id": "chord_major_ode_joy",
+    "title": "Ode to Joy — I chord (C major)",
+    "attribution": "Ludwig van Beethoven, Symphony No. 9",
+    "source": "PD",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 120,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_minor_greensleeves",
+    "title": "Greensleeves — opening Am chord",
+    "attribution": "English folk song",
+    "source": "PD",
+    "chord_type": "minor",
+    "key": "Am",
+    "tempo": 100,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "E5", "duration": 3, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 3, "start": 0 }],
+      "tenor": [{ "pitch": "A4", "duration": 3, "start": 0 }],
+      "bass": [{ "pitch": "A2", "duration": 3, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_dim_bach_269",
+    "title": "BWV 269 — vii° chord",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "chord_type": "diminished",
+    "key": "C",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "F5", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "D5", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "B4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "B2", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_major_amazing_grace_I",
+    "title": "Amazing Grace — I chord (G major)",
+    "attribution": "Traditional hymn tune",
+    "source": "PD",
+    "chord_type": "major",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "B4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "D4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "G2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_minor_bach_minor_i",
+    "title": "BWV 140 — i chord (D minor)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "chord_type": "minor",
+    "key": "Dm",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "D3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_major_saints_IV",
+    "title": "When the Saints — IV chord (F major)",
+    "attribution": "American spiritual",
+    "source": "PD",
+    "chord_type": "major",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_dim_bach_253_viio",
+    "title": "BWV 253 — vii° chord (E minor context)",
+    "attribution": "J.S. Bach",
+    "source": "PD",
+    "chord_type": "diminished",
+    "key": "Em",
+    "tempo": 72,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "F#5", "duration": 1, "start": 0 }],
+      "alto": [{ "pitch": "C5", "duration": 1, "start": 0 }],
+      "tenor": [{ "pitch": "A4", "duration": 1, "start": 0 }],
+      "bass": [{ "pitch": "D#3", "duration": 1, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_minor_scarborough_i",
+    "title": "Scarborough Fair — i chord (D minor)",
+    "attribution": "English folk song",
+    "source": "PD",
+    "chord_type": "minor",
+    "key": "Dm",
+    "tempo": 100,
+    "time_signature": "3/4",
+    "voices": {
+      "soprano": [{ "pitch": "D5", "duration": 3, "start": 0 }],
+      "alto": [{ "pitch": "A4", "duration": 3, "start": 0 }],
+      "tenor": [{ "pitch": "F4", "duration": 3, "start": 0 }],
+      "bass": [{ "pitch": "D3", "duration": 3, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_major_simple_gifts_V",
+    "title": "Simple Gifts — V chord (C major in F)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "chord_type": "major",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "voices": {
+      "soprano": [{ "pitch": "G4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "E4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "C3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_minor_wayfaring_iv",
+    "title": "Wayfaring Stranger — iv chord (Dm in Am)",
+    "attribution": "American folk hymn",
+    "source": "PD",
+    "chord_type": "minor",
+    "key": "Am",
+    "tempo": 76,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "F5", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "D5", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "D3", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_dim_composed_1",
+    "title": "Composed diminished triad — root position",
+    "attribution": "Composed for Solmisa",
+    "source": "Original",
+    "chord_type": "diminished",
+    "key": "C",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "D4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "B3", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "B2", "duration": 2, "start": 0 }]
+    }
+  },
+  {
+    "id": "chord_major_aura_lee_I",
+    "title": "Aura Lee — I chord (F major)",
+    "attribution": "George R. Poulton (1861)",
+    "source": "PD",
+    "chord_type": "major",
+    "key": "F",
+    "tempo": 96,
+    "time_signature": "4/4",
+    "voices": {
+      "soprano": [{ "pitch": "A4", "duration": 2, "start": 0 }],
+      "alto": [{ "pitch": "F4", "duration": 2, "start": 0 }],
+      "tenor": [{ "pitch": "C4", "duration": 2, "start": 0 }],
+      "bass": [{ "pitch": "F3", "duration": 2, "start": 0 }]
+    }
+  }
+]

@@ -1,0 +1,294 @@
+[
+  {
+    "id": "rhythm_ode_to_joy",
+    "title": "Ode to Joy (steady quarters)",
+    "attribution": "Ludwig van Beethoven, Symphony No. 9",
+    "source": "PD",
+    "key": "C",
+    "tempo": 120,
+    "time_signature": "4/4",
+    "rhythm_pattern": [0, 1, 2, 3, 4, 5, 6, 7],
+    "notes": [
+      { "pitch": "E4", "duration": 1, "start": 0 },
+      { "pitch": "E4", "duration": 1, "start": 1 },
+      { "pitch": "F4", "duration": 1, "start": 2 },
+      { "pitch": "G4", "duration": 1, "start": 3 },
+      { "pitch": "G4", "duration": 1, "start": 4 },
+      { "pitch": "F4", "duration": 1, "start": 5 },
+      { "pitch": "E4", "duration": 1, "start": 6 },
+      { "pitch": "D4", "duration": 1, "start": 7 }
+    ]
+  },
+  {
+    "id": "rhythm_star_spangled",
+    "title": "Star-Spangled Banner (dotted rhythms)",
+    "attribution": "John Stafford Smith (1773)",
+    "source": "PD",
+    "key": "Bb",
+    "tempo": 100,
+    "time_signature": "3/4",
+    "rhythm_pattern": [0, 1.5, 2, 3, 4.5, 5],
+    "notes": [
+      { "pitch": "F4", "duration": 1.5, "start": 0 },
+      { "pitch": "D4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "Bb3", "duration": 1, "start": 2 },
+      { "pitch": "D4", "duration": 1.5, "start": 3 },
+      { "pitch": "F4", "duration": 0.5, "start": 4.5 },
+      { "pitch": "Bb4", "duration": 1, "start": 5 }
+    ]
+  },
+  {
+    "id": "rhythm_entertainer",
+    "title": "The Entertainer (syncopation)",
+    "attribution": "Scott Joplin (1902)",
+    "source": "PD",
+    "key": "C",
+    "tempo": 80,
+    "time_signature": "4/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2.5, 3, 3.5],
+    "notes": [
+      { "pitch": "D5", "duration": 0.5, "start": 0 },
+      { "pitch": "E5", "duration": 0.5, "start": 0.5 },
+      { "pitch": "C5", "duration": 0.5, "start": 1 },
+      { "pitch": "A4", "duration": 1, "start": 1.5 },
+      { "pitch": "B4", "duration": 0.5, "start": 2.5 },
+      { "pitch": "G4", "duration": 0.5, "start": 3 },
+      { "pitch": "D4", "duration": 0.5, "start": 3.5 }
+    ]
+  },
+  {
+    "id": "rhythm_blue_danube",
+    "title": "Blue Danube Waltz (3/4 waltz)",
+    "attribution": "Johann Strauss II (1867)",
+    "source": "PD",
+    "key": "D",
+    "tempo": 180,
+    "time_signature": "3/4",
+    "rhythm_pattern": [0, 3, 4, 5],
+    "notes": [
+      { "pitch": "D4", "duration": 3, "start": 0 },
+      { "pitch": "F#4", "duration": 1, "start": 3 },
+      { "pitch": "F#4", "duration": 1, "start": 4 },
+      { "pitch": "A4", "duration": 3, "start": 5 }
+    ]
+  },
+  {
+    "id": "rhythm_greensleeves",
+    "title": "Greensleeves (6/8 compound)",
+    "attribution": "English folk song (traditional, 16th century)",
+    "source": "PD",
+    "key": "Am",
+    "tempo": 120,
+    "time_signature": "6/8",
+    "rhythm_pattern": [0, 1, 2, 3, 4, 5],
+    "notes": [
+      { "pitch": "A3", "duration": 1, "start": 0 },
+      { "pitch": "C4", "duration": 2, "start": 1 },
+      { "pitch": "D4", "duration": 1, "start": 3 },
+      { "pitch": "E4", "duration": 1.5, "start": 4 },
+      { "pitch": "F4", "duration": 0.5, "start": 5.5 }
+    ]
+  },
+  {
+    "id": "rhythm_jesu_joy",
+    "title": "Jesu, Joy of Man's Desiring (triplet flow)",
+    "attribution": "J.S. Bach, BWV 147",
+    "source": "PD",
+    "key": "G",
+    "tempo": 72,
+    "time_signature": "3/4",
+    "rhythm_pattern": [0, 0.333, 0.667, 1, 1.333, 1.667, 2, 2.333, 2.667],
+    "notes": [
+      { "pitch": "G4", "duration": 0.333, "start": 0 },
+      { "pitch": "A4", "duration": 0.333, "start": 0.333 },
+      { "pitch": "B4", "duration": 0.333, "start": 0.667 },
+      { "pitch": "D5", "duration": 0.333, "start": 1 },
+      { "pitch": "C5", "duration": 0.333, "start": 1.333 },
+      { "pitch": "E5", "duration": 0.333, "start": 1.667 },
+      { "pitch": "D5", "duration": 0.333, "start": 2 },
+      { "pitch": "B4", "duration": 0.333, "start": 2.333 },
+      { "pitch": "G4", "duration": 0.333, "start": 2.667 }
+    ]
+  },
+  {
+    "id": "rhythm_simple_gifts",
+    "title": "Simple Gifts (2/4 march)",
+    "attribution": "Elder Joseph Brackett (1848)",
+    "source": "PD",
+    "key": "F",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5],
+    "notes": [
+      { "pitch": "F4", "duration": 0.5, "start": 0 },
+      { "pitch": "F4", "duration": 0.5, "start": 0.5 },
+      { "pitch": "F4", "duration": 0.5, "start": 1 },
+      { "pitch": "G4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "A4", "duration": 0.5, "start": 2 },
+      { "pitch": "A4", "duration": 0.5, "start": 2.5 },
+      { "pitch": "A4", "duration": 0.5, "start": 3 },
+      { "pitch": "Bb4", "duration": 0.5, "start": 3.5 }
+    ]
+  },
+  {
+    "id": "rhythm_take_five",
+    "title": "Soldier's Joy (5/4 fiddle tune)",
+    "attribution": "American folk tune (traditional)",
+    "source": "PD",
+    "key": "D",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2, 2.5, 3, 4],
+    "notes": [
+      { "pitch": "F#4", "duration": 0.5, "start": 0 },
+      { "pitch": "G4", "duration": 0.5, "start": 0.5 },
+      { "pitch": "A4", "duration": 0.5, "start": 1 },
+      { "pitch": "F#4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "D4", "duration": 0.5, "start": 2 },
+      { "pitch": "F#4", "duration": 0.5, "start": 2.5 },
+      { "pitch": "A4", "duration": 1, "start": 3 },
+      { "pitch": "D5", "duration": 1, "start": 4 }
+    ]
+  },
+  {
+    "id": "rhythm_minuet_g",
+    "title": "Minuet in G (BWV Anh. 114)",
+    "attribution": "Christian Petzold (attr. J.S. Bach)",
+    "source": "PD",
+    "key": "G",
+    "tempo": 120,
+    "time_signature": "3/4",
+    "rhythm_pattern": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "notes": [
+      { "pitch": "D5", "duration": 1, "start": 0 },
+      { "pitch": "G4", "duration": 0.5, "start": 1 },
+      { "pitch": "A4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "B4", "duration": 0.5, "start": 2 },
+      { "pitch": "C5", "duration": 0.5, "start": 2.5 },
+      { "pitch": "D5", "duration": 1, "start": 3 },
+      { "pitch": "G4", "duration": 1, "start": 4 },
+      { "pitch": "G4", "duration": 1, "start": 5 },
+      { "pitch": "E5", "duration": 1, "start": 6 },
+      { "pitch": "C5", "duration": 0.5, "start": 7 },
+      { "pitch": "D5", "duration": 0.5, "start": 7.5 },
+      { "pitch": "E5", "duration": 0.5, "start": 8 },
+      { "pitch": "F#5", "duration": 0.5, "start": 8.5 },
+      { "pitch": "G5", "duration": 1, "start": 9 },
+      { "pitch": "G4", "duration": 1, "start": 10 },
+      { "pitch": "G4", "duration": 1, "start": 11 }
+    ]
+  },
+  {
+    "id": "rhythm_amazing_grace",
+    "title": "Amazing Grace (mixed note values)",
+    "attribution": "John Newton / traditional hymn tune (1779)",
+    "source": "PD",
+    "key": "G",
+    "tempo": 80,
+    "time_signature": "3/4",
+    "rhythm_pattern": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    "notes": [
+      { "pitch": "D4", "duration": 1, "start": 0 },
+      { "pitch": "G4", "duration": 2, "start": 1 },
+      { "pitch": "B4", "duration": 1, "start": 3 },
+      { "pitch": "B4", "duration": 2, "start": 4 },
+      { "pitch": "A4", "duration": 1, "start": 6 },
+      { "pitch": "G4", "duration": 2, "start": 7 },
+      { "pitch": "E4", "duration": 1, "start": 9 }
+    ]
+  },
+  {
+    "id": "rhythm_maple_leaf",
+    "title": "Maple Leaf Rag (ragtime syncopation)",
+    "attribution": "Scott Joplin (1899)",
+    "source": "PD",
+    "key": "Ab",
+    "tempo": 76,
+    "time_signature": "2/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2.5, 3.5],
+    "notes": [
+      { "pitch": "Ab4", "duration": 0.5, "start": 0 },
+      { "pitch": "Eb5", "duration": 0.5, "start": 0.5 },
+      { "pitch": "C5", "duration": 0.5, "start": 1 },
+      { "pitch": "Ab4", "duration": 1, "start": 1.5 },
+      { "pitch": "Eb5", "duration": 1, "start": 2.5 },
+      { "pitch": "C5", "duration": 0.5, "start": 3.5 }
+    ]
+  },
+  {
+    "id": "rhythm_aura_lee",
+    "title": "Aura Lee (half and quarter notes)",
+    "attribution": "George R. Poulton (1861)",
+    "source": "PD",
+    "key": "F",
+    "tempo": 96,
+    "time_signature": "4/4",
+    "rhythm_pattern": [0, 1, 2, 4, 5, 6],
+    "notes": [
+      { "pitch": "C4", "duration": 1, "start": 0 },
+      { "pitch": "D4", "duration": 1, "start": 1 },
+      { "pitch": "F4", "duration": 2, "start": 2 },
+      { "pitch": "G4", "duration": 1, "start": 4 },
+      { "pitch": "A4", "duration": 1, "start": 5 },
+      { "pitch": "G4", "duration": 2, "start": 6 }
+    ]
+  },
+  {
+    "id": "rhythm_turkey_straw",
+    "title": "Turkey in the Straw (driving eighths)",
+    "attribution": "American folk tune (traditional, 19th century)",
+    "source": "PD",
+    "key": "G",
+    "tempo": 140,
+    "time_signature": "4/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5],
+    "notes": [
+      { "pitch": "B4", "duration": 0.5, "start": 0 },
+      { "pitch": "B4", "duration": 0.5, "start": 0.5 },
+      { "pitch": "B4", "duration": 0.5, "start": 1 },
+      { "pitch": "A4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "G4", "duration": 0.5, "start": 2 },
+      { "pitch": "A4", "duration": 0.5, "start": 2.5 },
+      { "pitch": "B4", "duration": 0.5, "start": 3 },
+      { "pitch": "D5", "duration": 0.5, "start": 3.5 }
+    ]
+  },
+  {
+    "id": "rhythm_camptown",
+    "title": "Camptown Races (dotted quarter + eighth)",
+    "attribution": "Stephen Foster (1850)",
+    "source": "PD",
+    "key": "C",
+    "tempo": 120,
+    "time_signature": "2/4",
+    "rhythm_pattern": [0, 0.5, 1, 1.5, 2, 3],
+    "notes": [
+      { "pitch": "G4", "duration": 0.5, "start": 0 },
+      { "pitch": "G4", "duration": 0.5, "start": 0.5 },
+      { "pitch": "E4", "duration": 0.5, "start": 1 },
+      { "pitch": "G4", "duration": 0.5, "start": 1.5 },
+      { "pitch": "A4", "duration": 1.5, "start": 2 },
+      { "pitch": "G4", "duration": 0.5, "start": 3.5 }
+    ]
+  },
+  {
+    "id": "rhythm_when_saints",
+    "title": "When the Saints Go Marching In",
+    "attribution": "American spiritual (traditional)",
+    "source": "PD",
+    "key": "C",
+    "tempo": 110,
+    "time_signature": "4/4",
+    "rhythm_pattern": [0, 1, 2, 3, 4, 8, 9, 10, 11],
+    "notes": [
+      { "pitch": "C4", "duration": 1, "start": 0 },
+      { "pitch": "E4", "duration": 1, "start": 1 },
+      { "pitch": "F4", "duration": 1, "start": 2 },
+      { "pitch": "G4", "duration": 4, "start": 3 },
+      { "pitch": "C4", "duration": 1, "start": 8 },
+      { "pitch": "E4", "duration": 1, "start": 9 },
+      { "pitch": "F4", "duration": 1, "start": 10 },
+      { "pitch": "G4", "duration": 4, "start": 11 }
+    ]
+  }
+]
