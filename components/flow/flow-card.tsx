@@ -11,7 +11,9 @@ import { PartialFill } from "./modalities/partial-fill";
 import { DragRank } from "./modalities/drag-rank";
 import { StaffAccidentalInput } from "./modalities/staff-accidental-input";
 import { AudioToName } from "./modalities/audio-to-name";
+import { AudioSelect } from "./modalities/audio-select";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
+import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 
 interface FlowCardProps {
   card: FlowStreamCard;
@@ -116,14 +118,9 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
 
     case "audio_to_name":
       return (
-        <AudioToName
+        <AudioSelect
           audioConfig={{
-            type:
-              (parameters.audio_type as
-                | "scale"
-                | "mode"
-                | "interval"
-                | "chord") ?? "scale",
+            mode: "scale_bare" as AudioMode,
             root: (parameters.root as string) ?? "C4",
             scaleType: parameters.scale_type as string | undefined,
             direction: parameters.direction as
@@ -135,6 +132,24 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           }}
           options={options}
           correctAnswer={correctAnswer}
+          prompt={promptRendered}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "audio_select":
+      return (
+        <AudioSelect
+          audioConfig={
+            (parameters.audio_config as AudioConfig) ?? {
+              mode: "scale_bare" as AudioMode,
+              root: (parameters.root as string) ?? "C4",
+              scaleType: parameters.scale_type as string | undefined,
+            }
+          }
+          options={options}
+          correctAnswer={correctAnswer}
+          prompt={promptRendered}
           onAnswer={onAnswer}
         />
       );
