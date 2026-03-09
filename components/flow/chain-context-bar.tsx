@@ -24,9 +24,14 @@ export function ChainContextBar({
       }}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold" style={{ color: brand.ivory }}>
-          {chainName}
-        </span>
+        {linkPosition > 1 && (
+          <span
+            className="text-sm font-semibold"
+            style={{ color: brand.ivory }}
+          >
+            {chainName}
+          </span>
+        )}
         <span className="text-xs" style={{ color: brand.ash }}>
           Link {linkPosition} of {totalLinks}
         </span>
