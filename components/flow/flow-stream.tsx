@@ -43,13 +43,24 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
     missCount: number;
   } | null>(null);
 
+  // Track recent card IDs to avoid repetition
+  const recentCardIdsRef = useRef<string[]>([]);
+
   const loadNextCard = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
 
     try {
-      const next = await getNextStreamCard(focusChain);
+      const next = await getNextStreamCard(
+        focusChain,
+        recentCardIdsRef.current,
+      );
       if (next) {
+        // Track this card in recent list (keep last 5)
+        recentCardIdsRef.current = [
+          next.cardInstanceId,
+          ...recentCardIdsRef.current,
+        ].slice(0, 5);
         setCard(next);
         setPhase("presenting");
       } else {
