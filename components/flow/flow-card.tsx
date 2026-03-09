@@ -17,6 +17,13 @@ import { StaffMultiNote } from "./modalities/staff-multi-note";
 import { StaffIntervalDisplay } from "./modalities/staff-interval-display";
 import { StaffChordDisplay } from "./modalities/staff-chord-display";
 import { FeelingStateMatch } from "./modalities/feeling-state-match";
+import { RhythmDisplay } from "./modalities/rhythm-display";
+import { AudioRhythm } from "./modalities/audio-rhythm";
+import { RhythmTapInput } from "./modalities/rhythm-tap-input";
+import { TwoPartSelect } from "./modalities/two-part-select";
+import { MultiStepSelect } from "./modalities/multi-step-select";
+import { MultiSelect } from "./modalities/multi-select";
+import { TimedSelect } from "./modalities/timed-select";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 
@@ -225,6 +232,117 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
             )?.tint as string | undefined,
           }))}
           correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "rhythm_display":
+      return (
+        <RhythmDisplay
+          timeSignature={(parameters.time_signature as string) ?? "4/4"}
+          notes={
+            (parameters.rhythm_notes as {
+              value: string;
+              dot?: boolean;
+              rest?: boolean;
+            }[]) ?? []
+          }
+          options={options}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "audio_rhythm":
+      return (
+        <AudioRhythm
+          audioConfig={
+            (parameters.audio_config as AudioConfig) ?? {
+              mode: "rhythm_percussion" as AudioMode,
+              tempo: (parameters.tempo as number) ?? 100,
+            }
+          }
+          timeSignature={(parameters.time_signature as string) ?? "4/4"}
+          rhythmOptions={
+            (parameters.rhythm_options as {
+              id: string;
+              label: string;
+              notes: { value: string; dot?: boolean; rest?: boolean }[];
+            }[]) ?? []
+          }
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "rhythm_tap":
+      return (
+        <RhythmTapInput
+          timeSignature={(parameters.time_signature as string) ?? "4/4"}
+          notes={
+            (parameters.rhythm_notes as {
+              value: string;
+              dot?: boolean;
+              rest?: boolean;
+            }[]) ?? []
+          }
+          expectedBeats={(parameters.expected_beats as number[]) ?? []}
+          tempo={(parameters.tempo as number) ?? 100}
+          toleranceMs={parameters.tolerance_ms as number | undefined}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "two_part_select":
+      return (
+        <TwoPartSelect
+          part1={{
+            prompt: (answerData.part1_prompt as string) ?? "",
+            options:
+              (answerData.part1_options as { id: string; label: string }[]) ??
+              [],
+            correctAnswer: (answerData.part1_correct as string) ?? "",
+          }}
+          part2={{
+            prompt: (answerData.part2_prompt as string) ?? "",
+            options:
+              (answerData.part2_options as { id: string; label: string }[]) ??
+              [],
+            correctAnswer: (answerData.part2_correct as string) ?? "",
+          }}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "multi_step_select":
+      return (
+        <MultiStepSelect
+          items={(parameters.items as string[]) ?? []}
+          options={options}
+          correctLabels={(answerData.correct_labels as string[]) ?? []}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "multi_select":
+      return (
+        <MultiSelect
+          prompt={promptRendered}
+          options={options}
+          correctAnswers={(answerData.correct_answers as string[]) ?? []}
+          minSelections={answerData.min_selections as number | undefined}
+          maxSelections={answerData.max_selections as number | undefined}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "timed_select":
+      return (
+        <TimedSelect
+          prompt={promptRendered}
+          options={options}
+          correctAnswer={correctAnswer}
+          speedThresholdMs={parameters.speed_threshold_ms as number | undefined}
           onAnswer={onAnswer}
         />
       );
