@@ -24,8 +24,10 @@ import { TwoPartSelect } from "./modalities/two-part-select";
 import { MultiStepSelect } from "./modalities/multi-step-select";
 import { MultiSelect } from "./modalities/multi-select";
 import { TimedSelect } from "./modalities/timed-select";
+import { StaffAudioSelect } from "./modalities/staff-audio-select";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
+import type { NotationData } from "@/lib/notation/types";
 
 interface FlowCardProps {
   card: FlowStreamCard;
@@ -343,6 +345,29 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           options={options}
           correctAnswer={correctAnswer}
           speedThresholdMs={parameters.speed_threshold_ms as number | undefined}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case "staff_audio_select":
+      return (
+        <StaffAudioSelect
+          notationData={
+            (parameters.notation_data as NotationData) ?? {
+              clef: "treble",
+              key: "C",
+              measures: [],
+            }
+          }
+          audioConfig={
+            (parameters.audio_config as AudioConfig) ?? {
+              mode: "scale_bare" as AudioMode,
+              root: (parameters.root as string) ?? "C4",
+            }
+          }
+          options={options}
+          correctAnswer={correctAnswer}
+          prompt={promptRendered}
           onAnswer={onAnswer}
         />
       );
