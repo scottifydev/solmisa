@@ -34,6 +34,9 @@ import type { NotationData } from "@/lib/notation/types";
 interface FlowCardProps {
   card: FlowStreamCard;
   onAnswer: (correct: boolean) => void;
+  missCount?: number;
+  isBreakthrough?: boolean;
+  wasRecovery?: boolean;
 }
 
 export function FlowCard({ card, onAnswer }: FlowCardProps) {

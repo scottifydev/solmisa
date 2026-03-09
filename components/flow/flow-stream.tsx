@@ -24,6 +24,12 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
 
+  const [missCountMap, setMissCountMap] = useState<Map<string, number>>(
+    new Map(),
+  );
+  const [lastBreakthrough, setLastBreakthrough] = useState(false);
+  const [lastWasRecovery, setLastWasRecovery] = useState(false);
+
   const loadNextCard = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -45,8 +51,31 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
 
   const handleAnswer = useCallback(
     async (correct: boolean) => {
+      const cid = card.cardInstanceId;
+      const prevMisses = missCountMap.get(cid) ?? 0;
+
+      // Update miss tracking
+      if (correct) {
+        setLastBreakthrough(prevMisses >= 2);
+        setLastWasRecovery(prevMisses > 0);
+        setMissCountMap((m) => {
+          const next = new Map(m);
+          next.set(cid, 0);
+          return next;
+        });
+      } else {
+        setLastBreakthrough(false);
+        setLastWasRecovery(false);
+        setMissCountMap((m) => {
+          const next = new Map(m);
+          next.set(cid, prevMisses + 1);
+          return next;
+        });
+      }
+
+      const currentMissCount = correct ? 0 : prevMisses + 1;
+
       if (!card.userCardStateId) {
-        // Card without state (new) — just advance
         setStats((s) => ({
           answered: s.answered + 1,
           correct: s.correct + (correct ? 1 : 0),
@@ -62,6 +91,7 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
           user_card_state_id: card.userCardStateId,
           correct,
           response_time_ms: 3000,
+          consecutiveMissCount: currentMissCount,
         });
 
         setStats((s) => ({
@@ -87,7 +117,7 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         setTimeout(() => loadNextCard(), 600);
       }
     },
-    [card.userCardStateId, loadNextCard],
+    [card.userCardStateId, card.cardInstanceId, missCountMap, loadNextCard],
   );
 
   const handleUnlockDismiss = useCallback(() => {
@@ -120,7 +150,13 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
     <div className="mx-auto max-w-lg space-y-4 p-4">
       {/* Card content */}
       {phase === "presenting" && (
-        <FlowCard card={card} onAnswer={handleAnswer} />
+        <FlowCard
+          card={card}
+          onAnswer={handleAnswer}
+          missCount={missCountMap.get(card.cardInstanceId) ?? 0}
+          isBreakthrough={lastBreakthrough}
+          wasRecovery={lastWasRecovery}
+        />
       )}
 
       {/* Transitioning */}

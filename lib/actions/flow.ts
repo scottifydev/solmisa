@@ -160,6 +160,15 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     confidence: req.confidence === "certain" ? "sure" : req.confidence,
   });
 
+  // Enforce 48h back-off for repeated misses (4+ consecutive)
+  let nextReviewAt = result.next_review_at;
+  if ((req.consecutiveMissCount ?? 0) >= 4) {
+    const minBackoff = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    if (new Date(nextReviewAt) < minBackoff) {
+      nextReviewAt = minBackoff.toISOString();
+    }
+  }
+
   // Use RPC to atomically update state + create review record
   const { error: rpcError } = await supabase.rpc("process_review_answer", {
     p_user_card_state_id: req.user_card_state_id,
@@ -169,7 +178,7 @@ export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{
     p_new_stage: result.new_stage,
     p_new_ease_factor: result.new_ease_factor,
     p_new_interval_days: result.new_interval_days,
-    p_next_review_at: result.next_review_at,
+    p_next_review_at: nextReviewAt,
     p_new_difficulty_tier: result.new_difficulty_tier,
   });
   if (rpcError) throw new Error("Failed to process review");
