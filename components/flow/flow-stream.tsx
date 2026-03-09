@@ -5,11 +5,13 @@ import { brand } from "@/lib/tokens";
 import type { FlowStreamCard, UnlockResult } from "@/lib/chains/types";
 import { getNextStreamCard, submitFlowAnswer } from "@/lib/actions/flow";
 import { FlowCard } from "./flow-card";
+import { FeedbackPanel } from "./feedback-panel";
+import { DynamicsIndicator } from "./dynamics-indicator";
 
 import { FloatingStats } from "./floating-stats";
 import { UnlockNotification } from "./unlock-notification";
 
-type StreamPhase = "presenting" | "transitioning" | "unlock";
+type StreamPhase = "presenting" | "feedback" | "transitioning" | "unlock";
 
 interface FlowStreamProps {
   initialCard: FlowStreamCard;
@@ -29,6 +31,15 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   );
   const [lastBreakthrough, setLastBreakthrough] = useState(false);
   const [lastWasRecovery, setLastWasRecovery] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(false);
+  const [pendingFeedbackUnlock, setPendingFeedbackUnlock] =
+    useState<UnlockResult | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [lastAnswerResult, setLastAnswerResult] = useState<{
+    correct: boolean;
+    timeMs: number;
+    wasRecovery: boolean;
+  } | null>(null);
 
   const loadNextCard = useCallback(async () => {
     if (loadingRef.current) return;
@@ -75,14 +86,26 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
 
       const currentMissCount = correct ? 0 : prevMisses + 1;
 
+      setLastCorrect(correct);
+      if (correct) {
+        setStreak((s) => s + 1);
+      } else {
+        setStreak(0);
+      }
+      setLastAnswerResult({
+        correct,
+        timeMs: 3000,
+        wasRecovery: prevMisses > 0 && correct,
+      });
+
       if (!card.userCardStateId) {
         setStats((s) => ({
           answered: s.answered + 1,
           correct: s.correct + (correct ? 1 : 0),
           unlocks: s.unlocks,
         }));
-        setPhase("transitioning");
-        setTimeout(() => loadNextCard(), 600);
+        setPhase("feedback");
+        setPendingFeedbackUnlock(null);
         return;
       }
 
@@ -100,25 +123,31 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
           unlocks: s.unlocks + (result.unlockResult ? 1 : 0),
         }));
 
-        if (result.unlockResult) {
-          setPendingUnlock(result.unlockResult);
-          setPhase("unlock");
-        } else {
-          setPhase("transitioning");
-          setTimeout(() => loadNextCard(), 600);
-        }
+        setPendingFeedbackUnlock(result.unlockResult);
+        setPhase("feedback");
       } catch {
         setStats((s) => ({
           answered: s.answered + 1,
           correct: s.correct + (correct ? 1 : 0),
           unlocks: s.unlocks,
         }));
-        setPhase("transitioning");
-        setTimeout(() => loadNextCard(), 600);
+        setPhase("feedback");
+        setPendingFeedbackUnlock(null);
       }
     },
     [card.userCardStateId, card.cardInstanceId, missCountMap, loadNextCard],
   );
+
+  const handleContinue = useCallback(() => {
+    if (pendingFeedbackUnlock) {
+      setPendingUnlock(pendingFeedbackUnlock);
+      setPendingFeedbackUnlock(null);
+      setPhase("unlock");
+    } else {
+      setPhase("transitioning");
+      setTimeout(() => loadNextCard(), 300);
+    }
+  }, [pendingFeedbackUnlock, loadNextCard]);
 
   const handleUnlockDismiss = useCallback(() => {
     setPendingUnlock(null);
@@ -148,14 +177,31 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
-      {/* Card content */}
-      {phase === "presenting" && (
-        <FlowCard
+      {/* Card content wrapped with dynamics */}
+      {(phase === "presenting" || phase === "feedback") && (
+        <DynamicsIndicator
+          streak={streak}
+          tempo={120}
+          lastAnswerResult={lastAnswerResult}
+        >
+          <FlowCard
+            card={card}
+            onAnswer={handleAnswer}
+            missCount={missCountMap.get(card.cardInstanceId) ?? 0}
+            isBreakthrough={lastBreakthrough}
+            wasRecovery={lastWasRecovery}
+          />
+        </DynamicsIndicator>
+      )}
+
+      {/* Feedback panel */}
+      {phase === "feedback" && (
+        <FeedbackPanel
           card={card}
-          onAnswer={handleAnswer}
+          correct={lastCorrect}
           missCount={missCountMap.get(card.cardInstanceId) ?? 0}
-          isBreakthrough={lastBreakthrough}
           wasRecovery={lastWasRecovery}
+          onContinue={handleContinue}
         />
       )}
 
