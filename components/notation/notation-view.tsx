@@ -106,6 +106,7 @@ export function NotationView({
       result.svg.style.width = "100%";
       result.svg.style.height = "auto";
       result.svg.style.minHeight = "44px";
+      result.svg.style.overflow = "visible";
       result.svg.style.filter = "drop-shadow(0 0 4px rgba(139, 92, 246, 0.3))";
     }
   }, [data, width, highlightDegrees, degreeColors]);
@@ -165,5 +166,11 @@ export function NotationView({
     }
   }, [playbackPosition]);
 
-  return <div ref={containerRef} className={className} style={{}} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ overflow: "visible" }}
+    />
+  );
 }
