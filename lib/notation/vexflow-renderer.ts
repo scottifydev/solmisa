@@ -12,9 +12,8 @@ import {
 } from "vexflow";
 import type { NotationData, NoteEvent } from "./types";
 
-const IVORY = "#eae8e4";
-const STAFF_LINE_COLOR = IVORY;
-const NOTE_COLOR = IVORY;
+const STAFF_LINE_COLOR = "#2e2e3e"; // steel — subtle, recessed
+const NOTE_COLOR = "#22222f"; // graphite — clef, key sig, notes
 
 export interface RenderOptions {
   width?: number;
@@ -61,7 +60,7 @@ export function renderNotation(
   options: RenderOptions = {},
 ): RenderResult {
   const {
-    staffY = 40,
+    staffY = 10,
     paddingLeft = 10,
     showClef = true,
     showKeySignature = true,
@@ -72,7 +71,7 @@ export function renderNotation(
 
   const renderer = new Renderer(container, Renderer.Backends.SVG);
   const estimatedWidth = options.width ?? estimateWidth(data, options);
-  const height = options.height ?? 150;
+  const height = options.height ?? 180;
   renderer.resize(estimatedWidth, height);
 
   const context = renderer.getContext();
@@ -202,14 +201,14 @@ export function renderKeySignature(
 ): RenderResult {
   const renderer = new Renderer(container, Renderer.Backends.SVG);
   const width = 200;
-  const height = 80;
+  const height = 120;
   renderer.resize(width, height);
 
   const context = renderer.getContext();
   context.setFillStyle(NOTE_COLOR);
   context.setStrokeStyle(STAFF_LINE_COLOR);
 
-  const stave = new Stave(10, 0, 170);
+  const stave = new Stave(10, 10, 170);
   stave.addClef(clef);
   stave.addKeySignature(keySignature);
   stave.setStyle({

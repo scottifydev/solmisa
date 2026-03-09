@@ -155,8 +155,20 @@ export function ScaleDisplay({
       );
       result.svg.style.width = "100%";
       result.svg.style.height = "auto";
+      result.svg.style.filter = "drop-shadow(0 0 4px rgba(139, 92, 246, 0.3))";
     }
   }, [scaleData, highlightDegree]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{
+        borderRadius: 12,
+        padding: 16,
+        background: "#0f0f16",
+        border: "1px solid #181821",
+      }}
+    />
+  );
 }

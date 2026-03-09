@@ -106,6 +106,7 @@ export function NotationView({
       result.svg.style.width = "100%";
       result.svg.style.height = "auto";
       result.svg.style.minHeight = "44px";
+      result.svg.style.filter = "drop-shadow(0 0 4px rgba(139, 92, 246, 0.3))";
     }
   }, [data, width, highlightDegrees, degreeColors]);
 
@@ -164,5 +165,16 @@ export function NotationView({
     }
   }, [playbackPosition]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{
+        borderRadius: 12,
+        padding: 16,
+        background: "#0f0f16",
+        border: "1px solid #181821",
+      }}
+    />
+  );
 }
