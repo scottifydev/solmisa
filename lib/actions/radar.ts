@@ -67,14 +67,43 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
       })),
     };
 
-  const { data: records } = await supabase
-    .from("review_records")
-    .select(
-      "correct, created_at, radar_dimensions, srs_stage_after, user_card_state!inner(user_id, interval_days)",
-    )
-    .eq("user_card_state.user_id", user.id);
+  const [{ data: records }, { data: cardStates }] = await Promise.all([
+    supabase
+      .from("review_records")
+      .select(
+        "correct, created_at, radar_dimensions, srs_stage_after, user_card_state!inner(user_id, interval_days)",
+      )
+      .eq("user_card_state.user_id", user.id),
+    supabase
+      .from("user_card_state")
+      .select(
+        "srs_stage, interval_days, card_instances!inner(card_templates!inner(radar_dimensions))",
+      )
+      .eq("user_id", user.id),
+  ]);
 
   const now = new Date();
+
+  // Build a set of dimensions with seeded cards (from user_card_state)
+  // so we can show baseline scores even before any reviews happen
+  const seededDimStats = new Map<string, { stageSum: number; count: number }>();
+  for (const cs of (cardStates ?? []) as unknown as {
+    srs_stage: string;
+    interval_days: number;
+    card_instances: {
+      card_templates: { radar_dimensions: string[] | null };
+    };
+  }[]) {
+    const dims = cs.card_instances?.card_templates?.radar_dimensions;
+    if (!dims || dims.length === 0) continue;
+    const stage = stageScore(cs.srs_stage ?? "apprentice_1");
+    for (const dim of dims) {
+      const s = seededDimStats.get(dim) ?? { stageSum: 0, count: 0 };
+      s.stageSum += stage;
+      s.count++;
+      seededDimStats.set(dim, s);
+    }
+  }
 
   // Accumulate stats per dimension
   const currentStats = new Map<
@@ -177,6 +206,18 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
   const current: RadarScore[] = RADAR_DIMENSIONS.map((d) => {
     const stats = currentStats.get(d.slug);
     if (!stats || stats.weightedTotal === 0) {
+      const seeded = seededDimStats.get(d.slug);
+      if (seeded && seeded.count > 0) {
+        const avgStage = seeded.stageSum / seeded.count;
+        return {
+          slug: d.slug,
+          name: d.name,
+          group: d.group,
+          score: Math.round(avgStage * 0.3 * 100),
+          total_reviews: 0,
+          scoreHistory: historyMap.get(d.slug) ?? [],
+        };
+      }
       return {
         slug: d.slug,
         name: d.name,
@@ -204,6 +245,18 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
   const lifetime: RadarScore[] = RADAR_DIMENSIONS.map((d) => {
     const stats = lifetimeStats.get(d.slug);
     if (!stats || stats.total === 0) {
+      const seeded = seededDimStats.get(d.slug);
+      if (seeded && seeded.count > 0) {
+        const avgStage = seeded.stageSum / seeded.count;
+        return {
+          slug: d.slug,
+          name: d.name,
+          group: d.group,
+          score: Math.round(avgStage * 0.3 * 100),
+          total_reviews: 0,
+          scoreHistory: historyMap.get(d.slug) ?? [],
+        };
+      }
       return {
         slug: d.slug,
         name: d.name,
@@ -231,10 +284,13 @@ export async function getRadarScores(): Promise<RadarScoresResponse> {
   // Materialize current scores to radar_cache with history append
   // Only materialize dimensions that were actually reviewed (scoped)
   // Untouched dimensions retain their cached scores
-  const reviewedDimSlugs = new Set(currentStats.keys());
+  const activeDimSlugs = new Set([
+    ...currentStats.keys(),
+    ...seededDimStats.keys(),
+  ]);
   const dateStr = now.toISOString();
   const todayStr = dateStr.slice(0, 10);
-  const dimsToMaterialize = current.filter((d) => reviewedDimSlugs.has(d.slug));
+  const dimsToMaterialize = current.filter((d) => activeDimSlugs.has(d.slug));
   const upsertRows = dimsToMaterialize.map((dim) => {
     const existing = historyMap.get(dim.slug) ?? [];
     const lastEntry = existing[existing.length - 1];
