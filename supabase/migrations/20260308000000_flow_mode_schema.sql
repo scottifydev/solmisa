@@ -333,7 +333,7 @@ BEGIN
 
     INSERT INTO chain_links (chain_id, position, card_template_id, unlock_stage, description, modalities, modality_by_stage)
     VALUES (v_chain_id, 4, v_ct_id, 'journeyman_1', 'Brightness spectrum ordering',
-      '["drag_rank"]'::JSONB, '{}'::JSONB);
+      '["select_one", "drag_rank"]'::JSONB, '{"apprentice": "select_one", "journeyman": "drag_rank"}'::JSONB);
 
     -- ---- LINK 5: Relative minor ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
