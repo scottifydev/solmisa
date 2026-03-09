@@ -159,16 +159,5 @@ export function ScaleDisplay({
     }
   }, [scaleData, highlightDegree]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{
-        borderRadius: 12,
-        padding: 16,
-        background: "#0f0f16",
-        border: "1px solid #181821",
-      }}
-    />
-  );
+  return <div ref={containerRef} className={className} style={{}} />;
 }
