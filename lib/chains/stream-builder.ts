@@ -29,6 +29,7 @@ export async function getNextStreamCard(
   userId: string,
   focusChainSlug?: string | null,
   recentCardIds?: string[],
+  lastChainSlug?: string | null,
 ): Promise<FlowStreamCard | null> {
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -153,10 +154,24 @@ export async function getNextStreamCard(
     (a.nextReviewAt ?? "").localeCompare(b.nextReviewAt ?? ""),
   );
 
-  // 5. Deprioritize recently-shown cards to avoid repetition
+  // 5. Deprioritize recently-shown cards and same-chain cards for variety
   const recentSet = new Set(recentCardIds ?? []);
   const deprioritize = (cards: LinkWithState[]) => {
-    if (recentSet.size === 0) return cards;
+    if (recentSet.size === 0 && !lastChainSlug) return cards;
+    // First prefer: different chain AND not recently shown
+    if (lastChainSlug) {
+      const diffChainFresh = cards.filter(
+        (c) =>
+          c.chainSlug !== lastChainSlug &&
+          c.cardInstanceId &&
+          !recentSet.has(c.cardInstanceId),
+      );
+      if (diffChainFresh.length > 0) return diffChainFresh;
+      // Second prefer: different chain (even if recently shown)
+      const diffChain = cards.filter((c) => c.chainSlug !== lastChainSlug);
+      if (diffChain.length > 0) return diffChain;
+    }
+    // Third prefer: not recently shown (same chain OK)
     const fresh = cards.filter(
       (c) => c.cardInstanceId && !recentSet.has(c.cardInstanceId),
     );

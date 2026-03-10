@@ -1,7 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { brand } from "@/lib/tokens";
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = shuffled[i] as T;
+    shuffled[i] = shuffled[j] as T;
+    shuffled[j] = temp;
+  }
+  return shuffled;
+}
 
 interface OptionGridProps {
   prompt: string;
@@ -18,6 +29,9 @@ export function OptionGrid({
 }: OptionGridProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  // Shuffle options once on mount to prevent position learning
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const shuffledOptions = useMemo(() => shuffleArray(options), []);
 
   const handleSelect = (id: string) => {
     if (submitted) return;
@@ -37,7 +51,7 @@ export function OptionGrid({
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        {options.map((option) => {
+        {shuffledOptions.map((option) => {
           const isSelected = selected === option.id;
           const isCorrect = submitted && option.id === correctAnswer;
           const isWrong = submitted && isSelected && !isCorrect;

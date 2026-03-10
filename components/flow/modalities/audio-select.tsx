@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { brand } from "@/lib/tokens";
 import * as Tone from "tone";
 import type { AudioConfig } from "@/lib/audio/audio-config-types";
 import { playAudioConfig } from "@/lib/audio/flow-audio-pipeline";
 import { PlaybackEngine } from "@/lib/audio/playback";
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = shuffled[i] as T;
+    shuffled[i] = shuffled[j] as T;
+    shuffled[j] = temp;
+  }
+  return shuffled;
+}
 
 interface OptionData {
   id: string;
@@ -29,8 +40,12 @@ export function AudioSelect({
 }: AudioSelectProps) {
   const [playing, setPlaying] = useState(false);
   const [playbackDone, setPlaybackDone] = useState(false);
+  const [audiating, setAudiating] = useState(false);
+  const [optionsVisible, setOptionsVisible] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const shuffledOptions = useMemo(() => shuffleArray(options), []);
   const hasAutoPlayed = useRef(false);
   const engineRef = useRef<PlaybackEngine | null>(null);
 
@@ -63,6 +78,17 @@ export function AudioSelect({
     const timer = setTimeout(() => handlePlay(), 400);
     return () => clearTimeout(timer);
   }, [handlePlay]);
+
+  // 1500ms audiation pause after playback before showing options
+  useEffect(() => {
+    if (!playbackDone || optionsVisible) return;
+    setAudiating(true);
+    const timer = setTimeout(() => {
+      setAudiating(false);
+      setOptionsVisible(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [playbackDone, optionsVisible]);
 
   // Cleanup engine on unmount
   useEffect(() => {
@@ -158,10 +184,20 @@ export function AudioSelect({
         )}
       </div>
 
-      {/* Options — visible after first playback */}
-      {playbackDone && (
+      {/* Audiation pause indicator */}
+      {audiating && (
+        <p
+          className="text-center text-xs animate-pulse"
+          style={{ color: brand.ash }}
+        >
+          Listen internally...
+        </p>
+      )}
+
+      {/* Options — visible after audiation pause */}
+      {optionsVisible && (
         <div className="flex flex-col gap-2">
-          {options.map((option) => {
+          {shuffledOptions.map((option) => {
             const isSelected = selected === option.id;
             const isCorrect = submitted && option.id === correctAnswer;
             const isWrong = submitted && isSelected && !isCorrect;
@@ -205,7 +241,7 @@ export function AudioSelect({
       )}
 
       {/* Check button */}
-      {playbackDone && !submitted && (
+      {optionsVisible && !submitted && (
         <button
           onClick={handleCheck}
           disabled={!selected}
