@@ -4,6 +4,8 @@ import type { NoteName } from "@/types/audio";
 import type { PlaybackEngine } from "./playback";
 import { DEGREE_SYNTH_OPTIONS, PIANO_FM_TIMBRE } from "./shared-synth-config";
 import { noteToMidi, midiToNoteName } from "./music-theory";
+import { CHORD_INTERVALS } from "./playback";
+import type { ChordQuality } from "@/types/audio";
 
 // ─── Scale interval maps ────────────────────────────────────
 
@@ -48,16 +50,17 @@ function createPolySynth(filter: Tone.Filter): Tone.PolySynth {
   return new Tone.PolySynth(Tone.FMSynth, DEGREE_SYNTH_OPTIONS).connect(filter);
 }
 
-function createEffectsChain(): {
+async function createEffectsChain(): Promise<{
   filter: Tone.Filter;
   reverb: Tone.Reverb;
   dispose: () => void;
-} {
+}> {
   const reverb = new Tone.Reverb({
     decay: 1.5,
     wet: 0.12,
     preDelay: 0.01,
   }).toDestination();
+  await reverb.ready;
   const filter = new Tone.Filter({
     type: "lowpass",
     frequency: 2000,
@@ -97,7 +100,7 @@ async function playScaleBare(config: AudioConfig): Promise<void> {
   const notes = semitones.map((s) => midiToNoteName(rootMidi + s));
   const noteDuration = beatsToSeconds(1, tempo);
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synth = createSynth(chain.filter);
   const now = Tone.now() + 0.05;
   const gap = noteDuration * 0.1;
@@ -122,11 +125,12 @@ async function playScaleWithVamp(config: AudioConfig): Promise<void> {
   const intervals = SCALE_INTERVALS[scaleType] ?? SCALE_INTERVALS.major!;
   const rootMidi = noteToMidi(noteName, octave);
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const melodySynth = createSynth(chain.filter);
 
   // Vamp pad — sustained chords underneath
   const vampReverb = new Tone.Reverb({ decay: 2.5, wet: 0.3 }).toDestination();
+  await vampReverb.ready;
   const vampFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 800,
@@ -181,7 +185,7 @@ async function playIntervalMelodic(config: AudioConfig): Promise<void> {
   const duration = 0.8;
   const gap = 0.3;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synth = createSynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -202,7 +206,7 @@ async function playIntervalHarmonic(config: AudioConfig): Promise<void> {
   const intervalSemitones = config.intervals?.[0] ?? 7;
   const duration = 1.5;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const poly = createPolySynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -224,7 +228,7 @@ async function playIntervalComparison(config: AudioConfig): Promise<void> {
   const noteGap = 0.3;
   const pairGap = 0.8;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synth = createSynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -251,11 +255,14 @@ async function playIntervalComparison(config: AudioConfig): Promise<void> {
 async function playChordArpeggiated(config: AudioConfig): Promise<void> {
   const { noteName, octave } = parseRoot(config.root ?? "C4");
   const rootMidi = noteToMidi(noteName, octave);
-  const intervals = config.intervals ?? [0, 4, 7]; // default major triad
+  const intervals = config.intervals ??
+    CHORD_INTERVALS[
+      (config as unknown as Record<string, unknown>).quality as ChordQuality
+    ] ?? [0, 4, 7];
   const arpGap = 0.1;
   const sustainDuration = 1.5;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synth = createSynth(chain.filter);
   const poly = createPolySynth(chain.filter);
   const now = Tone.now() + 0.05;
@@ -280,10 +287,13 @@ async function playChordArpeggiated(config: AudioConfig): Promise<void> {
 async function playChordBlocked(config: AudioConfig): Promise<void> {
   const { noteName, octave } = parseRoot(config.root ?? "C4");
   const rootMidi = noteToMidi(noteName, octave);
-  const intervals = config.intervals ?? [0, 4, 7];
+  const intervals = config.intervals ??
+    CHORD_INTERVALS[
+      (config as unknown as Record<string, unknown>).quality as ChordQuality
+    ] ?? [0, 4, 7];
   const duration = 1.5;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const poly = createPolySynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -301,10 +311,11 @@ async function playDegreeWithDrone(config: AudioConfig): Promise<void> {
   const dronePitch = config.drone?.pitch ?? config.root ?? "C3";
   const { noteName: droneNote, octave: droneOctave } = parseRoot(dronePitch);
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
 
   // Drone — sustained pad
   const droneReverb = new Tone.Reverb({ decay: 3, wet: 0.25 }).toDestination();
+  await droneReverb.ready;
   const droneFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 600,
@@ -346,10 +357,11 @@ async function playDegreeWithVamp(config: AudioConfig): Promise<void> {
   const { noteName, octave } = parseRoot(config.root ?? "C3");
   const tempo = config.tempo ?? 100;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
 
   // Vamp — I-IV-V-I cadence
   const vampReverb = new Tone.Reverb({ decay: 1.5, wet: 0.15 }).toDestination();
+  await vampReverb.ready;
   const vampFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 1200,
@@ -404,10 +416,11 @@ async function playDegreeFadingDrone(config: AudioConfig): Promise<void> {
   const fadeAfterBars = config.drone?.fadeAfterBars ?? 2;
   const tempo = config.tempo ?? 100;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
 
   // Drone with fade envelope
   const droneReverb = new Tone.Reverb({ decay: 3, wet: 0.25 }).toDestination();
+  await droneReverb.ready;
   const droneFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 600,
@@ -456,7 +469,7 @@ async function playMelodyExcerpt(config: AudioConfig): Promise<void> {
   const notes = config.notes ?? [];
   if (notes.length === 0) return;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synth = createSynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -478,7 +491,7 @@ async function playChoraleSatb(config: AudioConfig): Promise<void> {
   const voices = config.voices ?? {};
   const voiceNames = ["soprano", "alto", "tenor", "bass"];
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const synths: Tone.FMSynth[] = [];
 
   let maxEnd = 0;
@@ -514,7 +527,7 @@ async function playProgressionBlock(config: AudioConfig): Promise<void> {
   const notes = config.notes ?? [];
   if (notes.length === 0) return;
 
-  const chain = createEffectsChain();
+  const chain = await createEffectsChain();
   const poly = createPolySynth(chain.filter);
   const now = Tone.now() + 0.05;
 
@@ -543,6 +556,7 @@ async function playRhythmPercussion(config: AudioConfig): Promise<void> {
 
   // Percussive click using MetalSynth
   const reverb = new Tone.Reverb({ decay: 0.5, wet: 0.08 }).toDestination();
+  await reverb.ready;
   const metalSynth = new Tone.MetalSynth({
     envelope: { attack: 0.001, decay: 0.05, release: 0.01 },
     harmonicity: 5.1,

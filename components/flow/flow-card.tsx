@@ -47,6 +47,7 @@ const DB_TYPE_TO_MODE: Record<string, AudioMode> = {
   interval_harmonic: "interval_harmonic",
   degree_with_drone: "degree_with_drone",
   degree_with_vamp: "degree_with_vamp",
+  degree_fading_drone: "degree_fading_drone",
   rhythm: "rhythm_percussion",
 };
 

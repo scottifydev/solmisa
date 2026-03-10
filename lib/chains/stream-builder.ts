@@ -193,10 +193,13 @@ export async function getNextStreamCard(
     return fresh.length > 0 ? fresh : cards;
   };
 
+  const pickRandom = <T>(arr: T[]): T | undefined =>
+    arr.length === 0 ? undefined : arr[Math.floor(Math.random() * arr.length)];
+
   const selected =
-    deprioritize(dueCards)[0] ??
-    deprioritize(newCards)[0] ??
-    deprioritize(practiceCards)[0] ??
+    pickRandom(deprioritize(dueCards)) ??
+    pickRandom(deprioritize(newCards)) ??
+    pickRandom(deprioritize(practiceCards)) ??
     dueCards[0] ??
     newCards[0] ??
     practiceCards[0];

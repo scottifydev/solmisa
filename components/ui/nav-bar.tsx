@@ -282,9 +282,18 @@ export function NavBar({
                 <span aria-hidden="true">🔥</span> {streak}d streak
               </>
             ) : (
-              <span aria-hidden="true" title="Silence before the music starts">
-                𝄻
-              </span>
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="10"
+                viewBox="0 0 14 10"
+                fill="currentColor"
+                className="inline-block"
+                role="img"
+              >
+                <title>Silence before the music starts</title>
+                <rect x="0" y="0" width="14" height="5" rx="1" />
+              </svg>
             )}
           </span>
         </div>
@@ -308,9 +317,18 @@ export function NavBar({
                 <span aria-hidden="true">🔥</span> {streak}
               </>
             ) : (
-              <span aria-hidden="true" title="Silence before the music starts">
-                𝄻
-              </span>
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="10"
+                viewBox="0 0 14 10"
+                fill="currentColor"
+                className="inline-block"
+                role="img"
+              >
+                <title>Silence before the music starts</title>
+                <rect x="0" y="0" width="14" height="5" rx="1" />
+              </svg>
             )}
           </span>
           <Link
