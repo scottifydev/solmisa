@@ -28,6 +28,7 @@ import { StaffAudioSelect } from "./modalities/staff-audio-select";
 import { StaffPlacement } from "./modalities/staff-placement";
 import { ScaleSculptor } from "./modalities/scale-sculptor";
 import { SequenceBuilder } from "./modalities/sequence-builder";
+import { PianoKeyboardInput } from "./modalities/piano-keyboard-input";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 import type { NotationData } from "@/lib/notation/types";
@@ -219,6 +220,17 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           prompt={promptRendered}
           onAnswer={onAnswer}
           srsStage={card.srsStage}
+        />
+      );
+
+    case "piano_keyboard":
+      return (
+        <PianoKeyboardInput
+          clef={(parameters.clef as "treble" | "bass") ?? "treble"}
+          note={(parameters.note as string) ?? "C4"}
+          showAccidental={parameters.show_accidental as boolean | undefined}
+          correctAnswer={correctAnswer}
+          onAnswer={onAnswer}
         />
       );
 
