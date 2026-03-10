@@ -519,7 +519,7 @@ BEGIN
     -- ---- LINK 1: Ascending melodic -> name it ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_asc', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_asc', NULL, 'perceptual', 'select_one',
       r.l1_prompt,
       ARRAY['interval_recognition'],
       jsonb_build_object(
@@ -551,7 +551,7 @@ BEGIN
     -- ---- LINK 2: Descending melodic -> name it ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_desc', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_desc', NULL, 'perceptual', 'select_one',
       r.l2_prompt,
       ARRAY['interval_recognition'],
       jsonb_build_object(
@@ -583,7 +583,7 @@ BEGIN
     -- ---- LINK 3: Harmonic (simultaneous) -> name it ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_harm', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_harm', NULL, 'perceptual', 'select_one',
       r.l3_prompt,
       ARRAY['interval_recognition'],
       jsonb_build_object(
@@ -615,7 +615,7 @@ BEGIN
     -- ---- LINK 4: Wider or narrower? (binary_choice) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_compare', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_compare', NULL, 'perceptual', 'select_one',
       r.l4_prompt,
       ARRAY['interval_recognition'],
       jsonb_build_object(

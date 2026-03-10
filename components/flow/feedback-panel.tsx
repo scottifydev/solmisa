@@ -3,8 +3,26 @@
 import { useState, useEffect, useRef } from "react";
 import { brand } from "@/lib/tokens";
 import type { FlowStreamCard } from "@/lib/chains/types";
-import type { AudioConfig } from "@/lib/audio/audio-config-types";
+import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 import { FeedbackAudioControls } from "./feedback-audio-controls";
+
+const DB_TYPE_TO_MODE: Record<string, AudioMode> = {
+  scale: "scale_bare",
+  drone_and_note: "degree_with_drone",
+  drone_and_two_notes: "degree_with_drone",
+  cadence: "progression_block",
+  chord: "chord_arpeggiated",
+  interval: "interval_melodic",
+  rhythm: "rhythm_percussion",
+};
+
+function normalizeAudioConfig(raw: Record<string, unknown>): AudioConfig {
+  const mode =
+    (raw.mode as AudioMode) ??
+    DB_TYPE_TO_MODE[raw.type as string] ??
+    ("scale_bare" as AudioMode);
+  return { ...raw, mode } as unknown as AudioConfig;
+}
 import { FeedbackWhy } from "./feedback-why";
 
 type ConfidenceRating = "easy" | "good" | "hard" | "knew_it" | "blanked";
@@ -102,7 +120,11 @@ export function FeedbackPanel({
         | undefined)
     : undefined;
 
-  const audioConfig = card.parameters?.audio_config as AudioConfig | undefined;
+  const audioConfig = card.parameters?.audio_config
+    ? normalizeAudioConfig(
+        card.parameters.audio_config as Record<string, unknown>,
+      )
+    : undefined;
   const whyText = (fbSide?.why_text as string | undefined) ?? "";
   const showWhy = whyText && !correct && missCount >= 2;
   const showExploreLink = missCount >= 3;

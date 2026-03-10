@@ -315,7 +315,7 @@ BEGIN
     -- ---- LINK 1: Major or minor? (binary_choice) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l1', NULL, 'aural', 'binary_choice',
+      'flow_' || r.slug || '_l1', NULL, 'perceptual', 'binary_choice',
       r.l1_prompt,
       ARRAY['mode_ear_id'],
       jsonb_build_object(
@@ -343,7 +343,7 @@ BEGIN
     -- ---- LINK 2: Which mode? 3 far options ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l2', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_l2', NULL, 'perceptual', 'select_one',
       r.l2_prompt,
       ARRAY['mode_ear_id'],
       jsonb_build_object(
@@ -372,7 +372,7 @@ BEGIN
     -- ---- LINK 3: Which mode? 4 close options ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l3', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_l3', NULL, 'perceptual', 'select_one',
       r.l3_prompt,
       ARRAY['mode_ear_id'],
       jsonb_build_object(
@@ -462,7 +462,7 @@ BEGIN
     -- ---- LINK 6: Graduation — staff_audio_select ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l6', NULL, 'aural', 'select_one',
+      'flow_' || r.slug || '_l6', NULL, 'perceptual', 'select_one',
       r.l6_prompt,
       ARRAY['mode_ear_id'],
       jsonb_build_object(

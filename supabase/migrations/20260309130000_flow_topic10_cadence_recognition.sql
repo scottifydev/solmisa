@@ -18,7 +18,7 @@ BEGIN
   -- L1: Final or unfinished? (binary_choice)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_authentic_l1', NULL, 'aural', 'binary_choice',
+    'flow_cadence_authentic_l1', NULL, 'perceptual', 'binary_choice',
     'Does this phrase ending sound final or unfinished?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -47,7 +47,7 @@ BEGIN
   -- L2: Which cadence? 2 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_authentic_l2', NULL, 'aural', 'select_one',
+    'flow_cadence_authentic_l2', NULL, 'perceptual', 'select_one',
     'What type of cadence ends this phrase?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -76,7 +76,7 @@ BEGIN
   -- L3: Which cadence? 4 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_authentic_l3', NULL, 'aural', 'select_one',
+    'flow_cadence_authentic_l3', NULL, 'perceptual', 'select_one',
     'Identify the cadence type',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -168,7 +168,7 @@ BEGIN
   -- L6: Full chorale phrase -> identify ending (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_authentic_l6', NULL, 'aural', 'select_one',
+    'flow_cadence_authentic_l6', NULL, 'perceptual', 'select_one',
     'Listen to the full phrase. What cadence ends it?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -207,7 +207,7 @@ BEGIN
   -- L1: Final or unfinished? (binary_choice)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_plagal_l1', NULL, 'aural', 'binary_choice',
+    'flow_cadence_plagal_l1', NULL, 'perceptual', 'binary_choice',
     'Does this phrase ending sound final or unfinished?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -236,7 +236,7 @@ BEGIN
   -- L2: Which cadence? 2 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_plagal_l2', NULL, 'aural', 'select_one',
+    'flow_cadence_plagal_l2', NULL, 'perceptual', 'select_one',
     'What type of cadence ends this phrase?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -265,7 +265,7 @@ BEGIN
   -- L3: Which cadence? 4 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_plagal_l3', NULL, 'aural', 'select_one',
+    'flow_cadence_plagal_l3', NULL, 'perceptual', 'select_one',
     'Identify the cadence type',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -357,7 +357,7 @@ BEGIN
   -- L6: Full chorale phrase -> identify ending (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_plagal_l6', NULL, 'aural', 'select_one',
+    'flow_cadence_plagal_l6', NULL, 'perceptual', 'select_one',
     'Listen to the full phrase. What cadence ends it?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -397,7 +397,7 @@ BEGIN
   -- L1: Final or unfinished? (binary_choice)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_half_l1', NULL, 'aural', 'binary_choice',
+    'flow_cadence_half_l1', NULL, 'perceptual', 'binary_choice',
     'Does this phrase ending sound final or unfinished?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -426,7 +426,7 @@ BEGIN
   -- L2: Which cadence? 2 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_half_l2', NULL, 'aural', 'select_one',
+    'flow_cadence_half_l2', NULL, 'perceptual', 'select_one',
     'What type of cadence ends this phrase?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -455,7 +455,7 @@ BEGIN
   -- L3: Which cadence? 4 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_half_l3', NULL, 'aural', 'select_one',
+    'flow_cadence_half_l3', NULL, 'perceptual', 'select_one',
     'Identify the cadence type',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -547,7 +547,7 @@ BEGIN
   -- L6: Full chorale phrase -> identify ending (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_half_l6', NULL, 'aural', 'select_one',
+    'flow_cadence_half_l6', NULL, 'perceptual', 'select_one',
     'Listen to the full phrase. What cadence ends it?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -587,7 +587,7 @@ BEGIN
   -- L1: Final or unfinished? (binary_choice)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_deceptive_l1', NULL, 'aural', 'binary_choice',
+    'flow_cadence_deceptive_l1', NULL, 'perceptual', 'binary_choice',
     'Does this phrase ending sound final or unfinished?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -616,7 +616,7 @@ BEGIN
   -- L2: Which cadence? 2 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_deceptive_l2', NULL, 'aural', 'select_one',
+    'flow_cadence_deceptive_l2', NULL, 'perceptual', 'select_one',
     'What type of cadence ends this phrase?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -645,7 +645,7 @@ BEGIN
   -- L3: Which cadence? 4 options (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_deceptive_l3', NULL, 'aural', 'select_one',
+    'flow_cadence_deceptive_l3', NULL, 'perceptual', 'select_one',
     'Identify the cadence type',
     ARRAY['cadence_recognition'],
     jsonb_build_object(
@@ -737,7 +737,7 @@ BEGIN
   -- L6: Full chorale phrase -> identify ending (select_one)
   INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
   VALUES (
-    'flow_cadence_deceptive_l6', NULL, 'aural', 'select_one',
+    'flow_cadence_deceptive_l6', NULL, 'perceptual', 'select_one',
     'Listen to the full phrase. What cadence ends it?',
     ARRAY['cadence_recognition'],
     jsonb_build_object(

@@ -32,6 +32,32 @@ import { KeySignatureDisplay } from "@/components/notation/key-signature-display
 import type { AudioConfig, AudioMode } from "@/lib/audio/audio-config-types";
 import type { NotationData } from "@/lib/notation/types";
 
+const DB_TYPE_TO_MODE: Record<string, AudioMode> = {
+  scale: "scale_bare",
+  scale_bare: "scale_bare",
+  scale_with_vamp: "scale_with_vamp",
+  drone_and_note: "degree_with_drone",
+  drone_and_two_notes: "degree_with_drone",
+  cadence: "progression_block",
+  chord: "chord_arpeggiated",
+  chord_arpeggiated: "chord_arpeggiated",
+  chord_blocked: "chord_blocked",
+  interval: "interval_melodic",
+  interval_melodic: "interval_melodic",
+  interval_harmonic: "interval_harmonic",
+  degree_with_drone: "degree_with_drone",
+  degree_with_vamp: "degree_with_vamp",
+  rhythm: "rhythm_percussion",
+};
+
+function normalizeAudioConfig(raw: Record<string, unknown>): AudioConfig {
+  const mode =
+    (raw.mode as AudioMode) ??
+    DB_TYPE_TO_MODE[raw.type as string] ??
+    ("scale_bare" as AudioMode);
+  return { ...raw, mode } as unknown as AudioConfig;
+}
+
 interface FlowCardProps {
   card: FlowStreamCard;
   onAnswer: (correct: boolean) => void;
@@ -176,11 +202,15 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
       return (
         <AudioSelect
           audioConfig={
-            (parameters.audio_config as AudioConfig) ?? {
-              mode: "scale_bare" as AudioMode,
-              root: (parameters.root as string) ?? "C4",
-              scaleType: parameters.scale_type as string | undefined,
-            }
+            parameters.audio_config
+              ? normalizeAudioConfig(
+                  parameters.audio_config as Record<string, unknown>,
+                )
+              : {
+                  mode: "scale_bare" as AudioMode,
+                  root: (parameters.root as string) ?? "C4",
+                  scaleType: parameters.scale_type as string | undefined,
+                }
           }
           options={options}
           correctAnswer={correctAnswer}
@@ -240,11 +270,15 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
       return (
         <FeelingStateMatch
           audioConfig={
-            (parameters.audio_config as AudioConfig) ?? {
-              mode: "scale_bare" as AudioMode,
-              root: (parameters.root as string) ?? "C4",
-              scaleType: parameters.scale_type as string | undefined,
-            }
+            parameters.audio_config
+              ? normalizeAudioConfig(
+                  parameters.audio_config as Record<string, unknown>,
+                )
+              : {
+                  mode: "scale_bare" as AudioMode,
+                  root: (parameters.root as string) ?? "C4",
+                  scaleType: parameters.scale_type as string | undefined,
+                }
           }
           options={options.map((o) => ({
             ...o,
@@ -280,10 +314,14 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
       return (
         <AudioRhythm
           audioConfig={
-            (parameters.audio_config as AudioConfig) ?? {
-              mode: "rhythm_percussion" as AudioMode,
-              tempo: (parameters.tempo as number) ?? 100,
-            }
+            parameters.audio_config
+              ? normalizeAudioConfig(
+                  parameters.audio_config as Record<string, unknown>,
+                )
+              : {
+                  mode: "rhythm_percussion" as AudioMode,
+                  tempo: (parameters.tempo as number) ?? 100,
+                }
           }
           timeSignature={(parameters.time_signature as string) ?? "4/4"}
           rhythmOptions={
@@ -381,10 +419,14 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
             }
           }
           audioConfig={
-            (parameters.audio_config as AudioConfig) ?? {
-              mode: "scale_bare" as AudioMode,
-              root: (parameters.root as string) ?? "C4",
-            }
+            parameters.audio_config
+              ? normalizeAudioConfig(
+                  parameters.audio_config as Record<string, unknown>,
+                )
+              : {
+                  mode: "scale_bare" as AudioMode,
+                  root: (parameters.root as string) ?? "C4",
+                }
           }
           options={options}
           correctAnswer={correctAnswer}

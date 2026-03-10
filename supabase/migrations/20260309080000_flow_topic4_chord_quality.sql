@@ -235,7 +235,7 @@ BEGIN
     -- ---- LINK 1: Major or minor? (binary_choice) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l1', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l1', NULL, 'perceptual', 'select_one',
       'Is this chord major or minor in character?',
       ARRAY['chord_quality'],
       jsonb_build_object(
@@ -263,7 +263,7 @@ BEGIN
     -- ---- LINK 2: What quality? 3 options ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l2', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l2', NULL, 'perceptual', 'select_one',
       'What is the quality of this chord?',
       ARRAY['chord_quality'],
       jsonb_build_object(
@@ -292,7 +292,7 @@ BEGIN
     -- ---- LINK 3: What quality? 4 close options ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l3', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l3', NULL, 'perceptual', 'select_one',
       'Identify the chord quality',
       ARRAY['chord_quality'],
       jsonb_build_object(
@@ -322,7 +322,7 @@ BEGIN
     -- ---- LINK 4: Triad or seventh? (binary_choice) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l4', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l4', NULL, 'perceptual', 'select_one',
       'Is this a triad or a seventh chord?',
       ARRAY['chord_quality'],
       jsonb_build_object(
@@ -350,7 +350,7 @@ BEGIN
     -- ---- LINK 5: Chord in progression (select_one) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l5', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l5', NULL, 'perceptual', 'select_one',
       'What is the quality of the highlighted chord in this progression?',
       ARRAY['chord_quality'],
       jsonb_build_object(
@@ -380,7 +380,7 @@ BEGIN
     -- ---- LINK 6: Type of seventh (select_one) ----
     INSERT INTO card_templates (slug, lesson_id, card_category, response_type, prompt_text, dimensions, parameters, feedback)
     VALUES (
-      'flow_' || r.slug || '_l6', NULL, 'ear_training', 'select_one',
+      'flow_' || r.slug || '_l6', NULL, 'perceptual', 'select_one',
       'Identify the type of seventh chord',
       ARRAY['chord_quality'],
       jsonb_build_object(
