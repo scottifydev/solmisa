@@ -33,12 +33,21 @@ export function OptionGrid({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const shuffledOptions = useMemo(() => shuffleArray(options), []);
 
+  const [revealed, setRevealed] = useState(false);
+
   const handleSelect = (id: string) => {
     if (submitted) return;
     setSelected(id);
     setSubmitted(true);
     const correct = id === correctAnswer;
     setTimeout(() => onAnswer(correct), correct ? 800 : 1500);
+  };
+
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setRevealed(true);
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
   };
 
   return (
@@ -93,6 +102,25 @@ export function OptionGrid({
           );
         })}
       </div>
+
+      {!submitted && (
+        <button
+          onClick={handleDontKnow}
+          className="mx-auto text-xs transition-opacity hover:opacity-80"
+          style={{ color: brand.ash }}
+        >
+          I don&apos;t know yet
+        </button>
+      )}
+
+      {revealed && (
+        <p className="text-center text-xs" style={{ color: brand.silver }}>
+          The answer is{" "}
+          <span style={{ color: brand.correct, fontWeight: 600 }}>
+            {options.find((o) => o.id === correctAnswer)?.label}
+          </span>
+        </p>
+      )}
     </div>
   );
 }
