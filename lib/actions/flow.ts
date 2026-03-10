@@ -97,6 +97,7 @@ export async function getNextStreamCard(
   focusChainSlug?: string,
   recentCardIds?: string[],
   lastChainSlug?: string,
+  lastTopicSlug?: string,
 ): Promise<FlowStreamCard | null> {
   const supabase = await createClient();
   const {
@@ -104,7 +105,13 @@ export async function getNextStreamCard(
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  return buildNextCard(user.id, focusChainSlug, recentCardIds, lastChainSlug);
+  return buildNextCard(
+    user.id,
+    focusChainSlug,
+    recentCardIds,
+    lastChainSlug,
+    lastTopicSlug,
+  );
 }
 
 export async function submitFlowAnswer(req: FlowAnswerRequest): Promise<{

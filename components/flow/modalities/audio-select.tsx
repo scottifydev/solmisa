@@ -6,6 +6,8 @@ import * as Tone from "tone";
 import type { AudioConfig } from "@/lib/audio/audio-config-types";
 import { playAudioConfig } from "@/lib/audio/flow-audio-pipeline";
 import { PlaybackEngine } from "@/lib/audio/playback";
+import type { SrsStageKey } from "@/types/srs";
+import { getAudiationPauseMs } from "@/lib/srs/stages";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -29,6 +31,7 @@ interface AudioSelectProps {
   correctAnswer: string;
   prompt: string;
   onAnswer: (correct: boolean) => void;
+  srsStage?: SrsStageKey | null;
 }
 
 export function AudioSelect({
@@ -37,6 +40,7 @@ export function AudioSelect({
   correctAnswer,
   prompt,
   onAnswer,
+  srsStage,
 }: AudioSelectProps) {
   const [playing, setPlaying] = useState(false);
   const [playbackDone, setPlaybackDone] = useState(false);
@@ -80,16 +84,17 @@ export function AudioSelect({
     return () => clearTimeout(timer);
   }, [handlePlay]);
 
-  // 1500ms audiation pause after playback before showing options
+  // Adaptive audiation pause after playback before showing options
+  const pauseMs = srsStage ? getAudiationPauseMs(srsStage) : 1500;
   useEffect(() => {
     if (!playbackDone || optionsVisible) return;
     setAudiating(true);
     const timer = setTimeout(() => {
       setAudiating(false);
       setOptionsVisible(true);
-    }, 1500);
+    }, pauseMs);
     return () => clearTimeout(timer);
-  }, [playbackDone, optionsVisible]);
+  }, [playbackDone, optionsVisible, pauseMs]);
 
   // Cleanup engine on unmount
   useEffect(() => {

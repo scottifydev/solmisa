@@ -80,6 +80,7 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         focusChain,
         recentCardIdsRef.current,
         card.chainSlug,
+        card.chainTopic,
       );
       if (next) {
         // Track this card in recent list (keep last 5)
