@@ -54,6 +54,7 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
       const next = await getNextStreamCard(
         focusChain,
         recentCardIdsRef.current,
+        card.chainSlug,
       );
       if (next) {
         // Track this card in recent list (keep last 5)
