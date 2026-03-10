@@ -8,7 +8,7 @@ const SHARP_LETTERS = ["F", "C", "G", "D", "A", "E", "B"] as const;
 const FLAT_LETTERS = ["B", "E", "A", "D", "G", "C", "F"] as const;
 
 interface SequenceBuilderProps {
-  accidentalType: "sharps" | "flats";
+  correctType: "sharps" | "flats";
   correctCount: number;
   revealedCount?: number;
   prompt: string;
@@ -16,42 +16,68 @@ interface SequenceBuilderProps {
 }
 
 export function SequenceBuilder({
-  accidentalType,
+  correctType,
   correctCount,
   revealedCount = 0,
   prompt,
   onAnswer,
 }: SequenceBuilderProps) {
-  const letters = accidentalType === "sharps" ? SHARP_LETTERS : FLAT_LETTERS;
-  const symbol = accidentalType === "sharps" ? "#" : "b";
-
+  // If pills are pre-revealed, the type is implicit — commit to correct type
+  const initialType = revealedCount > 0 ? correctType : null;
+  const [selectedType, setSelectedType] = useState<"sharps" | "flats" | null>(
+    initialType,
+  );
   const [activatedCount, setActivatedCount] = useState(revealedCount);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
   const handlePillTap = useCallback(
-    (index: number) => {
+    (type: "sharps" | "flats", index: number) => {
       if (submitted) return;
-      // Can only activate the next pill in sequence
+      if (selectedType === null) {
+        // Must start from index 0
+        if (index !== 0) return;
+        setSelectedType(type);
+        setActivatedCount(1);
+        return;
+      }
+      // Locked to selected strip
+      if (type !== selectedType) return;
+      // Must be next in sequence
       if (index !== activatedCount) return;
       setActivatedCount((prev) => prev + 1);
     },
-    [submitted, activatedCount],
+    [submitted, selectedType, activatedCount],
   );
 
   const handleUndo = useCallback(() => {
     if (submitted) return;
-    if (activatedCount <= revealedCount) return;
-    setActivatedCount((prev) => prev - 1);
+    if (activatedCount > revealedCount) {
+      const next = activatedCount - 1;
+      setActivatedCount(next);
+      if (next === 0 && revealedCount === 0) {
+        setSelectedType(null);
+      }
+    }
   }, [submitted, activatedCount, revealedCount]);
 
   const handleDone = useCallback(() => {
     if (submitted) return;
-    const correct = activatedCount === correctCount;
+    const correct =
+      correctCount === 0
+        ? activatedCount === 0
+        : selectedType === correctType && activatedCount === correctCount;
     setIsCorrect(correct);
     setSubmitted(true);
     setTimeout(() => onAnswer(correct), correct ? 800 : 2000);
-  }, [submitted, activatedCount, correctCount, onAnswer]);
+  }, [
+    submitted,
+    selectedType,
+    correctType,
+    correctCount,
+    activatedCount,
+    onAnswer,
+  ]);
 
   const handleDontKnow = useCallback(() => {
     if (submitted) return;
@@ -59,34 +85,65 @@ export function SequenceBuilder({
     setTimeout(() => onAnswer(false), 2500);
   }, [submitted, onAnswer]);
 
-  return (
-    <div className="flex flex-col gap-4">
-      <p
-        className="text-center text-sm font-medium"
-        style={{ color: brand.ivory }}
-      >
-        {prompt}
-      </p>
+  const renderStrip = (type: "sharps" | "flats") => {
+    const letters = type === "sharps" ? SHARP_LETTERS : FLAT_LETTERS;
+    const symbol = type === "sharps" ? "#" : "b";
+    const isActiveStrip = selectedType === type;
+    const isLockedStrip = selectedType !== null && selectedType !== type;
+    const isCorrectStrip = submitted && type === correctType;
 
-      {/* Pill strip */}
+    return (
       <div
-        className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-3"
+        key={type}
+        className="flex items-center gap-1 rounded-xl px-2 py-2.5"
         style={{
           backgroundColor: brand.slate,
-          border: `1px solid ${brand.steel}`,
+          border: `1px solid ${
+            submitted && isCorrectStrip
+              ? brand.correct + "60"
+              : isActiveStrip
+                ? brand.violet + "60"
+                : isLockedStrip
+                  ? brand.graphite
+                  : brand.steel
+          }`,
+          opacity: isLockedStrip && !submitted ? 0.35 : 1,
+          transition: "opacity 0.2s, border-color 0.2s",
         }}
       >
+        <span
+          className="w-5 shrink-0 text-center text-sm font-bold"
+          style={{
+            color: isLockedStrip && !submitted ? brand.ash : brand.silver,
+            fontStyle: "italic",
+          }}
+        >
+          {symbol}
+        </span>
         {letters.map((letter, i) => {
-          const isRevealed = i < revealedCount;
-          const isActive = i < activatedCount;
-          const isNext = i === activatedCount && !submitted;
+          const isRevealedPill = type === correctType && i < revealedCount;
+          const isActivePill = isActiveStrip && i < activatedCount;
+          const isNextPill =
+            isActiveStrip && i === activatedCount && !submitted;
+          const canTap =
+            !submitted &&
+            !isLockedStrip &&
+            (selectedType === null
+              ? i === 0
+              : isActiveStrip && i === activatedCount);
 
-          // After submission: show correct answer
-          const isCorrectPosition = i < correctCount;
+          // Post-submission feedback
+          const isCorrectPill =
+            submitted && type === correctType && i < correctCount;
           const wasOverSelected =
-            submitted && !isCorrect && isActive && !isCorrectPosition;
+            submitted &&
+            isActivePill &&
+            !(type === correctType && i < correctCount);
           const wasMissed =
-            submitted && !isCorrect && !isActive && isCorrectPosition;
+            submitted &&
+            type === correctType &&
+            !isActivePill &&
+            i < correctCount;
 
           let bg: string;
           let borderColor: string;
@@ -102,25 +159,25 @@ export function SequenceBuilder({
               bg = brand.correct + "25";
               borderColor = brand.correct;
               textColor = brand.correct;
-            } else if (isActive && isCorrectPosition) {
-              bg = isCorrect ? brand.correct + "25" : brand.violet + "25";
-              borderColor = isCorrect ? brand.correct : brand.violet;
-              textColor = isCorrect ? brand.correct : brand.ivory;
+            } else if (isCorrectPill && isActivePill) {
+              bg = brand.correct + "25";
+              borderColor = brand.correct;
+              textColor = brand.correct;
             } else {
               bg = brand.graphite;
               borderColor = brand.steel;
               textColor = brand.ash;
             }
-          } else if (isRevealed) {
+          } else if (isRevealedPill) {
             bg = brand.violet + "20";
             borderColor = brand.violetDim;
             textColor = brand.violet;
-          } else if (isActive) {
+          } else if (isActivePill) {
             bg = brand.violet + "25";
             borderColor = brand.violet;
             textColor = brand.ivory;
             shadow = `0 0 10px ${brand.violet}60, 0 0 20px ${brand.violet}30`;
-          } else if (isNext) {
+          } else if (isNextPill) {
             bg = brand.graphite;
             borderColor = brand.ash;
             textColor = brand.silver;
@@ -132,17 +189,20 @@ export function SequenceBuilder({
 
           return (
             <button
-              key={letter}
-              onClick={() => handlePillTap(i)}
-              disabled={submitted || i !== activatedCount}
-              className="flex h-10 min-w-[44px] items-center justify-center rounded-lg px-2 text-sm font-semibold transition-all"
+              key={`${type}-${letter}`}
+              onClick={() => handlePillTap(type, i)}
+              disabled={submitted || !canTap}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold transition-all"
               style={{
                 backgroundColor: bg,
                 border: `1.5px solid ${borderColor}`,
                 color: textColor,
-                cursor: isNext ? "pointer" : "default",
+                cursor: canTap ? "pointer" : "default",
                 boxShadow: shadow,
-                opacity: !submitted && !isActive && !isNext ? 0.5 : 1,
+                opacity:
+                  !submitted && !isActivePill && !isNextPill && !isRevealedPill
+                    ? 0.5
+                    : 1,
               }}
             >
               {letter}
@@ -151,8 +211,23 @@ export function SequenceBuilder({
           );
         })}
       </div>
+    );
+  };
 
-      {/* Undo + Done row */}
+  return (
+    <div className="flex flex-col gap-4">
+      <p
+        className="text-center text-sm font-medium"
+        style={{ color: brand.ivory }}
+      >
+        {prompt}
+      </p>
+
+      <div className="flex flex-col gap-2">
+        {renderStrip("sharps")}
+        {renderStrip("flats")}
+      </div>
+
       {!submitted && (
         <div className="flex gap-2">
           <button
@@ -179,9 +254,9 @@ export function SequenceBuilder({
           </button>
         </div>
       )}
+
       <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
 
-      {/* Feedback message */}
       {submitted && (
         <p
           className="text-center text-sm font-medium"
@@ -189,7 +264,9 @@ export function SequenceBuilder({
         >
           {isCorrect
             ? "Correct"
-            : `${correctCount === 0 ? "No accidentals" : correctCount + " accidental" + (correctCount === 1 ? "" : "s")} in this key.`}
+            : correctCount === 0
+              ? "No accidentals in this key."
+              : `${correctCount} ${correctType} in this key.`}
         </p>
       )}
     </div>
