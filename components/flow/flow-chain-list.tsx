@@ -34,13 +34,20 @@ export function FlowChainList({ state }: FlowChainListProps) {
 
   return (
     <div className="mx-auto max-w-lg p-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="font-display text-2xl font-bold text-ivory">Flow</h1>
-        <p className="text-sm text-silver">
-          {state.hasChains
-            ? "All caught up. New material unlocks as you progress."
-            : "No chains available yet. Complete lessons to unlock chains."}
-        </p>
+      <div className="text-center space-y-4">
+        {state.hasChains && (
+          <div className="flex justify-center py-2">
+            <ConductorSpinner pattern="4/4" bpm={40} size={120} />
+          </div>
+        )}
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl font-bold text-ivory">Flow</h1>
+          <p className="text-sm text-silver">
+            {state.hasChains
+              ? "All caught up. New material unlocks as you progress."
+              : "No chains available yet. Complete lessons to unlock chains."}
+          </p>
+        </div>
       </div>
 
       {/* Start Flow button */}
