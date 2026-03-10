@@ -33,7 +33,6 @@ export function StaffAudioSelect({
   const [activeNoteIndex, setActiveNoteIndex] = useState<number | undefined>(
     undefined,
   );
-  const hasAutoPlayed = useRef(false);
   const engineRef = useRef<PlaybackEngine | null>(null);
   const rafRef = useRef<number | null>(null);
   const playStartRef = useRef<number>(0);
@@ -111,14 +110,6 @@ export function StaffAudioSelect({
     setPlaying(false);
     setPlaybackDone(true);
   }, [playing, audioConfig, getEngine, startHighlighting, stopHighlighting]);
-
-  // Auto-play on mount
-  useEffect(() => {
-    if (hasAutoPlayed.current) return;
-    hasAutoPlayed.current = true;
-    const timer = setTimeout(() => handlePlay(), 400);
-    return () => clearTimeout(timer);
-  }, [handlePlay]);
 
   // Cleanup
   useEffect(() => {

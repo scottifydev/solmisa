@@ -53,7 +53,6 @@ export function AudioSelect({
   useEffect(() => {
     setShuffledOptions(shuffleArray(options)); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const hasAutoPlayed = useRef(false);
   const engineRef = useRef<PlaybackEngine | null>(null);
 
   const getEngine = useCallback(() => {
@@ -77,14 +76,6 @@ export function AudioSelect({
     setPlaying(false);
     setPlaybackDone(true);
   }, [playing, audioConfig, getEngine]);
-
-  // Auto-play on mount
-  useEffect(() => {
-    if (hasAutoPlayed.current) return;
-    hasAutoPlayed.current = true;
-    const timer = setTimeout(() => handlePlay(), 400);
-    return () => clearTimeout(timer);
-  }, [handlePlay]);
 
   // Adaptive audiation pause after playback before showing options
   const pauseMs = srsStage ? getAudiationPauseMs(srsStage) : 1500;
