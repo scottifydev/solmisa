@@ -273,9 +273,19 @@ export function NavBar({
         <div className="px-5 py-4 border-t border-steel">
           <span
             className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
-            aria-label={`Streak: ${streak} days`}
+            aria-label={
+              hasActiveStreak ? `Streak: ${streak} days` : "No active streak"
+            }
           >
-            <span aria-hidden="true">🔥</span> {streak}d streak
+            {hasActiveStreak ? (
+              <>
+                <span aria-hidden="true">🔥</span> {streak}d streak
+              </>
+            ) : (
+              <span aria-hidden="true" title="Silence before the music starts">
+                𝄻
+              </span>
+            )}
           </span>
         </div>
       </nav>
@@ -289,9 +299,19 @@ export function NavBar({
         <div className="flex items-center gap-3">
           <span
             className={`font-mono text-sm ${hasActiveStreak ? "text-warning" : "text-silver"}`}
-            aria-label={`Streak: ${streak} days`}
+            aria-label={
+              hasActiveStreak ? `Streak: ${streak} days` : "No active streak"
+            }
           >
-            <span aria-hidden="true">🔥</span> {streak}
+            {hasActiveStreak ? (
+              <>
+                <span aria-hidden="true">🔥</span> {streak}
+              </>
+            ) : (
+              <span aria-hidden="true" title="Silence before the music starts">
+                𝄻
+              </span>
+            )}
           </span>
           <Link
             href="/settings"
