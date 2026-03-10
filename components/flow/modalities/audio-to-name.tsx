@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { brand } from "@/lib/tokens";
 import * as Tone from "tone";
 import { playScale } from "@/lib/audio/scale-player";
@@ -35,8 +35,6 @@ export function AudioToName({
   const [playbackDone, setPlaybackDone] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const hasAutoPlayed = useRef(false);
-
   const handlePlay = useCallback(async () => {
     if (playing) return;
     setPlaying(true);
@@ -56,15 +54,6 @@ export function AudioToName({
     setPlaying(false);
     setPlaybackDone(true);
   }, [playing, audioConfig]);
-
-  // Auto-play on mount
-  useEffect(() => {
-    if (hasAutoPlayed.current) return;
-    hasAutoPlayed.current = true;
-    // Small delay so user sees the UI before audio starts
-    const timer = setTimeout(() => handlePlay(), 400);
-    return () => clearTimeout(timer);
-  }, [handlePlay]);
 
   const handleSelect = (id: string) => {
     if (submitted) return;

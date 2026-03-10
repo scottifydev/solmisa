@@ -31,7 +31,6 @@ export function FeelingStateMatch({
   const [playbackDone, setPlaybackDone] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const hasAutoPlayed = useRef(false);
   const engineRef = useRef<PlaybackEngine | null>(null);
 
   const getEngine = useCallback(() => {
@@ -55,13 +54,6 @@ export function FeelingStateMatch({
     setPlaying(false);
     setPlaybackDone(true);
   }, [playing, audioConfig, getEngine]);
-
-  useEffect(() => {
-    if (hasAutoPlayed.current) return;
-    hasAutoPlayed.current = true;
-    const timer = setTimeout(() => handlePlay(), 400);
-    return () => clearTimeout(timer);
-  }, [handlePlay]);
 
   useEffect(() => {
     return () => {
