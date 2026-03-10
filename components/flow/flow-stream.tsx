@@ -268,10 +268,20 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
         />
       )}
 
+      {/* Conductor spinner — fixed bottom-right during presenting */}
+      {phase === "presenting" && (
+        <div className="fixed bottom-20 right-4 z-50">
+          <ConductorSpinner pattern="4/4" bpm={120} size={48} />
+        </div>
+      )}
+
       {/* Transitioning */}
       {phase === "transitioning" && (
         <div className="flex justify-center py-12">
-          <ConductorSpinner pattern="2/4" bpm={160} size={28} />
+          <div
+            className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"
+            style={{ borderColor: brand.steel, borderTopColor: "transparent" }}
+          />
         </div>
       )}
 
