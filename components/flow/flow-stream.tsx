@@ -8,6 +8,7 @@ import { FlowCard } from "./flow-card";
 import { FeedbackPanel } from "./feedback-panel";
 import { DynamicsIndicator } from "./dynamics-indicator";
 import { UnlockNotification } from "./unlock-notification";
+import { ConductorSpinner } from "@/components/ui/conductor-spinner";
 
 type StreamPhase = "presenting" | "feedback" | "transitioning" | "unlock";
 
@@ -219,7 +220,7 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
       {/* Transitioning */}
       {phase === "transitioning" && (
         <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet border-t-transparent" />
+          <ConductorSpinner pattern="2/4" bpm={160} size={28} />
         </div>
       )}
 
