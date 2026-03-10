@@ -48,7 +48,7 @@ const INTERVAL_SEMITONES: Record<IntervalName, number> = {
   P8: 12,
 };
 
-const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
+export const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
   major: [0, 4, 7],
   minor: [0, 3, 7],
   diminished: [0, 3, 6],

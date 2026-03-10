@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { brand } from "@/lib/tokens";
 import * as Tone from "tone";
 import type { AudioConfig } from "@/lib/audio/audio-config-types";
@@ -49,8 +49,10 @@ export function AudioSelect({
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const shuffledOptions = useMemo(() => shuffleArray(options), []);
+  const [shuffledOptions, setShuffledOptions] = useState(options);
+  useEffect(() => {
+    setShuffledOptions(shuffleArray(options)); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const hasAutoPlayed = useRef(false);
   const engineRef = useRef<PlaybackEngine | null>(null);
 
