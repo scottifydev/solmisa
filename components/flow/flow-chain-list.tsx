@@ -7,6 +7,7 @@ import type { FlowState } from "@/lib/chains/types";
 import type { ChainMapData } from "@/lib/actions/flow";
 import { getChainMapData } from "@/lib/actions/flow";
 import { ChainMap } from "./chain-map";
+import { ConductorSpinner } from "@/components/ui/conductor-spinner";
 
 interface FlowChainListProps {
   state: FlowState;
@@ -127,7 +128,7 @@ export function FlowChainList({ state }: FlowChainListProps) {
                   >
                     {loading ? (
                       <div className="flex justify-center py-6">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet border-t-transparent" />
+                        <ConductorSpinner pattern="4/4" bpm={80} size={48} />
                       </div>
                     ) : mapData ? (
                       <ChainMap chain={mapData.chain} links={mapData.links} />
