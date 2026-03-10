@@ -41,27 +41,15 @@ UPDATE card_templates SET parameters = parameters || jsonb_build_object(
 -- 2. Set modality_by_stage for Tier 0 topic chain links
 -- =============================================
 
--- Scale Degree Feeling: position 1 = binary_choice always, position 2+ = audio_select at apprentice, feeling_state_match at journeyman+
+-- Scale Degree Feeling: audio_select at all stages (binary_choice has no audio playback)
 UPDATE chain_links SET
-  modality_by_stage = '{"apprentice": "binary_choice"}'::JSONB
-WHERE position = 1
-  AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'scale_degree_feeling');
+  modality_by_stage = '{"apprentice": "audio_select", "journeyman": "audio_select", "adept": "audio_select"}'::JSONB
+WHERE chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'scale_degree_feeling');
 
+-- Chord Quality Ear ID: audio_select at all stages (binary_choice has no audio playback)
 UPDATE chain_links SET
-  modality_by_stage = '{"apprentice": "audio_select", "journeyman": "feeling_state_match", "adept": "feeling_state_match"}'::JSONB
-WHERE position >= 2
-  AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'scale_degree_feeling');
-
--- Chord Quality Ear ID: position 1 = binary_choice, position 2+ = audio_select
-UPDATE chain_links SET
-  modality_by_stage = '{"apprentice": "binary_choice"}'::JSONB
-WHERE position = 1
-  AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'chord_quality_ear_id');
-
-UPDATE chain_links SET
-  modality_by_stage = '{"apprentice": "audio_select"}'::JSONB
-WHERE position >= 2
-  AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'chord_quality_ear_id');
+  modality_by_stage = '{"apprentice": "audio_select", "journeyman": "audio_select", "adept": "audio_select"}'::JSONB
+WHERE chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'chord_quality_ear_id');
 
 -- Note Reading: staff_note_display at ALL stages (can't "name this note" without seeing it)
 UPDATE chain_links SET
@@ -176,3 +164,49 @@ UPDATE chain_links SET
   modality_by_stage = '{"apprentice": "select_one", "journeyman": "sequence_builder", "adept": "sequence_builder"}'::JSONB
 WHERE position = 2
   AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'key_signatures');
+
+-- =============================================
+-- 4. SCO-385: Strip "-type" suffix from chord quality L1 labels
+-- =============================================
+
+-- Update card_templates: "Major-type" → "Major", "Minor-type" → "Minor"
+UPDATE card_templates SET parameters = jsonb_set(
+  parameters,
+  '{options_data}',
+  (
+    SELECT jsonb_agg(
+      CASE
+        WHEN elem->>'label' = 'Major-type' THEN jsonb_set(elem, '{label}', '"Major"')
+        WHEN elem->>'label' = 'Minor-type' THEN jsonb_set(elem, '{label}', '"Minor"')
+        ELSE elem
+      END
+      ORDER BY ordinality
+    )
+    FROM jsonb_array_elements(parameters->'options_data') WITH ORDINALITY AS t(elem, ordinality)
+  )
+) WHERE slug LIKE 'flow_chord_quality_%_l1'
+  AND parameters->'options_data' @> '[{"label":"Major-type"}]'::JSONB;
+
+UPDATE card_templates SET parameters = jsonb_set(
+  parameters,
+  '{options_data}',
+  (
+    SELECT jsonb_agg(
+      CASE
+        WHEN elem->>'label' = 'Major-type' THEN jsonb_set(elem, '{label}', '"Major"')
+        WHEN elem->>'label' = 'Minor-type' THEN jsonb_set(elem, '{label}', '"Minor"')
+        ELSE elem
+      END
+      ORDER BY ordinality
+    )
+    FROM jsonb_array_elements(parameters->'options_data') WITH ORDINALITY AS t(elem, ordinality)
+  )
+) WHERE slug LIKE 'flow_chord_quality_%_l1'
+  AND parameters->'options_data' @> '[{"label":"Minor-type"}]'::JSONB;
+
+-- Sync card_instances with updated templates
+UPDATE card_instances ci SET
+  options_data = ct.parameters->'options_data'
+FROM card_templates ct
+WHERE ci.template_id = ct.id
+  AND ct.slug LIKE 'flow_chord_quality_%_l1';
