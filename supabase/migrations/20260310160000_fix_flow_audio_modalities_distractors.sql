@@ -63,9 +63,9 @@ UPDATE chain_links SET
 WHERE position >= 2
   AND chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'chord_quality_ear_id');
 
--- Note Reading: position 1-2 = select_one at apprentice, staff_note_display at journeyman+
+-- Note Reading: staff_note_display at ALL stages (can't "name this note" without seeing it)
 UPDATE chain_links SET
-  modality_by_stage = '{"apprentice": "select_one", "journeyman": "staff_note_display", "adept": "staff_note_display"}'::JSONB
+  modality_by_stage = '{"apprentice": "staff_note_display", "journeyman": "staff_note_display", "adept": "staff_note_display"}'::JSONB
 WHERE chain_id IN (SELECT id FROM chain_definitions WHERE topic = 'note_reading');
 
 -- Rhythm: select_one at apprentice (rhythm_display would be ideal but select_one is safe default)
