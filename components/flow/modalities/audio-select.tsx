@@ -44,6 +44,7 @@ export function AudioSelect({
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const shuffledOptions = useMemo(() => shuffleArray(options), []);
   const hasAutoPlayed = useRef(false);
@@ -108,6 +109,13 @@ export function AudioSelect({
     const correct = selected === correctAnswer;
     setSubmitted(true);
     setTimeout(() => onAnswer(correct), correct ? 800 : 2000);
+  };
+
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setRevealed(true);
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
   };
 
   return (
@@ -240,19 +248,37 @@ export function AudioSelect({
         </div>
       )}
 
-      {/* Check button */}
+      {/* Check button + I don't know */}
       {optionsVisible && !submitted && (
-        <button
-          onClick={handleCheck}
-          disabled={!selected}
-          className="mt-2 w-full rounded-xl py-3 text-sm font-semibold transition-colors disabled:opacity-40"
-          style={{
-            backgroundColor: brand.violet,
-            color: brand.night,
-          }}
-        >
-          Check
-        </button>
+        <div className="flex flex-col items-center gap-2">
+          <button
+            onClick={handleCheck}
+            disabled={!selected}
+            className="mt-2 w-full rounded-xl py-3 text-sm font-semibold transition-colors disabled:opacity-40"
+            style={{
+              backgroundColor: brand.violet,
+              color: brand.night,
+            }}
+          >
+            Check
+          </button>
+          <button
+            onClick={handleDontKnow}
+            className="text-xs transition-opacity hover:opacity-80"
+            style={{ color: brand.ash }}
+          >
+            I don&apos;t know yet
+          </button>
+        </div>
+      )}
+
+      {revealed && (
+        <p className="text-center text-xs" style={{ color: brand.silver }}>
+          The answer is{" "}
+          <span style={{ color: brand.correct, fontWeight: 600 }}>
+            {options.find((o) => o.id === correctAnswer)?.label}
+          </span>
+        </p>
       )}
     </div>
   );
