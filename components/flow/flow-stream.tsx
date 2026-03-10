@@ -9,8 +9,14 @@ import { FeedbackPanel } from "./feedback-panel";
 import { DynamicsIndicator } from "./dynamics-indicator";
 import { UnlockNotification } from "./unlock-notification";
 import { ConductorSpinner } from "@/components/ui/conductor-spinner";
+import { IntroScreen, getTopicIntro } from "./intro-screen";
 
-type StreamPhase = "presenting" | "feedback" | "transitioning" | "unlock";
+type StreamPhase =
+  | "intro"
+  | "presenting"
+  | "feedback"
+  | "transitioning"
+  | "unlock";
 
 interface FlowStreamProps {
   initialCard: FlowStreamCard;
@@ -19,10 +25,28 @@ interface FlowStreamProps {
 
 export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
   const [card, setCard] = useState<FlowStreamCard>(initialCard);
-  const [phase, setPhase] = useState<StreamPhase>("presenting");
+  const [phase, setPhase] = useState<StreamPhase>(() => {
+    // Show intro for the very first card if it's new and link 1
+    if (
+      initialCard.isNew &&
+      initialCard.linkPosition === 1 &&
+      getTopicIntro(initialCard.chainSlug)
+    ) {
+      return "intro";
+    }
+    return "presenting";
+  });
   const [pendingUnlock, setPendingUnlock] = useState<UnlockResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
+  const introducedTopicsRef = useRef<Set<string>>(
+    new Set(
+      // If initial card shows intro, mark its topic as introduced
+      initialCard.isNew && initialCard.linkPosition === 1
+        ? [initialCard.chainSlug.split("_")[0]!]
+        : [],
+    ),
+  );
 
   const [missCountMap, setMissCountMap] = useState<Map<string, number>>(
     new Map(),
@@ -64,7 +88,20 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
           ...recentCardIdsRef.current,
         ].slice(0, 5);
         setCard(next);
-        setPhase("presenting");
+
+        // Show intro for first encounter of a new topic (link 1 only)
+        const topicPrefix = next.chainSlug.split("_")[0]!;
+        if (
+          next.isNew &&
+          next.linkPosition === 1 &&
+          !introducedTopicsRef.current.has(topicPrefix) &&
+          getTopicIntro(next.chainSlug)
+        ) {
+          introducedTopicsRef.current.add(topicPrefix);
+          setPhase("intro");
+        } else {
+          setPhase("presenting");
+        }
       } else {
         setError("All caught up. No more cards due right now.");
       }
@@ -187,8 +224,21 @@ export function FlowStream({ initialCard, focusChain }: FlowStreamProps) {
     );
   }
 
+  const topicIntro = getTopicIntro(card.chainSlug);
+
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
+      {/* Intro screen for first-encounter topics */}
+      {phase === "intro" && topicIntro && (
+        <IntroScreen
+          topicName={topicIntro.topicName}
+          concept={topicIntro.concept}
+          explanation={topicIntro.concept}
+          example={topicIntro.example}
+          onReady={() => setPhase("presenting")}
+        />
+      )}
+
       {/* Card content wrapped with dynamics */}
       {(phase === "presenting" || phase === "feedback") && (
         <DynamicsIndicator
