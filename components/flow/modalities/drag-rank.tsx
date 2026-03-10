@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { brand } from "@/lib/tokens";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 interface DragRankItem {
   id: string;
@@ -159,6 +160,12 @@ export function DragRank({
     setTimeout(() => onAnswer(allCorrect), allCorrect ? 800 : 2500);
   };
 
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <p
@@ -271,6 +278,7 @@ export function DragRank({
           Check Order
         </button>
       )}
+      <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
     </div>
   );
 }

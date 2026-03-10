@@ -6,6 +6,7 @@ import { stageToGroup } from "@/lib/srs/stages";
 
 interface LinkWithState {
   chainSlug: string;
+  chainTopic: string;
   chainName: string;
   chainRootKey: string;
   totalLinks: number;
@@ -30,6 +31,7 @@ export async function getNextStreamCard(
   focusChainSlug?: string | null,
   recentCardIds?: string[],
   lastChainSlug?: string | null,
+  lastTopicSlug?: string | null,
 ): Promise<FlowStreamCard | null> {
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -38,7 +40,7 @@ export async function getNextStreamCard(
   let progressQuery = supabase
     .from("user_chain_progress")
     .select(
-      "chain_id, highest_unlocked_position, chain_definitions!inner(id, slug, name, root_key, total_links)",
+      "chain_id, highest_unlocked_position, chain_definitions!inner(id, slug, name, root_key, total_links, topic)",
     )
     .eq("user_id", userId)
     .eq("is_active", true);
@@ -99,6 +101,7 @@ export async function getNextStreamCard(
 
       allLinks.push({
         chainSlug: chain.slug,
+        chainTopic: chain.topic ?? "",
         chainName: chain.name,
         chainRootKey: chain.root_key,
         totalLinks: chain.total_links,
@@ -157,7 +160,19 @@ export async function getNextStreamCard(
   // 5. Deprioritize recently-shown cards and same-chain cards for variety
   const recentSet = new Set(recentCardIds ?? []);
   const deprioritize = (cards: LinkWithState[]) => {
-    if (recentSet.size === 0 && !lastChainSlug) return cards;
+    if (recentSet.size === 0 && !lastChainSlug && !lastTopicSlug) return cards;
+    // Prefer different topic first
+    if (lastTopicSlug) {
+      const diffTopicFresh = cards.filter(
+        (c) =>
+          c.chainTopic !== lastTopicSlug &&
+          c.cardInstanceId &&
+          !recentSet.has(c.cardInstanceId),
+      );
+      if (diffTopicFresh.length > 0) return diffTopicFresh;
+      const diffTopic = cards.filter((c) => c.chainTopic !== lastTopicSlug);
+      if (diffTopic.length > 0) return diffTopic;
+    }
     // First prefer: different chain AND not recently shown
     if (lastChainSlug) {
       const diffChainFresh = cards.filter(
@@ -229,6 +244,7 @@ export async function getNextStreamCard(
     parameters,
     feedback: selected.feedback,
     chainSlug: selected.chainSlug,
+    chainTopic: selected.chainTopic ?? "",
     chainName: selected.chainName,
     chainRootKey: selected.chainRootKey,
     linkPosition: selected.linkPosition,

@@ -195,6 +195,7 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           correctAnswer={correctAnswer}
           prompt={promptRendered}
           onAnswer={onAnswer}
+          srsStage={card.srsStage}
         />
       );
 
@@ -216,6 +217,7 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
           correctAnswer={correctAnswer}
           prompt={promptRendered}
           onAnswer={onAnswer}
+          srsStage={card.srsStage}
         />
       );
 

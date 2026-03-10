@@ -6,6 +6,7 @@ import * as Tone from "tone";
 import type { AudioConfig } from "@/lib/audio/audio-config-types";
 import { playAudioConfig } from "@/lib/audio/flow-audio-pipeline";
 import { PlaybackEngine } from "@/lib/audio/playback";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 interface FeelingOption {
   id: string;
@@ -75,6 +76,12 @@ export function FeelingStateMatch({
     setSubmitted(true);
     const correct = id === correctAnswer;
     setTimeout(() => onAnswer(correct), correct ? 800 : 2000);
+  };
+
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
   };
 
   return (
@@ -179,6 +186,7 @@ export function FeelingStateMatch({
               </button>
             );
           })}
+          <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ export interface FlowStreamCard {
   parameters: Record<string, unknown>;
   feedback: Record<string, unknown>;
   chainSlug: string;
+  chainTopic: string;
   chainName: string;
   chainRootKey: string;
   linkPosition: number;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { brand } from "@/lib/tokens";
 import { KeySignatureDisplay } from "@/components/notation/key-signature-display";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 interface StaffToNameProps {
   keySignature: string;
@@ -26,6 +27,12 @@ export function StaffToName({
     setSubmitted(true);
     const correct = id === correctAnswer;
     setTimeout(() => onAnswer(correct), correct ? 800 : 1500);
+  };
+
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
   };
 
   return (
@@ -79,6 +86,7 @@ export function StaffToName({
           );
         })}
       </div>
+      <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
     </div>
   );
 }

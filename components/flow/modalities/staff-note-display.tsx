@@ -4,6 +4,7 @@ import { useState } from "react";
 import { brand } from "@/lib/tokens";
 import { NotationView } from "@/components/notation/notation-view";
 import type { NotationData } from "@/lib/notation/types";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 interface StaffNoteDisplayProps {
   clef: "treble" | "bass";
@@ -62,6 +63,12 @@ export function StaffNoteDisplay({
     setTimeout(() => onAnswer(correct), correct ? 800 : 1500);
   };
 
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
+  };
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="w-full max-w-[300px]">
@@ -111,6 +118,7 @@ export function StaffNoteDisplay({
           );
         })}
       </div>
+      <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { brand } from "@/lib/tokens";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 interface BinaryChoiceProps {
   prompt: string;
@@ -27,6 +28,12 @@ export function BinaryChoice({
     setSubmitted(true);
     const correct = id === correctAnswer;
     setTimeout(() => onAnswer(correct), correct ? 800 : 1500);
+  };
+
+  const handleDontKnow = () => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
   };
 
   const renderButton = (option: { id: string; label: string }) => {
@@ -79,6 +86,7 @@ export function BinaryChoice({
         {renderButton(optionA)}
         {renderButton(optionB)}
       </div>
+      <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
     </div>
   );
 }

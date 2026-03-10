@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { brand } from "@/lib/tokens";
+import { IDontKnowButton } from "./i-dont-know-button";
 
 const SHARP_LETTERS = ["F", "C", "G", "D", "A", "E", "B"] as const;
 const FLAT_LETTERS = ["B", "E", "A", "D", "G", "C", "F"] as const;
@@ -51,6 +52,12 @@ export function SequenceBuilder({
     setSubmitted(true);
     setTimeout(() => onAnswer(correct), correct ? 800 : 2000);
   }, [submitted, activatedCount, correctCount, onAnswer]);
+
+  const handleDontKnow = useCallback(() => {
+    if (submitted) return;
+    setSubmitted(true);
+    setTimeout(() => onAnswer(false), 2500);
+  }, [submitted, onAnswer]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -172,6 +179,7 @@ export function SequenceBuilder({
           </button>
         </div>
       )}
+      <IDontKnowButton onDontKnow={handleDontKnow} visible={!submitted} />
 
       {/* Feedback message */}
       {submitted && (
