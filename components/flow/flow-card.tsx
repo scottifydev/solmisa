@@ -465,7 +465,7 @@ export function FlowCard({ card, onAnswer }: FlowCardProps) {
     case "sequence_builder":
       return (
         <SequenceBuilder
-          accidentalType={
+          correctType={
             (parameters.accidental_type as "sharps" | "flats") ?? "sharps"
           }
           correctCount={(answerData.correct_count as number) ?? 0}
