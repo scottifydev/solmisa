@@ -17,16 +17,9 @@ export default async function FlowPage() {
 
   if (!user) redirect("/login");
 
-  // Check if user has any chain progress
-  const { count } = await supabase
-    .from("user_chain_progress")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  if (count === 0) {
-    // First visit — activate cold-start chains
-    await activateStarterChains(user.id);
-  }
+  // Activate any cold-start chains not yet in user_chain_progress.
+  // Runs every visit but is idempotent — skips already-active chains.
+  await activateStarterChains(user.id);
 
   const flowState = await getFlowState();
 
