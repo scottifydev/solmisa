@@ -24,20 +24,36 @@ const KEYS: KeyData[] = [
   { name: "E♭", positions: [0, 1, 2, 3, 4, 5, 6], sharps: 0, flats: 3 },
 ];
 
-function randomMode(): { modeName: string; alts: number[]; keyData: KeyData } {
+function randomMode(
+  modeFilter?: string,
+  keyFilter?: string,
+): { modeName: string; alts: number[]; keyData: KeyData } {
+  const modePool =
+    modeFilter && modeFilter !== "all" && MODES[modeFilter]
+      ? [modeFilter]
+      : MODE_NAMES;
+  const keyPool =
+    keyFilter && keyFilter !== "all"
+      ? KEYS.filter((k) => k.name === keyFilter)
+      : KEYS;
   const modeName =
-    MODE_NAMES[Math.floor(Math.random() * MODE_NAMES.length)] ?? "Dorian";
+    modePool[Math.floor(Math.random() * modePool.length)] ?? "Dorian";
   const alts = MODES[modeName]!.alts;
-  const keyData = KEYS[Math.floor(Math.random() * KEYS.length)]!;
+  const keyData =
+    keyPool[Math.floor(Math.random() * keyPool.length)] ?? KEYS[0]!;
   return { modeName, alts, keyData };
 }
 
 interface BuildModeProps {
   onAnswer: (correct: boolean) => void;
+  modeType?: string;
+  modeKey?: string;
 }
 
-export function BuildMode({ onAnswer }: BuildModeProps) {
-  const [{ modeName, alts, keyData }] = useState(randomMode);
+export function BuildMode({ onAnswer, modeType, modeKey }: BuildModeProps) {
+  const [{ modeName, alts, keyData }] = useState(() =>
+    randomMode(modeType, modeKey),
+  );
   const [answered, setAnswered] = useState(false);
 
   function handleComplete(correct: boolean) {

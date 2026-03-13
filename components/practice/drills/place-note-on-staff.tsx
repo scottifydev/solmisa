@@ -6,7 +6,11 @@ import {
   TREBLE_POSITIONS,
 } from "../inputs/staff-interactive";
 
-const NOTE_POOL = Object.values(TREBLE_POSITIONS);
+// positions -2..5 = C4..C5, -2..8 = C4..F5
+const POOL_BEGINNER = [-2, -1, 0, 1, 2, 3, 4, 5].map(
+  (p) => TREBLE_POSITIONS[p]!,
+);
+const POOL_ADVANCED = Object.values(TREBLE_POSITIONS);
 
 function randomNote(pool: string[]): string {
   return pool[Math.floor(Math.random() * pool.length)] ?? "C4";
@@ -14,10 +18,15 @@ function randomNote(pool: string[]): string {
 
 interface PlaceNoteOnStaffProps {
   onAnswer: (correct: boolean) => void;
+  range?: "beginner" | "advanced";
 }
 
-export function PlaceNoteOnStaff({ onAnswer }: PlaceNoteOnStaffProps) {
-  const [targetNote] = useState(() => randomNote(NOTE_POOL));
+export function PlaceNoteOnStaff({
+  onAnswer,
+  range = "beginner",
+}: PlaceNoteOnStaffProps) {
+  const pool = range === "advanced" ? POOL_ADVANCED : POOL_BEGINNER;
+  const [targetNote] = useState(() => randomNote(pool));
 
   return (
     <div

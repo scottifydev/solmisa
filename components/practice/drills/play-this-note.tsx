@@ -33,7 +33,28 @@ async function playNote(note: string) {
 }
 
 // ── Note data ──────────────────────────────────────────────────────────────
-const TREBLE_NOTES: string[] = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
+const NOTES_BEGINNER: string[] = [
+  "C4",
+  "D4",
+  "E4",
+  "F4",
+  "G4",
+  "A4",
+  "B4",
+  "C5",
+];
+const NOTES_ADVANCED: string[] = [
+  "C4",
+  "D4",
+  "E4",
+  "F4",
+  "G4",
+  "A4",
+  "B4",
+  "C5",
+  "D5",
+  "E5",
+];
 
 function noteToKey(note: string): NoteKey {
   return note.replace(/\d/, "") as NoteKey;
@@ -106,10 +127,15 @@ async function renderNoteStaff(
 // ── Component ──────────────────────────────────────────────────────────────
 interface PlayThisNoteProps {
   onAnswer: (correct: boolean) => void;
+  range?: "beginner" | "advanced";
 }
 
-export function PlayThisNote({ onAnswer }: PlayThisNoteProps) {
-  const [targetNote] = useState(() => randomNote(TREBLE_NOTES));
+export function PlayThisNote({
+  onAnswer,
+  range = "beginner",
+}: PlayThisNoteProps) {
+  const pool = range === "advanced" ? NOTES_ADVANCED : NOTES_BEGINNER;
+  const [targetNote] = useState(() => randomNote(pool));
   const [keyStates, setKeyStates] = useState<
     Partial<Record<NoteKey, "default" | "correct" | "incorrect" | "hint">>
   >({});
