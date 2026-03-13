@@ -14,12 +14,19 @@ type DrillId = (typeof DRILLS)[number]["id"];
 const MODES = [
   { id: "major", label: "Major" },
   { id: "minor", label: "Minor" },
+  { id: "both", label: "Both" },
 ] as const;
 type ModeId = (typeof MODES)[number]["id"];
+
+function resolveMode(m: ModeId): "major" | "minor" {
+  if (m === "both") return Math.random() < 0.5 ? "major" : "minor";
+  return m;
+}
 
 export function KeysDrillClient() {
   const [activeDrill, setActiveDrill] = useState<DrillId>("identify");
   const [activeMode, setActiveMode] = useState<ModeId>("major");
+  const [resolvedMode, setResolvedMode] = useState<"major" | "minor">("major");
   const [roundKey, setRoundKey] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
@@ -31,6 +38,7 @@ export function KeysDrillClient() {
     setCorrect(0);
     setTotal(0);
     setAnswered(false);
+    setResolvedMode(resolveMode(activeMode));
   }
 
   function switchMode(id: ModeId) {
@@ -39,11 +47,13 @@ export function KeysDrillClient() {
     setCorrect(0);
     setTotal(0);
     setAnswered(false);
+    setResolvedMode(resolveMode(id));
   }
 
   function advance() {
     setRoundKey((k) => k + 1);
     setAnswered(false);
+    setResolvedMode(resolveMode(activeMode));
   }
 
   function handleAnswer(isCorrect: boolean) {
@@ -77,7 +87,7 @@ export function KeysDrillClient() {
         ))}
       </div>
 
-      {/* Major/Minor toggle */}
+      {/* Major/Minor/Both toggle */}
       <div className="flex gap-2 self-stretch">
         {MODES.map((m) => (
           <button
@@ -118,14 +128,14 @@ export function KeysDrillClient() {
         {activeDrill === "identify" && (
           <IdentifyKey
             key={roundKey}
-            mode={activeMode}
+            mode={resolvedMode}
             onAnswer={handleAnswer}
           />
         )}
         {activeDrill === "write" && (
           <WriteKeySig
             key={roundKey}
-            mode={activeMode}
+            mode={resolvedMode}
             onAnswer={handleAnswer}
           />
         )}

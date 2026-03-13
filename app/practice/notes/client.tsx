@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DrillWrapper } from "@/components/practice/drill-wrapper";
 import { PlayThisNote } from "@/components/practice/drills/play-this-note";
 import { PlaceNoteOnStaff } from "@/components/practice/drills/place-note-on-staff";
 
@@ -12,8 +11,19 @@ const DRILLS = [
 
 type DrillId = (typeof DRILLS)[number]["id"];
 
+const KEY_OPTIONS = ["C", "G", "D", "F", "B♭", "E♭"] as const;
+type KeyOption = (typeof KEY_OPTIONS)[number];
+
+const RANGES = [
+  { id: "beginner", label: "C4–C5" },
+  { id: "advanced", label: "C4–E5" },
+] as const;
+type RangeId = (typeof RANGES)[number]["id"];
+
 export function NotesDrillClient() {
   const [activeDrill, setActiveDrill] = useState<DrillId>("play");
+  const [activeKey, setActiveKey] = useState<KeyOption>("C");
+  const [activeRange, setActiveRange] = useState<RangeId>("beginner");
   const [roundKey, setRoundKey] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
@@ -21,12 +31,26 @@ export function NotesDrillClient() {
 
   const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;
 
-  function switchDrill(id: DrillId) {
-    setActiveDrill(id);
+  function resetRound() {
     setRoundKey((k) => k + 1);
     setCorrect(0);
     setTotal(0);
     setAnswered(false);
+  }
+
+  function switchDrill(id: DrillId) {
+    setActiveDrill(id);
+    resetRound();
+  }
+
+  function switchKey(k: KeyOption) {
+    setActiveKey(k);
+    resetRound();
+  }
+
+  function switchRange(r: RangeId) {
+    setActiveRange(r);
+    resetRound();
   }
 
   function advance() {
@@ -42,8 +66,13 @@ export function NotesDrillClient() {
     setTimeout(advance, delay);
   }
 
+  const pillBase =
+    "py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer";
+  const pillActive = "border-violet/40 text-violet bg-violet/5";
+  const pillInactive = "border-steel text-ash";
+
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-5">
+    <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-4">
       {/* Drill type tabs */}
       <div className="flex gap-2 self-stretch">
         {DRILLS.map((drill) => (
@@ -64,6 +93,35 @@ export function NotesDrillClient() {
         ))}
       </div>
 
+      {/* Settings row */}
+      <div className="self-stretch flex flex-wrap gap-3 items-center">
+        {/* Key pills */}
+        <div className="flex gap-1 flex-wrap">
+          {KEY_OPTIONS.map((k) => (
+            <button
+              key={k}
+              onClick={() => switchKey(k)}
+              className={`${pillBase} ${activeKey === k ? pillActive : pillInactive}`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+
+        {/* Range toggle */}
+        <div className="flex gap-1 ml-auto">
+          {RANGES.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => switchRange(r.id)}
+              className={`${pillBase} ${activeRange === r.id ? pillActive : pillInactive}`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Streak */}
       <div className="self-end font-mono text-[13px] text-silver">
         {total > 0 ? `${correct}/${total}` : "\u00a0"}
@@ -81,10 +139,18 @@ export function NotesDrillClient() {
         </div>
 
         {activeDrill === "play" && (
-          <PlayThisNote key={roundKey} onAnswer={handleAnswer} />
+          <PlayThisNote
+            key={roundKey}
+            range={activeRange}
+            onAnswer={handleAnswer}
+          />
         )}
         {activeDrill === "place" && (
-          <PlaceNoteOnStaff key={roundKey} onAnswer={handleAnswer} />
+          <PlaceNoteOnStaff
+            key={roundKey}
+            range={activeRange}
+            onAnswer={handleAnswer}
+          />
         )}
       </div>
 

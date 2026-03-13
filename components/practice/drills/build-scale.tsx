@@ -26,24 +26,25 @@ const SCALES: Record<
 
 const SCALE_NAMES = Object.keys(SCALES);
 
-function randomScale(): {
+function randomScale(filter?: string): {
   name: string;
   asc: (number | null)[];
   desc: (number | null)[] | null;
 } {
-  const name =
-    SCALE_NAMES[Math.floor(Math.random() * SCALE_NAMES.length)] ??
-    "Natural Minor";
+  const pool =
+    filter && filter !== "all" && SCALES[filter] ? [filter] : SCALE_NAMES;
+  const name = pool[Math.floor(Math.random() * pool.length)] ?? "Natural Minor";
   const scale = SCALES[name]!;
   return { name, ...scale };
 }
 
 interface BuildScaleProps {
   onAnswer: (correct: boolean) => void;
+  scaleType?: string;
 }
 
-export function BuildScale({ onAnswer }: BuildScaleProps) {
-  const [scale] = useState(randomScale);
+export function BuildScale({ onAnswer, scaleType }: BuildScaleProps) {
+  const [scale] = useState(() => randomScale(scaleType));
   const [answered, setAnswered] = useState(false);
 
   function handleComplete(correct: boolean) {
