@@ -40,7 +40,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/reset-password");
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth/callback");
   const publicPaths = ["/"];
-  const isPublicPage = publicPaths.includes(request.nextUrl.pathname);
+  const isPublicPage =
+    publicPaths.includes(request.nextUrl.pathname) ||
+    request.nextUrl.pathname.startsWith("/practice");
   const isOnboarding = request.nextUrl.pathname === "/onboarding";
 
   if (!user && !isAuthPage && !isAuthCallback && !isPublicPage) {
