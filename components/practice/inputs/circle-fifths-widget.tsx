@@ -615,40 +615,37 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
 
     if (isLabeled) {
       const d = Math.min(pos, 12 - pos);
-      const op = 1 - d * 0.025;
+      const op = 1 - d * 0.015;
       if (ring === "major")
         return {
-          fill: "rgba(20,16,32,1)",
-          stroke: "rgba(80,65,120,0.3)",
-          sw: 0.5,
+          fill: "rgba(35,28,55,1)",
+          stroke: "rgba(80,65,120,0.5)",
+          sw: 1,
           op,
         };
       return {
-        fill: "rgba(14,16,30,1)",
-        stroke: "rgba(55,65,115,0.3)",
-        sw: 0.5,
+        fill: "rgba(25,28,50,1)",
+        stroke: "rgba(55,65,115,0.5)",
+        sw: 1,
         op,
       };
     }
     if (isLandmark)
       return {
-        fill: "rgba(22,18,38,1)",
-        stroke: "rgba(80,65,120,0.5)",
-        sw: 0.8,
-        op: 0.85,
+        fill: "rgba(40,32,62,1)",
+        stroke: "rgba(100,80,150,0.6)",
+        sw: 1,
       };
     if (ring === "major")
       return {
-        fill: "rgba(18,15,32,1)",
-        stroke: "rgba(60,50,90,0.4)",
-        sw: 0.5,
-        op: 0.75,
+        fill: "rgba(30,24,50,1)",
+        stroke: "rgba(80,65,120,0.5)",
+        sw: 0.8,
       };
     return {
-      fill: "rgba(14,16,30,1)",
-      stroke: "rgba(50,55,90,0.35)",
-      sw: 0.5,
-      op: 0.75,
+      fill: "rgba(22,24,45,1)",
+      stroke: "rgba(65,70,115,0.45)",
+      sw: 0.8,
     };
   }
 
