@@ -37,13 +37,13 @@ export function StaffNoteDragger({
 
   // Layout
   const sp = isMode ? 16 : 14;
-  const W = isMode ? 380 : 360;
+  const W = isMode ? 400 : 400;
   const rowH = 160;
   const staffTopBase = isMode ? 30 : 20;
   const H = hasTwoRows ? rowH * 2 + 30 : rowH + 20;
   const keySigCount = isMode ? keyData.sharps || keyData.flats : 0;
-  const clefWidth = 42;
-  const noteStartX = clefWidth + 8 + keySigCount * 14;
+  const clefWidth = 60;
+  const noteStartX = clefWidth + 10 + keySigCount * 14;
   const noteSpacing = isMode
     ? Math.min(36, (W - noteStartX - 20) / noteCount)
     : Math.min(34, (W - noteStartX - 16) / noteCount);
