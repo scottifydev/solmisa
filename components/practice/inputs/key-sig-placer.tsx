@@ -43,7 +43,7 @@ async function renderKeySigStaff(
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.style.width = "100%";
   svg.style.height = "auto";
-  svg.style.filter = "drop-shadow(0 0 3px rgba(139,92,246,0.2))";
+  svg.style.filter = "drop-shadow(0 0 3px rgba(237,233,254,0.2))";
 
   const yLine0 = stave.getYForLine(0);
   const yLine4 = stave.getYForLine(4);
