@@ -26,6 +26,7 @@ const SCALES: Record<
 
 const SCALE_NAMES = Object.keys(SCALES);
 
+let lastScaleName: string | undefined;
 function randomScale(filter?: string): {
   name: string;
   asc: (number | null)[];
@@ -33,9 +34,16 @@ function randomScale(filter?: string): {
 } {
   const pool =
     filter && filter !== "all" && SCALES[filter] ? [filter] : SCALE_NAMES;
+  for (let i = 0; i < 3; i++) {
+    const name = pool[Math.floor(Math.random() * pool.length)] ?? "Natural Minor";
+    if (name !== lastScaleName || pool.length <= 1) {
+      lastScaleName = name;
+      return { name, ...SCALES[name]! };
+    }
+  }
   const name = pool[Math.floor(Math.random() * pool.length)] ?? "Natural Minor";
-  const scale = SCALES[name]!;
-  return { name, ...scale };
+  lastScaleName = name;
+  return { name, ...SCALES[name]! };
 }
 
 interface BuildScaleProps {

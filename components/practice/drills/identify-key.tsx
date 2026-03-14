@@ -99,8 +99,18 @@ async function renderKeySig(
   }
 }
 
+let lastKeySigId: string | undefined;
 function randomKeySig() {
-  return KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  for (let i = 0; i < 3; i++) {
+    const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+    if (ks.id !== lastKeySigId || KEY_SIGS.length <= 1) {
+      lastKeySigId = ks.id;
+      return ks;
+    }
+  }
+  const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  lastKeySigId = ks.id;
+  return ks;
 }
 
 interface IdentifyKeyProps {
