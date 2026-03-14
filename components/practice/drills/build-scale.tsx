@@ -61,8 +61,8 @@ const SCALE_INTERVALS: Record<
 
 const SCALE_NAMES = Object.keys(SCALE_INTERVALS);
 
-// Tonics that work for Whole Tone without needing double sharps/flats
-const WHOLE_TONE_TONICS = ["C", "D", "F", "G"];
+// Only two distinct whole tone scales exist — one per tonic
+const WHOLE_TONE_TONICS = ["C", "F"];
 
 /**
  * Compute the accidental array for a given tonic and interval pattern.
