@@ -45,8 +45,8 @@ export function StaffNoteDragger({
   const clefWidth = 60;
   const noteStartX = clefWidth + 10 + keySigCount * 14;
   const noteSpacing = isMode
-    ? Math.min(36, (W - noteStartX - 20) / noteCount)
-    : Math.min(34, (W - noteStartX - 16) / noteCount);
+    ? Math.min(40, (W - noteStartX - 10) / noteCount)
+    : (W - noteStartX - 10) / noteCount;
   const rx = isMode ? 7.5 : 7;
   const ry = isMode ? 5.5 : 5;
 
