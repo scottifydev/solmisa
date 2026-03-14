@@ -49,7 +49,7 @@ async function renderKeySig(
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.style.width = "100%";
   svg.style.height = "auto";
-  svg.style.filter = "drop-shadow(0 0 4px rgba(237,233,254,0.25))";
+  svg.style.filter = "none";
 
   const yLine0 = stave.getYForLine(0);
   const yLine4 = stave.getYForLine(4);
@@ -79,7 +79,7 @@ async function renderKeySig(
     );
     text.setAttribute(
       "style",
-      "user-select:none; filter:drop-shadow(0 0 3px rgba(237,233,254,0.4))",
+      "user-select:none",
     );
     text.textContent = sym;
     svg.appendChild(text);

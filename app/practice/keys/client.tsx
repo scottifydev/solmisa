@@ -87,13 +87,13 @@ export function KeysDrillClient() {
         ))}
       </div>
 
-      {/* Major/Minor/Both toggle */}
-      <div className="flex gap-2 self-stretch">
+      {/* Difficulty: Major/Minor/Both */}
+      <div className="flex gap-1 self-stretch flex-wrap">
         {MODES.map((m) => (
           <button
             key={m.id}
             onClick={() => switchMode(m.id)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold font-body transition-all border ${
+            className={`py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer whitespace-nowrap ${
               activeMode === m.id
                 ? "border-violet/40 text-violet bg-violet/5"
                 : "border-steel text-ash"

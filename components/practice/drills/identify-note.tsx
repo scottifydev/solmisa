@@ -144,7 +144,7 @@ export async function renderNoteOnStaff(
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.style.width = "100%";
     svg.style.height = "auto";
-    svg.style.filter = "drop-shadow(0 0 4px rgba(237,233,254,0.25))";
+    svg.style.filter = "none";
   }
 }
 
