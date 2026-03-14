@@ -327,10 +327,10 @@ function CenterKeySig({
       ))}
       <text
         x={8}
-        y={lY(1) + sp * 0.5}
-        fontSize={sp * 4.2}
+        y={lY(3) + sp * 0.3}
+        fontSize={sp * 3}
         fill="#ede9fe"
-        opacity="0.75"
+        opacity="0.5"
         fontFamily="'Bravura','Academico','Noto Music',serif"
         style={{ userSelect: "none" }}
       >
@@ -632,23 +632,23 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     }
     if (isLandmark)
       return {
-        fill: "rgba(14,12,24,1)",
-        stroke: "rgba(70,60,100,0.35)",
+        fill: "rgba(22,18,38,1)",
+        stroke: "rgba(80,65,120,0.5)",
         sw: 0.8,
-        op: 0.7,
+        op: 0.85,
       };
     if (ring === "major")
       return {
-        fill: "rgba(12,10,22,1)",
-        stroke: "rgba(50,40,75,0.2)",
-        sw: 0.3,
-        op: 0.5,
+        fill: "rgba(18,15,32,1)",
+        stroke: "rgba(60,50,90,0.4)",
+        sw: 0.5,
+        op: 0.75,
       };
     return {
-      fill: "rgba(10,12,22,1)",
-      stroke: "rgba(40,45,75,0.18)",
-      sw: 0.3,
-      op: 0.5,
+      fill: "rgba(14,16,30,1)",
+      stroke: "rgba(50,55,90,0.35)",
+      sw: 0.5,
+      op: 0.75,
     };
   }
 
