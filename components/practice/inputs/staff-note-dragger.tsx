@@ -17,6 +17,7 @@ export interface StaffNoteDraggerProps {
   correctAsc: (number | null)[];
   correctDesc?: (number | null)[] | null;
   keyData?: KeyData;
+  startPositions?: number[];
   onComplete: (correct: boolean) => void;
   disabled?: boolean;
 }
@@ -25,13 +26,14 @@ export function StaffNoteDragger({
   correctAsc,
   correctDesc,
   keyData,
+  startPositions,
   onComplete,
   disabled = false,
 }: StaffNoteDraggerProps) {
   const isMode = !!keyData;
   const hasTwoRows = !isMode && (correctDesc ?? null) !== null;
   const noteCount = isMode ? keyData.positions.length : correctAsc.length;
-  const basePositions = isMode ? keyData.positions : C_MAJOR_POS;
+  const basePositions = isMode ? keyData.positions : (startPositions ?? C_MAJOR_POS);
 
   // Layout
   const sp = isMode ? 16 : 14;
@@ -334,17 +336,40 @@ export function StaffNoteDragger({
 
           return (
             <g key={`${rowId}n${deg}`}>
-              {/* Ledger line for C4 */}
-              {basePos <= -2 && !isMuted && (
-                <line
-                  x1={x - rx * 1.8}
-                  y1={rowPosToY(-2)}
-                  x2={x + rx * 1.8}
-                  y2={rowPosToY(-2)}
-                  stroke="#3a3a4e"
-                  strokeWidth="1"
-                />
-              )}
+              {/* Ledger lines below staff */}
+              {basePos <= -2 &&
+                !isMuted &&
+                Array.from(
+                  { length: Math.floor((-2 - basePos) / 2) + 1 },
+                  (_, li) => -2 - li * 2,
+                ).map((lp) => (
+                  <line
+                    key={`ll${lp}`}
+                    x1={x - rx * 1.8}
+                    y1={rowPosToY(lp)}
+                    x2={x + rx * 1.8}
+                    y2={rowPosToY(lp)}
+                    stroke="#3a3a4e"
+                    strokeWidth="1"
+                  />
+                ))}
+              {/* Ledger lines above staff */}
+              {basePos >= 10 &&
+                !isMuted &&
+                Array.from(
+                  { length: Math.floor((basePos - 8) / 2) + 1 },
+                  (_, li) => 10 + li * 2,
+                ).map((lp) => (
+                  <line
+                    key={`ul${lp}`}
+                    x1={x - rx * 1.8}
+                    y1={rowPosToY(lp)}
+                    x2={x + rx * 1.8}
+                    y2={rowPosToY(lp)}
+                    stroke="#3a3a4e"
+                    strokeWidth="1"
+                  />
+                ))}
 
               {/* Drag/tap zone */}
               <rect

@@ -43,7 +43,7 @@ async function renderKeySigStaff(
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.style.width = "100%";
   svg.style.height = "auto";
-  svg.style.filter = "drop-shadow(0 0 3px rgba(237,233,254,0.2))";
+  svg.style.filter = "none";
 
   const yLine0 = stave.getYForLine(0);
   const yLine4 = stave.getYForLine(4);
@@ -79,7 +79,7 @@ async function renderKeySigStaff(
     );
     text.setAttribute(
       "style",
-      `user-select:none; pointer-events:none; filter:drop-shadow(0 0 3px ${color === "#4ade80" ? "rgba(74,222,128,0.4)" : color === "#f87171" ? "rgba(248,113,113,0.4)" : "rgba(237,233,254,0.4)"})`,
+      `user-select:none; pointer-events:none;${color === "#4ade80" || color === "#f87171" ? ` filter:drop-shadow(0 0 3px ${color === "#4ade80" ? "rgba(74,222,128,0.4)" : "rgba(248,113,113,0.4)"})` : ""}`,
     );
     text.textContent = symbol;
     svg.appendChild(text);
