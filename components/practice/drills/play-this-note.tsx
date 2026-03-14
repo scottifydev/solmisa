@@ -60,8 +60,18 @@ function noteToKey(note: string): NoteKey {
   return note.replace(/\d/, "") as NoteKey;
 }
 
+let lastNote: string | undefined;
 function randomNote(pool: string[]): string {
-  return pool[Math.floor(Math.random() * pool.length)] ?? "C4";
+  for (let i = 0; i < 3; i++) {
+    const note = pool[Math.floor(Math.random() * pool.length)] ?? "C4";
+    if (note !== lastNote || pool.length <= 1) {
+      lastNote = note;
+      return note;
+    }
+  }
+  const note = pool[Math.floor(Math.random() * pool.length)] ?? "C4";
+  lastNote = note;
+  return note;
 }
 
 // ── VexFlow staff renderer ─────────────────────────────────────────────────

@@ -229,7 +229,7 @@ export function MusicalAlphabetBand({
                     style={{
                       fontSize: 22,
                       fontWeight: 700,
-                      color: "#8b5cf6",
+                      color: "#ede9fe",
                       fontFamily: "serif",
                       textShadow: "0 0 8px rgba(139,92,246,0.3)",
                     }}
