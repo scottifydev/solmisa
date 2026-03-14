@@ -37,15 +37,16 @@ export function StaffNoteDragger({
 
   // Layout
   const sp = isMode ? 16 : 14;
-  const W = isMode ? 380 : 340;
+  const W = isMode ? 380 : 360;
   const rowH = 160;
-  const staffTopBase = isMode ? 30 : 10;
+  const staffTopBase = isMode ? 30 : 20;
   const H = hasTwoRows ? rowH * 2 + 30 : rowH + 20;
   const keySigCount = isMode ? keyData.sharps || keyData.flats : 0;
-  const noteStartX = 55 + keySigCount * 14;
+  const clefWidth = 42;
+  const noteStartX = clefWidth + 8 + keySigCount * 14;
   const noteSpacing = isMode
     ? Math.min(36, (W - noteStartX - 20) / noteCount)
-    : 34;
+    : Math.min(34, (W - noteStartX - 16) / noteCount);
   const rx = isMode ? 7.5 : 7;
   const ry = isMode ? 5.5 : 5;
 
@@ -279,15 +280,12 @@ export function StaffNoteDragger({
         {/* Treble clef */}
         <text
           x={18}
-          y={rowLY(1) + sp * 0.5}
-          fontSize={sp * 4.8}
+          y={rowLY(3) + sp * 0.3}
+          fontSize={sp * 3.6}
           fill="#ede9fe"
-          opacity="0.8"
+          opacity="0.6"
           fontFamily="'Bravura','Academico','Noto Music',serif"
-          style={{
-            filter: "drop-shadow(0 0 3px rgba(139,92,246,0.3))",
-            userSelect: "none",
-          }}
+          style={{ userSelect: "none" }}
         >
           𝄞
         </text>
