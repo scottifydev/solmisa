@@ -327,10 +327,10 @@ function CenterKeySig({
       ))}
       <text
         x={8}
-        y={lY(1) + sp * 0.5}
-        fontSize={sp * 4.2}
+        y={lY(3) + sp * 0.3}
+        fontSize={sp * 3}
         fill="#ede9fe"
-        opacity="0.75"
+        opacity="0.5"
         fontFamily="'Bravura','Academico','Noto Music',serif"
         style={{ userSelect: "none" }}
       >
