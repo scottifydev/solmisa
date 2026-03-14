@@ -61,8 +61,9 @@ const SCALE_INTERVALS: Record<
 
 const SCALE_NAMES = Object.keys(SCALE_INTERVALS);
 
-// Only two distinct whole tone scales exist — one per tonic
+// Only two distinct whole tone scales exist
 const WHOLE_TONE_TONICS = ["C", "F"];
+const WHOLE_TONE_LABELS: Record<string, string> = { C: "WT0", F: "WT1" };
 
 /**
  * Compute the accidental array for a given tonic and interval pattern.
@@ -132,9 +133,11 @@ function randomScaleAndTonic(scaleFilter?: string): {
     }
 
     lastScaleCombo = combo;
+    const displayTonic =
+      scaleName === "Whole Tone" ? (WHOLE_TONE_LABELS[tonic] ?? tonic) : tonic;
     return {
       scaleName,
-      tonic,
+      tonic: displayTonic,
       asc,
       desc,
       positions: TONIC_POSITIONS[tonic]!,
