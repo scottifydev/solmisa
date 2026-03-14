@@ -79,7 +79,7 @@ async function renderKeySig(
     );
     text.setAttribute(
       "style",
-      "user-select:none; filter:drop-shadow(0 0 3px rgba(139,92,246,0.3))",
+      "user-select:none; filter:drop-shadow(0 0 3px rgba(237,233,254,0.4))",
     );
     text.textContent = sym;
     svg.appendChild(text);

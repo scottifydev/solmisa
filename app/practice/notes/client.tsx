@@ -1,44 +1,61 @@
 "use client";
 
 import { useState } from "react";
-import { IdentifyNote } from "@/components/practice/drills/identify-note";
+import { IdentifyNote, type ClefType } from "@/components/practice/drills/identify-note";
+import { PlayThisNote } from "@/components/practice/drills/play-this-note";
 
-const CLEF_OPTIONS = [
-  { id: "both", label: "Both" },
-  { id: "treble", label: "Treble" },
-  { id: "bass", label: "Bass" },
+const DRILLS = [
+  { id: "name", label: "Name This Note", sub: "Staff → Name" },
+  { id: "play", label: "Play This Note", sub: "Staff → Keyboard" },
 ] as const;
+type DrillId = (typeof DRILLS)[number]["id"];
 
-type ClefOption = (typeof CLEF_OPTIONS)[number]["id"];
+const DIFFICULTIES = [
+  { id: "treble", label: "Treble", clefs: ["treble"] as ClefType[] },
+  { id: "treble-bass", label: "Treble + Bass", clefs: ["treble", "bass"] as ClefType[] },
+  { id: "all", label: "All Clefs", clefs: ["treble", "bass", "alto"] as ClefType[] },
+] as const;
+type DifficultyId = (typeof DIFFICULTIES)[number]["id"];
 
-function resolveClef(opt: ClefOption): "treble" | "bass" {
-  if (opt === "both") return Math.random() < 0.5 ? "treble" : "bass";
-  return opt;
+function resolveClef(clefs: readonly ClefType[]): ClefType {
+  return clefs[Math.floor(Math.random() * clefs.length)]!;
 }
 
 export function NotesDrillClient() {
-  const [clefOption, setClefOption] = useState<ClefOption>("both");
-  const [resolvedClef, setResolvedClef] = useState<"treble" | "bass">(() =>
-    resolveClef("both"),
-  );
+  const [activeDrill, setActiveDrill] = useState<DrillId>("name");
+  const [difficulty, setDifficulty] = useState<DifficultyId>("treble");
+  const [resolvedClef, setResolvedClef] = useState<ClefType>("treble");
   const [roundKey, setRoundKey] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
 
-  function switchClef(opt: ClefOption) {
-    setClefOption(opt);
+  const currentDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
+
+  function resetStreak() {
     setRoundKey((k) => k + 1);
     setCorrect(0);
     setTotal(0);
     setAnswered(false);
-    setResolvedClef(resolveClef(opt));
+  }
+
+  function switchDrill(id: DrillId) {
+    setActiveDrill(id);
+    resetStreak();
+    setResolvedClef(resolveClef(currentDifficulty.clefs));
+  }
+
+  function switchDifficulty(id: DifficultyId) {
+    setDifficulty(id);
+    const diff = DIFFICULTIES.find((d) => d.id === id)!;
+    resetStreak();
+    setResolvedClef(resolveClef(diff.clefs));
   }
 
   function advance() {
     setRoundKey((k) => k + 1);
     setAnswered(false);
-    setResolvedClef(resolveClef(clefOption));
+    setResolvedClef(resolveClef(currentDifficulty.clefs));
   }
 
   function handleAnswer(isCorrect: boolean) {
@@ -48,21 +65,43 @@ export function NotesDrillClient() {
     setTimeout(advance, isCorrect ? 1000 : 2000);
   }
 
+  const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;
+
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-5">
-      {/* Clef selector */}
+    <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-4">
+      {/* Drill type tabs */}
       <div className="flex gap-2 self-stretch">
-        {CLEF_OPTIONS.map((opt) => (
+        {DRILLS.map((drill) => (
           <button
-            key={opt.id}
-            onClick={() => switchClef(opt.id)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold font-body transition-all border ${
-              clefOption === opt.id
+            key={drill.id}
+            onClick={() => switchDrill(drill.id)}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold font-body transition-all border ${
+              activeDrill === drill.id
+                ? "bg-violet/10 border-violet text-violet"
+                : "border-steel text-silver hover:border-silver/40"
+            }`}
+          >
+            <div>{drill.label}</div>
+            <div className="text-[10px] font-normal mt-0.5 opacity-70">
+              {drill.sub}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Difficulty pills */}
+      <div className="flex gap-1 self-stretch flex-wrap">
+        {DIFFICULTIES.map((d) => (
+          <button
+            key={d.id}
+            onClick={() => switchDifficulty(d.id)}
+            className={`py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer whitespace-nowrap ${
+              difficulty === d.id
                 ? "border-violet/40 text-violet bg-violet/5"
                 : "border-steel text-ash"
             }`}
           >
-            {opt.label}
+            {d.label}
           </button>
         ))}
       </div>
@@ -72,25 +111,36 @@ export function NotesDrillClient() {
         {total > 0 ? `${correct}/${total}` : "\u00a0"}
       </div>
 
-      {/* Card */}
+      {/* Drill card */}
       <div
         className="w-full bg-obsidian border border-steel rounded-2xl shadow-[0_4px_32px_rgba(0,0,0,0.5)]"
         style={{ padding: "24px 20px 18px" }}
       >
         <div className="text-center mb-4">
           <div className="font-display text-lg font-semibold text-ivory">
-            Name This Note
+            {currentDrill.label}
           </div>
           <div className="font-body text-xs text-ash mt-0.5">
-            Slide to select · up ♯ · down ♭
+            {activeDrill === "name"
+              ? "Slide to select · up ♯ · down ♭"
+              : "Tap the correct key"}
           </div>
         </div>
 
-        <IdentifyNote
-          key={roundKey}
-          clef={resolvedClef}
-          onAnswer={handleAnswer}
-        />
+        {activeDrill === "name" && (
+          <IdentifyNote
+            key={roundKey}
+            clef={resolvedClef}
+            onAnswer={handleAnswer}
+          />
+        )}
+        {activeDrill === "play" && (
+          <PlayThisNote
+            key={roundKey}
+            clef={resolvedClef}
+            onAnswer={handleAnswer}
+          />
+        )}
       </div>
 
       {answered && (
