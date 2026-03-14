@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { PianoKeyboard, type NoteKey } from "../inputs/piano-keyboard";
+import {
+  type ClefType,
+  randomNote,
+  renderNoteOnStaff,
+} from "./identify-note";
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 let synth: import("tone").FMSynth | null = null;
@@ -32,181 +37,138 @@ async function playNote(note: string) {
   if (synth) synth.triggerAttackRelease(note, "8n");
 }
 
-// ── Note data ──────────────────────────────────────────────────────────────
-const NOTES_BEGINNER: string[] = [
-  "C4",
-  "D4",
-  "E4",
-  "F4",
-  "G4",
-  "A4",
-  "B4",
-  "C5",
-];
-const NOTES_ADVANCED: string[] = [
-  "C4",
-  "D4",
-  "E4",
-  "F4",
-  "G4",
-  "A4",
-  "B4",
-  "C5",
-  "D5",
-  "E5",
+// ── Note pools per clef ─────────────────────────────────────────────────────
+const TREBLE_NOTES = [
+  { name: "C", vexKey: "c/4", tone: "C4", accidental: undefined as string | undefined },
+  { name: "D", vexKey: "d/4", tone: "D4", accidental: undefined as string | undefined },
+  { name: "E", vexKey: "e/4", tone: "E4", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/4", tone: "F4", accidental: undefined as string | undefined },
+  { name: "G", vexKey: "g/4", tone: "G4", accidental: undefined as string | undefined },
+  { name: "A", vexKey: "a/4", tone: "A4", accidental: undefined as string | undefined },
+  { name: "B", vexKey: "b/4", tone: "B4", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/5", tone: "C5", accidental: undefined as string | undefined },
+  { name: "D", vexKey: "d/5", tone: "D5", accidental: undefined as string | undefined },
+  { name: "E", vexKey: "e/5", tone: "E5", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/5", tone: "F5", accidental: undefined as string | undefined },
 ];
 
-function noteToKey(note: string): NoteKey {
-  return note.replace(/\d/, "") as NoteKey;
-}
+const BASS_NOTES = [
+  { name: "E", vexKey: "e/2", tone: "E2", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/2", tone: "F2", accidental: undefined as string | undefined },
+  { name: "G", vexKey: "g/2", tone: "G2", accidental: undefined as string | undefined },
+  { name: "A", vexKey: "a/2", tone: "A2", accidental: undefined as string | undefined },
+  { name: "B", vexKey: "b/2", tone: "B2", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/3", tone: "C3", accidental: undefined as string | undefined },
+  { name: "D", vexKey: "d/3", tone: "D3", accidental: undefined as string | undefined },
+  { name: "E", vexKey: "e/3", tone: "E3", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/3", tone: "F3", accidental: undefined as string | undefined },
+  { name: "G", vexKey: "g/3", tone: "G3", accidental: undefined as string | undefined },
+  { name: "A", vexKey: "a/3", tone: "A3", accidental: undefined as string | undefined },
+];
 
-let lastNote: string | undefined;
-function randomNote(pool: string[]): string {
+const ALTO_NOTES = [
+  { name: "F", vexKey: "f/3", tone: "F3", accidental: undefined as string | undefined },
+  { name: "G", vexKey: "g/3", tone: "G3", accidental: undefined as string | undefined },
+  { name: "A", vexKey: "a/3", tone: "A3", accidental: undefined as string | undefined },
+  { name: "B", vexKey: "b/3", tone: "B3", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/4", tone: "C4", accidental: undefined as string | undefined },
+  { name: "D", vexKey: "d/4", tone: "D4", accidental: undefined as string | undefined },
+  { name: "E", vexKey: "e/4", tone: "E4", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/4", tone: "F4", accidental: undefined as string | undefined },
+  { name: "G", vexKey: "g/4", tone: "G4", accidental: undefined as string | undefined },
+  { name: "A", vexKey: "a/4", tone: "A4", accidental: undefined as string | undefined },
+  { name: "B", vexKey: "b/4", tone: "B4", accidental: undefined as string | undefined },
+];
+
+type PlayNote = (typeof TREBLE_NOTES)[number];
+
+const PLAY_POOLS: Record<ClefType, PlayNote[]> = {
+  treble: TREBLE_NOTES,
+  bass: BASS_NOTES,
+  alto: ALTO_NOTES,
+};
+
+let lastPlayNote: string | undefined;
+function randomPlayNote(pool: PlayNote[]): PlayNote {
   for (let i = 0; i < 3; i++) {
-    const note = pool[Math.floor(Math.random() * pool.length)] ?? "C4";
-    if (note !== lastNote || pool.length <= 1) {
-      lastNote = note;
+    const note = pool[Math.floor(Math.random() * pool.length)]!;
+    if (note.vexKey !== lastPlayNote || pool.length <= 1) {
+      lastPlayNote = note.vexKey;
       return note;
     }
   }
-  const note = pool[Math.floor(Math.random() * pool.length)] ?? "C4";
-  lastNote = note;
+  const note = pool[Math.floor(Math.random() * pool.length)]!;
+  lastPlayNote = note.vexKey;
   return note;
-}
-
-// ── VexFlow staff renderer ─────────────────────────────────────────────────
-async function renderNoteStaff(
-  container: HTMLDivElement,
-  note: string,
-  color: string = "#ede9fe",
-) {
-  const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } =
-    await import("vexflow");
-
-  container.innerHTML = "";
-
-  const W = 260;
-  const H = 140;
-  const renderer = new Renderer(container, Renderer.Backends.SVG);
-  renderer.resize(W, H);
-
-  const context = renderer.getContext();
-  context.setFillStyle(color);
-  context.setStrokeStyle("#3a3a4e");
-
-  const stave = new Stave(10, 30, W - 20);
-  stave.addClef("treble");
-  stave.setStyle({ fillStyle: "#3a3a4e", strokeStyle: "#3a3a4e" });
-  stave.setContext(context);
-  stave.draw();
-
-  // Parse note: "C4" → key "c/4", accidental "#" or "b" if present
-  const noteName = note.replace(/\d/, "").toLowerCase();
-  const octave = note.match(/\d+/)?.[0] ?? "4";
-  const hasSharp = noteName.includes("#");
-  const hasFlat = noteName.includes("b") && noteName.length > 1;
-  const baseName = noteName.replace(/[#b]/, "");
-  const vexKey = `${baseName}/${octave}`;
-
-  const staveNote = new StaveNote({
-    keys: [vexKey],
-    duration: "q",
-    clef: "treble",
-  });
-
-  if (hasSharp) staveNote.addModifier(new Accidental("#"), 0);
-  if (hasFlat) staveNote.addModifier(new Accidental("b"), 0);
-
-  staveNote.setStyle({ fillStyle: color, strokeStyle: color });
-
-  const voice = new Voice({ numBeats: 1, beatValue: 4 });
-  voice.setMode(2); // SOFT
-  voice.addTickables([staveNote]);
-  new Formatter().joinVoices([voice]).format([voice], 160);
-  voice.draw(context, stave);
-
-  const svg = container.querySelector("svg");
-  if (svg) {
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    svg.style.width = "100%";
-    svg.style.height = "auto";
-    svg.style.filter = "drop-shadow(0 0 4px rgba(139,92,246,0.3))";
-  }
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 interface PlayThisNoteProps {
   onAnswer: (correct: boolean) => void;
-  range?: "beginner" | "advanced";
+  clef?: ClefType;
 }
 
 export function PlayThisNote({
   onAnswer,
-  range = "beginner",
+  clef = "treble",
 }: PlayThisNoteProps) {
-  const pool = range === "advanced" ? NOTES_ADVANCED : NOTES_BEGINNER;
-  const [targetNote] = useState(() => randomNote(pool));
+  const pool = PLAY_POOLS[clef];
+  const [target] = useState(() => randomPlayNote(pool));
   const [keyStates, setKeyStates] = useState<
     Partial<Record<NoteKey, "default" | "correct" | "incorrect" | "hint">>
   >({});
   const [answered, setAnswered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const noteColor = useRef("#ede9fe");
 
   // Render staff on mount
   useEffect(() => {
     if (containerRef.current) {
-      renderNoteStaff(containerRef.current, targetNote, noteColor.current);
+      renderNoteOnStaff(containerRef.current, clef, target, "#ede9fe");
     }
-  }, [targetNote]);
+  }, [clef, target]);
 
   const handleKeyPress = useCallback(
     async (pressedKey: NoteKey) => {
       if (answered) return;
 
-      const targetKey = noteToKey(targetNote);
+      const targetKey = target.name as NoteKey;
       const isCorrect = pressedKey === targetKey;
 
       // Play the pressed note immediately
-      const octave = targetNote.match(/\d+/)?.[0] ?? "4";
+      const octave = target.tone.match(/\d+/)?.[0] ?? "4";
       await playNote(`${pressedKey}${octave}`);
 
       if (isCorrect) {
         setAnswered(true);
         setKeyStates({ [pressedKey]: "correct" });
-        noteColor.current = "#4ade80";
         if (containerRef.current) {
-          renderNoteStaff(containerRef.current, targetNote, "#4ade80");
+          renderNoteOnStaff(containerRef.current, clef, target, "#4ade80");
         }
         onAnswer(true);
       } else {
-        // Flash wrong key red
         setKeyStates({ [pressedKey]: "incorrect" });
         setTimeout(async () => {
-          // Then show correct key green and play it
           setAnswered(true);
           setKeyStates({ [pressedKey]: "incorrect", [targetKey]: "hint" });
-          await playNote(targetNote);
-          noteColor.current = "#4ade80";
+          await playNote(target.tone);
           if (containerRef.current) {
-            renderNoteStaff(containerRef.current, targetNote, "#4ade80");
+            renderNoteOnStaff(containerRef.current, clef, target, "#4ade80");
           }
           onAnswer(false);
         }, 500);
       }
     },
-    [answered, targetNote, onAnswer],
+    [answered, target, clef, onAnswer],
   );
 
   function handleIDontKnow() {
     if (answered) return;
-    const targetKey = noteToKey(targetNote);
+    const targetKey = target.name as NoteKey;
     setAnswered(true);
     setKeyStates({ [targetKey]: "hint" });
-    playNote(targetNote);
-    noteColor.current = "#4ade80";
+    playNote(target.tone);
     if (containerRef.current) {
-      renderNoteStaff(containerRef.current, targetNote, "#4ade80");
+      renderNoteOnStaff(containerRef.current, clef, target, "#4ade80");
     }
     onAnswer(false);
   }

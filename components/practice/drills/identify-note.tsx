@@ -3,55 +3,86 @@
 import { useState, useEffect, useRef } from "react";
 import { MusicalAlphabetBand } from "../inputs/musical-alphabet-band";
 
+export type ClefType = "treble" | "bass" | "alto";
+
 // Note pools per clef — 1 octave below to 1 octave above the staff
 // Treble clef: C4 to F5 with common accidentals
 const TREBLE_NOTES = [
-  { name: "C", display: "C", vexKey: "c/4", octave: 4 },
-  { name: "C♯", display: "C♯", vexKey: "c#/4", octave: 4, accidental: "#" },
-  { name: "D", display: "D", vexKey: "d/4", octave: 4 },
-  { name: "E♭", display: "E♭", vexKey: "eb/4", octave: 4, accidental: "b" },
-  { name: "E", display: "E", vexKey: "e/4", octave: 4 },
-  { name: "F", display: "F", vexKey: "f/4", octave: 4 },
-  { name: "F♯", display: "F♯", vexKey: "f#/4", octave: 4, accidental: "#" },
-  { name: "G", display: "G", vexKey: "g/4", octave: 4 },
-  { name: "A♭", display: "A♭", vexKey: "ab/4", octave: 4, accidental: "b" },
-  { name: "A", display: "A", vexKey: "a/4", octave: 4 },
-  { name: "B♭", display: "B♭", vexKey: "bb/4", octave: 4, accidental: "b" },
-  { name: "B", display: "B", vexKey: "b/4", octave: 4 },
-  { name: "C", display: "C", vexKey: "c/5", octave: 5 },
-  { name: "C♯", display: "C♯", vexKey: "c#/5", octave: 5, accidental: "#" },
-  { name: "D", display: "D", vexKey: "d/5", octave: 5 },
-  { name: "E♭", display: "E♭", vexKey: "eb/5", octave: 5, accidental: "b" },
-  { name: "E", display: "E", vexKey: "e/5", octave: 5 },
-  { name: "F", display: "F", vexKey: "f/5", octave: 5 },
+  { name: "C", vexKey: "c/4", accidental: undefined as string | undefined },
+  { name: "C♯", vexKey: "c#/4", accidental: "#" },
+  { name: "D", vexKey: "d/4", accidental: undefined as string | undefined },
+  { name: "E♭", vexKey: "eb/4", accidental: "b" },
+  { name: "E", vexKey: "e/4", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/4", accidental: undefined as string | undefined },
+  { name: "F♯", vexKey: "f#/4", accidental: "#" },
+  { name: "G", vexKey: "g/4", accidental: undefined as string | undefined },
+  { name: "A♭", vexKey: "ab/4", accidental: "b" },
+  { name: "A", vexKey: "a/4", accidental: undefined as string | undefined },
+  { name: "B♭", vexKey: "bb/4", accidental: "b" },
+  { name: "B", vexKey: "b/4", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/5", accidental: undefined as string | undefined },
+  { name: "C♯", vexKey: "c#/5", accidental: "#" },
+  { name: "D", vexKey: "d/5", accidental: undefined as string | undefined },
+  { name: "E♭", vexKey: "eb/5", accidental: "b" },
+  { name: "E", vexKey: "e/5", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/5", accidental: undefined as string | undefined },
 ];
 
 // Bass clef: E2 to A3 with common accidentals
 const BASS_NOTES = [
-  { name: "E", display: "E", vexKey: "e/2", octave: 2 },
-  { name: "F", display: "F", vexKey: "f/2", octave: 2 },
-  { name: "F♯", display: "F♯", vexKey: "f#/2", octave: 2, accidental: "#" },
-  { name: "G", display: "G", vexKey: "g/2", octave: 2 },
-  { name: "A♭", display: "A♭", vexKey: "ab/2", octave: 2, accidental: "b" },
-  { name: "A", display: "A", vexKey: "a/2", octave: 2 },
-  { name: "B♭", display: "B♭", vexKey: "bb/2", octave: 2, accidental: "b" },
-  { name: "B", display: "B", vexKey: "b/2", octave: 2 },
-  { name: "C", display: "C", vexKey: "c/3", octave: 3 },
-  { name: "C♯", display: "C♯", vexKey: "c#/3", octave: 3, accidental: "#" },
-  { name: "D", display: "D", vexKey: "d/3", octave: 3 },
-  { name: "E♭", display: "E♭", vexKey: "eb/3", octave: 3, accidental: "b" },
-  { name: "E", display: "E", vexKey: "e/3", octave: 3 },
-  { name: "F", display: "F", vexKey: "f/3", octave: 3 },
-  { name: "F♯", display: "F♯", vexKey: "f#/3", octave: 3, accidental: "#" },
-  { name: "G", display: "G", vexKey: "g/3", octave: 3 },
-  { name: "A♭", display: "A♭", vexKey: "ab/3", octave: 3, accidental: "b" },
-  { name: "A", display: "A", vexKey: "a/3", octave: 3 },
+  { name: "E", vexKey: "e/2", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/2", accidental: undefined as string | undefined },
+  { name: "F♯", vexKey: "f#/2", accidental: "#" },
+  { name: "G", vexKey: "g/2", accidental: undefined as string | undefined },
+  { name: "A♭", vexKey: "ab/2", accidental: "b" },
+  { name: "A", vexKey: "a/2", accidental: undefined as string | undefined },
+  { name: "B♭", vexKey: "bb/2", accidental: "b" },
+  { name: "B", vexKey: "b/2", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/3", accidental: undefined as string | undefined },
+  { name: "C♯", vexKey: "c#/3", accidental: "#" },
+  { name: "D", vexKey: "d/3", accidental: undefined as string | undefined },
+  { name: "E♭", vexKey: "eb/3", accidental: "b" },
+  { name: "E", vexKey: "e/3", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/3", accidental: undefined as string | undefined },
+  { name: "F♯", vexKey: "f#/3", accidental: "#" },
+  { name: "G", vexKey: "g/3", accidental: undefined as string | undefined },
+  { name: "A♭", vexKey: "ab/3", accidental: "b" },
+  { name: "A", vexKey: "a/3", accidental: undefined as string | undefined },
 ];
+
+// Alto clef: F3 to B4 with common accidentals
+const ALTO_NOTES = [
+  { name: "F", vexKey: "f/3", accidental: undefined as string | undefined },
+  { name: "F♯", vexKey: "f#/3", accidental: "#" },
+  { name: "G", vexKey: "g/3", accidental: undefined as string | undefined },
+  { name: "A♭", vexKey: "ab/3", accidental: "b" },
+  { name: "A", vexKey: "a/3", accidental: undefined as string | undefined },
+  { name: "B♭", vexKey: "bb/3", accidental: "b" },
+  { name: "B", vexKey: "b/3", accidental: undefined as string | undefined },
+  { name: "C", vexKey: "c/4", accidental: undefined as string | undefined },
+  { name: "C♯", vexKey: "c#/4", accidental: "#" },
+  { name: "D", vexKey: "d/4", accidental: undefined as string | undefined },
+  { name: "E♭", vexKey: "eb/4", accidental: "b" },
+  { name: "E", vexKey: "e/4", accidental: undefined as string | undefined },
+  { name: "F", vexKey: "f/4", accidental: undefined as string | undefined },
+  { name: "F♯", vexKey: "f#/4", accidental: "#" },
+  { name: "G", vexKey: "g/4", accidental: undefined as string | undefined },
+  { name: "A♭", vexKey: "ab/4", accidental: "b" },
+  { name: "A", vexKey: "a/4", accidental: undefined as string | undefined },
+  { name: "B♭", vexKey: "bb/4", accidental: "b" },
+  { name: "B", vexKey: "b/4", accidental: undefined as string | undefined },
+];
+
+const NOTE_POOLS: Record<ClefType, typeof TREBLE_NOTES> = {
+  treble: TREBLE_NOTES,
+  bass: BASS_NOTES,
+  alto: ALTO_NOTES,
+};
 
 type NoteData = (typeof TREBLE_NOTES)[number];
 
 let lastNoteKey: string | undefined;
-function randomNote(pool: NoteData[]): NoteData {
+export function randomNote(pool: NoteData[]): NoteData {
   for (let i = 0; i < 3; i++) {
     const note = pool[Math.floor(Math.random() * pool.length)]!;
     if (note.vexKey !== lastNoteKey || pool.length <= 1) {
@@ -64,9 +95,9 @@ function randomNote(pool: NoteData[]): NoteData {
   return note;
 }
 
-async function renderNoteOnStaff(
+export async function renderNoteOnStaff(
   container: HTMLDivElement,
-  clef: "treble" | "bass",
+  clef: ClefType,
   note: NoteData,
   color: string,
 ) {
@@ -113,17 +144,17 @@ async function renderNoteOnStaff(
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.style.width = "100%";
     svg.style.height = "auto";
-    svg.style.filter = "drop-shadow(0 0 4px rgba(139,92,246,0.25))";
+    svg.style.filter = "drop-shadow(0 0 4px rgba(237,233,254,0.25))";
   }
 }
 
 interface IdentifyNoteProps {
-  clef: "treble" | "bass";
+  clef: ClefType;
   onAnswer: (correct: boolean) => void;
 }
 
 export function IdentifyNote({ clef, onAnswer }: IdentifyNoteProps) {
-  const pool = clef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+  const pool = NOTE_POOLS[clef];
   const [note] = useState(() => randomNote(pool));
   const [answered, setAnswered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
