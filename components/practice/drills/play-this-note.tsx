@@ -2,35 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { PianoKeyboard, type NoteKey } from "../inputs/piano-keyboard";
-
-// ── Audio ──────────────────────────────────────────────────────────────────
-let synth: import("tone").FMSynth | null = null;
-let audioReady = false;
-
-async function ensureAudio() {
-  if (audioReady) return;
-  const Tone = await import("tone");
-  await Tone.start();
-  synth = new Tone.FMSynth({
-    harmonicity: 3,
-    modulationIndex: 2,
-    oscillator: { type: "triangle" },
-    envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.8 },
-    modulation: { type: "square" },
-    modulationEnvelope: { attack: 0.002, decay: 0.2, sustain: 0, release: 0.5 },
-    volume: -8,
-  }).toDestination();
-  const reverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 });
-  await reverb.ready;
-  synth.connect(reverb);
-  reverb.toDestination();
-  audioReady = true;
-}
-
-async function playNote(note: string) {
-  await ensureAudio();
-  if (synth) synth.triggerAttackRelease(note, "8n");
-}
+import { ensureAudio, playNote, isReady } from "@/lib/audio/solmisa-piano";
 
 // ── Note data ──────────────────────────────────────────────────────────────
 const NOTES_BEGINNER: string[] = [
@@ -140,6 +112,7 @@ export function PlayThisNote({
     Partial<Record<NoteKey, "default" | "correct" | "incorrect" | "hint">>
   >({});
   const [answered, setAnswered] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const noteColor = useRef("#ede9fe");
 
@@ -153,6 +126,12 @@ export function PlayThisNote({
   const handleKeyPress = useCallback(
     async (pressedKey: NoteKey) => {
       if (answered) return;
+
+      if (!isReady()) {
+        setAudioLoading(true);
+        await ensureAudio();
+        setAudioLoading(false);
+      }
 
       const targetKey = noteToKey(targetNote);
       const isCorrect = pressedKey === targetKey;
@@ -211,6 +190,19 @@ export function PlayThisNote({
         width: "100%",
       }}
     >
+      {/* Loading */}
+      {audioLoading && (
+        <div
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </div>
+      )}
+
       {/* Staff */}
       <div ref={containerRef} style={{ width: "100%" }} />
 

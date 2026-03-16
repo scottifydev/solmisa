@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import * as Tone from "tone";
+import { ensureAudio } from "@/lib/audio/solmisa-piano";
 import { brand } from "@/lib/tokens";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -158,113 +159,62 @@ function CrescendoHairpin({
 
 // ─── Audio engine ───────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DYNAMICS_SYNTH_OPTIONS: Record<string, any> = {
-  oscillator: { type: "fmsine" },
-  envelope: { attack: 0.02, decay: 0.2, sustain: 0.1, release: 0.5 },
-  modulation: { type: "sine" },
-  modulationEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.3 },
-};
-
 class DynamicsAudioEngine {
-  private synth: Tone.FMSynth | null = null;
-  private reverb: Tone.Reverb | null = null;
-  private gain: Tone.Gain | null = null;
-  private initialized = false;
-
-  async init() {
-    if (this.initialized) return;
-    await Tone.start();
-
-    this.reverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 });
-    this.gain = new Tone.Gain(0.3);
-    this.synth = new Tone.FMSynth(DYNAMICS_SYNTH_OPTIONS);
-
-    this.synth.connect(this.gain);
-    this.gain.connect(this.reverb);
-    this.reverb.toDestination();
-    this.initialized = true;
-  }
-
-  private playNote(note: string, duration: string, time?: number) {
-    if (!this.synth) return;
-    this.synth.triggerAttackRelease(note, duration, time);
-  }
-
   async playStreakSound(marking: DynamicMarking) {
-    await this.init();
-    if (!this.synth || !this.gain) return;
-
+    const s = await ensureAudio();
     const now = Tone.now();
 
     switch (marking) {
       case "pp":
       case "p": {
-        this.gain.gain.setValueAtTime(0.15, now);
-        this.playNote("C5", "16n", now);
+        s.triggerAttackRelease("C5", "16n", now, 0.2);
         break;
       }
       case "mp": {
-        this.gain.gain.setValueAtTime(0.2, now);
-        this.playNote("C5", "16n", now);
-        this.playNote("E5", "16n", now + 0.08);
+        s.triggerAttackRelease("C5", "16n", now, 0.3);
+        s.triggerAttackRelease("E5", "16n", now + 0.08, 0.3);
         break;
       }
       case "mf": {
-        this.gain.gain.setValueAtTime(0.25, now);
-        this.playNote("C5", "16n", now);
-        this.playNote("E5", "16n", now + 0.07);
-        this.playNote("G5", "16n", now + 0.14);
+        s.triggerAttackRelease("C5", "16n", now, 0.4);
+        s.triggerAttackRelease("E5", "16n", now + 0.07, 0.4);
+        s.triggerAttackRelease("G5", "16n", now + 0.14, 0.4);
         break;
       }
       case "f": {
-        this.gain.gain.setValueAtTime(0.3, now);
-        this.playNote("C5", "32n", now);
-        this.playNote("E5", "32n", now + 0.05);
-        this.playNote("G5", "32n", now + 0.1);
-        this.playNote("C6", "8n", now + 0.15);
+        s.triggerAttackRelease("C5", "32n", now, 0.6);
+        s.triggerAttackRelease("E5", "32n", now + 0.05, 0.6);
+        s.triggerAttackRelease("G5", "32n", now + 0.1, 0.6);
+        s.triggerAttackRelease("C6", "8n", now + 0.15, 0.6);
         break;
       }
       case "ff": {
-        this.gain.gain.setValueAtTime(0.35, now);
-        this.playNote("C5", "32n", now);
-        this.playNote("E5", "32n", now + 0.04);
-        this.playNote("G5", "32n", now + 0.08);
-        this.playNote("C6", "32n", now + 0.12);
-        this.playNote("E6", "8n", now + 0.16);
+        s.triggerAttackRelease("C5", "32n", now, 0.7);
+        s.triggerAttackRelease("E5", "32n", now + 0.04, 0.7);
+        s.triggerAttackRelease("G5", "32n", now + 0.08, 0.7);
+        s.triggerAttackRelease("C6", "32n", now + 0.12, 0.7);
+        s.triggerAttackRelease("E6", "8n", now + 0.16, 0.7);
         break;
       }
       case "fff": {
-        if (this.reverb) this.reverb.wet.setValueAtTime(0.6, now);
-        this.gain.gain.setValueAtTime(0.4, now);
-        this.playNote("C4", "16n", now);
-        this.playNote("E4", "16n", now + 0.03);
-        this.playNote("G4", "16n", now + 0.06);
-        this.playNote("C5", "16n", now + 0.09);
-        this.playNote("E5", "16n", now + 0.12);
-        this.playNote("G5", "8n", now + 0.15);
-        if (this.reverb) this.reverb.wet.setValueAtTime(0.3, now + 1);
+        s.triggerAttackRelease("C4", "16n", now, 0.8);
+        s.triggerAttackRelease("E4", "16n", now + 0.03, 0.8);
+        s.triggerAttackRelease("G4", "16n", now + 0.06, 0.8);
+        s.triggerAttackRelease("C5", "16n", now + 0.09, 0.8);
+        s.triggerAttackRelease("E5", "16n", now + 0.12, 0.8);
+        s.triggerAttackRelease("G5", "8n", now + 0.15, 0.8);
         break;
       }
     }
   }
 
   async playBreakSound() {
-    await this.init();
-    if (!this.synth || !this.gain) return;
-    const now = Tone.now();
-    this.gain.gain.setValueAtTime(0.25, now);
-    this.playNote("Eb4", "16n", now);
+    const s = await ensureAudio();
+    s.triggerAttackRelease("Eb4", "16n", Tone.now(), 0.4);
   }
 
   dispose() {
-    this.synth?.dispose();
-    this.reverb?.dispose();
-    this.gain?.dispose();
-    this.synth = null;
-    this.reverb = null;
-    this.gain = null;
-    this.initialized = false;
+    // Singleton handles its own lifecycle
   }
 }
 

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import Link from "next/link";
 import { brand } from "@/lib/tokens";
+import { ensureAudio } from "@/lib/audio/solmisa-piano";
 
 interface NoteValue {
   name: string;
@@ -23,36 +24,27 @@ const NOTE_VALUES: NoteValue[] = [
 
 const BPM = 100;
 const BEAT_DURATION = 60 / BPM;
+const MELODY_MIDI = 69; // A4 = 440 Hz
 
 export function RhythmExplorer() {
   const [timeSig, setTimeSig] = useState<4 | 3>(4);
   const [bar, setBar] = useState<NoteValue[]>([]);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
-  const [audioReady, setAudioReady] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
 
-  const synthRef = useRef<Tone.FMSynth | null>(null);
   const clickRef = useRef<Tone.MembraneSynth | null>(null);
   const playingRef = useRef(false);
 
   const totalBeats = bar.reduce((sum, n) => sum + n.beats, 0);
   const barFull = totalBeats >= timeSig;
 
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
+  const initClick = useCallback(async () => {
+    if (clickRef.current) return;
     await Tone.start();
-
-    synthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.3 },
-      volume: -8,
-    }).toDestination();
-
     clickRef.current = new Tone.MembraneSynth({
       volume: -14,
     }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
+  }, []);
 
   const addNote = useCallback(
     (note: NoteValue) => {
@@ -64,7 +56,9 @@ export function RhythmExplorer() {
 
   const playBar = useCallback(async () => {
     if (bar.length === 0 || playingRef.current) return;
-    await initAudio();
+    setAudioLoading(true);
+    const [s] = await Promise.all([ensureAudio(), initClick()]);
+    setAudioLoading(false);
     playingRef.current = true;
 
     const now = Tone.now();
@@ -85,7 +79,7 @@ export function RhythmExplorer() {
     bar.forEach((note, idx) => {
       const t = now + offset * BEAT_DURATION;
       const dur = note.beats * BEAT_DURATION;
-      synthRef.current?.triggerAttackRelease(440, dur * 0.8, t);
+      s.triggerAttackRelease(MELODY_MIDI, dur * 0.8, t);
 
       setTimeout(() => setPlayingIndex(idx), offset * BEAT_DURATION * 1000);
       offset += note.beats;
@@ -98,20 +92,18 @@ export function RhythmExplorer() {
       },
       timeSig * BEAT_DURATION * 1000 + 100,
     );
-  }, [bar, timeSig, initAudio]);
+  }, [bar, timeSig, initClick]);
 
-  const playNoteValue = useCallback(
-    async (note: NoteValue) => {
-      await initAudio();
-      const dur = note.beats * BEAT_DURATION;
-      synthRef.current?.triggerAttackRelease(440, dur * 0.8);
-    },
-    [initAudio],
-  );
+  const playNoteValue = useCallback(async (note: NoteValue) => {
+    setAudioLoading(true);
+    const s = await ensureAudio();
+    setAudioLoading(false);
+    const dur = note.beats * BEAT_DURATION;
+    s.triggerAttackRelease(MELODY_MIDI, dur * 0.8);
+  }, []);
 
   useEffect(() => {
     return () => {
-      synthRef.current?.dispose();
       clickRef.current?.dispose();
     };
   }, []);
@@ -136,6 +128,18 @@ export function RhythmExplorer() {
         Tap a note value to hear its duration. Build a bar by adding notes, then
         play it back with a click track.
       </p>
+
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
 
       <div className="mb-6 flex gap-3">
         <button

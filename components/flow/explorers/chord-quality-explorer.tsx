@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import * as Tone from "tone";
 import Link from "next/link";
 import { brand } from "@/lib/tokens";
+import { ensureAudio, playChord } from "@/lib/audio/solmisa-piano";
 
 interface ChordDef {
   name: string;
@@ -48,68 +49,33 @@ const CHORDS: ChordDef[] = [
 
 const ROOT_MIDI = 60;
 
-function midiToFreq(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
 export function ChordQualityExplorer() {
   const [activeChord, setActiveChord] = useState<string | null>(null);
   const [arpeggiated, setArpeggiated] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
 
-  const synthRef = useRef<Tone.PolySynth | null>(null);
-  const fmSynthRef = useRef<Tone.FMSynth | null>(null);
-
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
-    await Tone.start();
-
-    synthRef.current = new Tone.PolySynth(Tone.FMSynth, {
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 },
-      volume: -10,
-    }).toDestination();
-
-    fmSynthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.5 },
-      volume: -10,
-    }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
-
-  const playChord = useCallback(
+  const playChordHandler = useCallback(
     async (chord: ChordDef) => {
-      await initAudio();
+      setAudioLoading(true);
+      const s = await ensureAudio();
+      setAudioLoading(false);
       setActiveChord(chord.name);
 
-      const freqs = chord.intervals.map((i) => midiToFreq(ROOT_MIDI + i));
+      const midiNotes = chord.intervals.map((i) => ROOT_MIDI + i);
 
       if (arpeggiated) {
         const now = Tone.now();
-        freqs.forEach((freq, idx) => {
-          fmSynthRef.current?.triggerAttackRelease(
-            freq,
-            "8n",
-            now + idx * 0.15,
-          );
+        midiNotes.forEach((midiNote, idx) => {
+          s.triggerAttackRelease(midiNote, "8n", now + idx * 0.15);
         });
       } else {
-        synthRef.current?.triggerAttackRelease(freqs, "2n");
+        playChord(midiNotes, "2n");
       }
 
       setTimeout(() => setActiveChord(null), 800);
     },
-    [arpeggiated, initAudio],
+    [arpeggiated],
   );
-
-  useEffect(() => {
-    return () => {
-      synthRef.current?.dispose();
-      fmSynthRef.current?.dispose();
-    };
-  }, []);
 
   return (
     <div
@@ -132,6 +98,18 @@ export function ChordQualityExplorer() {
         voicings.
       </p>
 
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
+
       <button
         onClick={() => setArpeggiated((v) => !v)}
         className="mb-8 rounded-lg px-5 py-2.5 text-sm font-medium transition-all"
@@ -150,7 +128,7 @@ export function ChordQualityExplorer() {
           return (
             <button
               key={chord.name}
-              onClick={() => playChord(chord)}
+              onClick={() => playChordHandler(chord)}
               className="flex flex-col items-center rounded-xl p-4 transition-all"
               style={{
                 backgroundColor: brand.slate,

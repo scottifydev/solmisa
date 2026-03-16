@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import * as Tone from "tone";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { brand, degreeColors } from "@/lib/tokens";
+import {
+  ensureAudio,
+  playNote,
+  attackNote,
+  releaseNote,
+} from "@/lib/audio/solmisa-piano";
 
 const DEGREES = [
   { degree: 1, label: "Do", semitones: 0, stability: "Tonic -- most stable" },
@@ -42,65 +47,36 @@ const DEGREES = [
 
 const ROOT_MIDI = 60; // Middle C
 
-function midiToFreq(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
 export function DegreeExplorer() {
   const [activeDegree, setActiveDegree] = useState<number | null>(null);
   const [droneActive, setDroneActive] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
-
-  const droneRef = useRef<Tone.FMSynth | null>(null);
-  const melodySynthRef = useRef<Tone.FMSynth | null>(null);
-
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
-    await Tone.start();
-
-    droneRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.3, decay: 0.1, sustain: 0.8, release: 1 },
-      volume: -18,
-    }).toDestination();
-
-    melodySynthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.5 },
-      volume: -8,
-    }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
+  const [audioLoading, setAudioLoading] = useState(false);
 
   const toggleDrone = useCallback(async () => {
-    await initAudio();
     if (droneActive) {
-      droneRef.current?.triggerRelease();
+      releaseNote(ROOT_MIDI);
       setDroneActive(false);
     } else {
-      const freq = midiToFreq(ROOT_MIDI);
-      droneRef.current?.triggerAttack(freq);
+      setAudioLoading(true);
+      await ensureAudio();
+      setAudioLoading(false);
+      await attackNote(ROOT_MIDI);
       setDroneActive(true);
     }
-  }, [droneActive, initAudio]);
+  }, [droneActive]);
 
-  const playDegree = useCallback(
-    async (deg: (typeof DEGREES)[number]) => {
-      await initAudio();
-      const freq = midiToFreq(ROOT_MIDI + deg.semitones);
-      melodySynthRef.current?.triggerAttackRelease(freq, "4n");
-      setActiveDegree(deg.degree);
-      setTimeout(() => setActiveDegree(null), 500);
-    },
-    [initAudio],
-  );
+  const playDegree = useCallback(async (deg: (typeof DEGREES)[number]) => {
+    setAudioLoading(true);
+    await ensureAudio();
+    setAudioLoading(false);
+    playNote(ROOT_MIDI + deg.semitones, "4n");
+    setActiveDegree(deg.degree);
+    setTimeout(() => setActiveDegree(null), 500);
+  }, []);
 
   useEffect(() => {
     return () => {
-      droneRef.current?.triggerRelease();
-      droneRef.current?.dispose();
-      melodySynthRef.current?.dispose();
+      releaseNote(ROOT_MIDI);
     };
   }, []);
 
@@ -124,6 +100,18 @@ export function DegreeExplorer() {
         Hear how each scale degree sounds against the root. Toggle the drone,
         then tap a degree.
       </p>
+
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
 
       <button
         onClick={toggleDrone}

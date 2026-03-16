@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { DEGREE_SYNTH_OPTIONS } from "./shared-synth-config";
+import { ensureAudio } from "./solmisa-piano";
 import { noteToMidi, midiToNoteName, stripOctave } from "./music-theory";
 import type { NoteName } from "@/types/audio";
 
@@ -49,41 +49,19 @@ export async function playScale(config: ScalePlaybackConfig): Promise<void> {
   const notes = semitones.map((s) => midiToNoteName(rootMidi + s));
   const noteDuration = 1 / tempo;
 
-  // Create a temporary synth for playback
-  const reverb = new Tone.Reverb({
-    decay: 1.5,
-    wet: 0.12,
-    preDelay: 0.01,
-  }).toDestination();
-
-  const filter = new Tone.Filter({
-    type: "lowpass",
-    frequency: 2000,
-    rolloff: -12,
-    Q: 0.5,
-  }).connect(reverb);
-
-  const synth = new Tone.FMSynth(DEGREE_SYNTH_OPTIONS).connect(filter);
-
+  const s = await ensureAudio();
   const now = Tone.now() + 0.05;
   const gap = noteDuration * 0.1;
 
   for (let i = 0; i < notes.length; i++) {
-    synth.triggerAttackRelease(
+    s.triggerAttackRelease(
       notes[i]!,
       noteDuration * 0.85,
       now + i * (noteDuration - gap),
     );
   }
 
-  const totalMs = notes.length * (noteDuration - gap) * 1000 + 300;
-
   await new Promise<void>((resolve) => {
-    setTimeout(() => {
-      synth.dispose();
-      filter.dispose();
-      reverb.dispose();
-      resolve();
-    }, totalMs);
+    setTimeout(resolve, notes.length * (noteDuration - gap) * 1000 + 300);
   });
 }
