@@ -481,7 +481,6 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     setGlowRingType(null);
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     newQuestion();
   }, [qType, level]);

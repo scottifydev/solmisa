@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import * as Tone from "tone";
 import Link from "next/link";
 import { brand } from "@/lib/tokens";
+import { ensureAudio } from "@/lib/audio/solmisa-piano";
 
 interface ModeDef {
   name: string;
@@ -67,49 +68,22 @@ const MODES: ModeDef[] = [
 
 const ROOT_MIDI = 60;
 
-function midiToFreq(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
 export function ModeExplorer() {
   const [activeMode, setActiveMode] = useState<string | null>(null);
-  const [audioReady, setAudioReady] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
 
-  const synthRef = useRef<Tone.FMSynth | null>(null);
+  const playMode = useCallback(async (mode: ModeDef) => {
+    setAudioLoading(true);
+    const s = await ensureAudio();
+    setAudioLoading(false);
+    setActiveMode(mode.name);
 
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
-    await Tone.start();
+    const now = Tone.now();
+    mode.intervals.forEach((semitone, idx) => {
+      s.triggerAttackRelease(ROOT_MIDI + semitone, "8n", now + idx * 0.2);
+    });
 
-    synthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.2, sustain: 0.3, release: 0.4 },
-      volume: -10,
-    }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
-
-  const playMode = useCallback(
-    async (mode: ModeDef) => {
-      await initAudio();
-      setActiveMode(mode.name);
-
-      const now = Tone.now();
-      mode.intervals.forEach((semitone, idx) => {
-        const freq = midiToFreq(ROOT_MIDI + semitone);
-        synthRef.current?.triggerAttackRelease(freq, "8n", now + idx * 0.2);
-      });
-
-      setTimeout(() => setActiveMode(null), mode.intervals.length * 200 + 300);
-    },
-    [initAudio],
-  );
-
-  useEffect(() => {
-    return () => {
-      synthRef.current?.dispose();
-    };
+    setTimeout(() => setActiveMode(null), mode.intervals.length * 200 + 300);
   }, []);
 
   return (
@@ -133,6 +107,18 @@ export function ModeExplorer() {
         scale. The characteristic degree is what gives each mode its unique
         color.
       </p>
+
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
 
       <div className="flex flex-col gap-3">
         {MODES.map((mode, idx) => {

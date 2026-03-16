@@ -33,7 +33,9 @@ export function StaffNoteDragger({
   const isMode = !!keyData;
   const hasTwoRows = !isMode && (correctDesc ?? null) !== null;
   const noteCount = isMode ? keyData.positions.length : correctAsc.length;
-  const basePositions = isMode ? keyData.positions : (startPositions ?? C_MAJOR_POS);
+  const basePositions = isMode
+    ? keyData.positions
+    : (startPositions ?? C_MAJOR_POS);
 
   // Layout
   const sp = isMode ? 16 : 14;

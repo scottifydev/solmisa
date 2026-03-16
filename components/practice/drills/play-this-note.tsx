@@ -2,82 +2,215 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { PianoKeyboard, type NoteKey } from "../inputs/piano-keyboard";
-import {
-  type ClefType,
-  randomNote,
-  renderNoteOnStaff,
-} from "./identify-note";
-
-// ── Audio ──────────────────────────────────────────────────────────────────
-let synth: import("tone").FMSynth | null = null;
-let audioReady = false;
-
-async function ensureAudio() {
-  if (audioReady) return;
-  const Tone = await import("tone");
-  await Tone.start();
-  synth = new Tone.FMSynth({
-    harmonicity: 3,
-    modulationIndex: 2,
-    oscillator: { type: "triangle" },
-    envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.8 },
-    modulation: { type: "square" },
-    modulationEnvelope: { attack: 0.002, decay: 0.2, sustain: 0, release: 0.5 },
-    volume: -8,
-  }).toDestination();
-  const reverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 });
-  await reverb.ready;
-  synth.connect(reverb);
-  reverb.toDestination();
-  audioReady = true;
-}
-
-async function playNote(note: string) {
-  await ensureAudio();
-  if (synth) synth.triggerAttackRelease(note, "8n");
-}
+import { type ClefType, renderNoteOnStaff } from "./identify-note";
+import { ensureAudio, playNote, isReady } from "@/lib/audio/solmisa-piano";
 
 // ── Note pools per clef ─────────────────────────────────────────────────────
 const TREBLE_NOTES = [
-  { name: "C", vexKey: "c/4", tone: "C4", accidental: undefined as string | undefined },
-  { name: "D", vexKey: "d/4", tone: "D4", accidental: undefined as string | undefined },
-  { name: "E", vexKey: "e/4", tone: "E4", accidental: undefined as string | undefined },
-  { name: "F", vexKey: "f/4", tone: "F4", accidental: undefined as string | undefined },
-  { name: "G", vexKey: "g/4", tone: "G4", accidental: undefined as string | undefined },
-  { name: "A", vexKey: "a/4", tone: "A4", accidental: undefined as string | undefined },
-  { name: "B", vexKey: "b/4", tone: "B4", accidental: undefined as string | undefined },
-  { name: "C", vexKey: "c/5", tone: "C5", accidental: undefined as string | undefined },
-  { name: "D", vexKey: "d/5", tone: "D5", accidental: undefined as string | undefined },
-  { name: "E", vexKey: "e/5", tone: "E5", accidental: undefined as string | undefined },
-  { name: "F", vexKey: "f/5", tone: "F5", accidental: undefined as string | undefined },
+  {
+    name: "C",
+    vexKey: "c/4",
+    tone: "C4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "D",
+    vexKey: "d/4",
+    tone: "D4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "E",
+    vexKey: "e/4",
+    tone: "E4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "F",
+    vexKey: "f/4",
+    tone: "F4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "G",
+    vexKey: "g/4",
+    tone: "G4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "A",
+    vexKey: "a/4",
+    tone: "A4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "B",
+    vexKey: "b/4",
+    tone: "B4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "C",
+    vexKey: "c/5",
+    tone: "C5",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "D",
+    vexKey: "d/5",
+    tone: "D5",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "E",
+    vexKey: "e/5",
+    tone: "E5",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "F",
+    vexKey: "f/5",
+    tone: "F5",
+    accidental: undefined as string | undefined,
+  },
 ];
 
 const BASS_NOTES = [
-  { name: "E", vexKey: "e/2", tone: "E2", accidental: undefined as string | undefined },
-  { name: "F", vexKey: "f/2", tone: "F2", accidental: undefined as string | undefined },
-  { name: "G", vexKey: "g/2", tone: "G2", accidental: undefined as string | undefined },
-  { name: "A", vexKey: "a/2", tone: "A2", accidental: undefined as string | undefined },
-  { name: "B", vexKey: "b/2", tone: "B2", accidental: undefined as string | undefined },
-  { name: "C", vexKey: "c/3", tone: "C3", accidental: undefined as string | undefined },
-  { name: "D", vexKey: "d/3", tone: "D3", accidental: undefined as string | undefined },
-  { name: "E", vexKey: "e/3", tone: "E3", accidental: undefined as string | undefined },
-  { name: "F", vexKey: "f/3", tone: "F3", accidental: undefined as string | undefined },
-  { name: "G", vexKey: "g/3", tone: "G3", accidental: undefined as string | undefined },
-  { name: "A", vexKey: "a/3", tone: "A3", accidental: undefined as string | undefined },
+  {
+    name: "E",
+    vexKey: "e/2",
+    tone: "E2",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "F",
+    vexKey: "f/2",
+    tone: "F2",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "G",
+    vexKey: "g/2",
+    tone: "G2",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "A",
+    vexKey: "a/2",
+    tone: "A2",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "B",
+    vexKey: "b/2",
+    tone: "B2",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "C",
+    vexKey: "c/3",
+    tone: "C3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "D",
+    vexKey: "d/3",
+    tone: "D3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "E",
+    vexKey: "e/3",
+    tone: "E3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "F",
+    vexKey: "f/3",
+    tone: "F3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "G",
+    vexKey: "g/3",
+    tone: "G3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "A",
+    vexKey: "a/3",
+    tone: "A3",
+    accidental: undefined as string | undefined,
+  },
 ];
 
 const ALTO_NOTES = [
-  { name: "F", vexKey: "f/3", tone: "F3", accidental: undefined as string | undefined },
-  { name: "G", vexKey: "g/3", tone: "G3", accidental: undefined as string | undefined },
-  { name: "A", vexKey: "a/3", tone: "A3", accidental: undefined as string | undefined },
-  { name: "B", vexKey: "b/3", tone: "B3", accidental: undefined as string | undefined },
-  { name: "C", vexKey: "c/4", tone: "C4", accidental: undefined as string | undefined },
-  { name: "D", vexKey: "d/4", tone: "D4", accidental: undefined as string | undefined },
-  { name: "E", vexKey: "e/4", tone: "E4", accidental: undefined as string | undefined },
-  { name: "F", vexKey: "f/4", tone: "F4", accidental: undefined as string | undefined },
-  { name: "G", vexKey: "g/4", tone: "G4", accidental: undefined as string | undefined },
-  { name: "A", vexKey: "a/4", tone: "A4", accidental: undefined as string | undefined },
-  { name: "B", vexKey: "b/4", tone: "B4", accidental: undefined as string | undefined },
+  {
+    name: "F",
+    vexKey: "f/3",
+    tone: "F3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "G",
+    vexKey: "g/3",
+    tone: "G3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "A",
+    vexKey: "a/3",
+    tone: "A3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "B",
+    vexKey: "b/3",
+    tone: "B3",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "C",
+    vexKey: "c/4",
+    tone: "C4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "D",
+    vexKey: "d/4",
+    tone: "D4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "E",
+    vexKey: "e/4",
+    tone: "E4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "F",
+    vexKey: "f/4",
+    tone: "F4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "G",
+    vexKey: "g/4",
+    tone: "G4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "A",
+    vexKey: "a/4",
+    tone: "A4",
+    accidental: undefined as string | undefined,
+  },
+  {
+    name: "B",
+    vexKey: "b/4",
+    tone: "B4",
+    accidental: undefined as string | undefined,
+  },
 ];
 
 type PlayNote = (typeof TREBLE_NOTES)[number];
@@ -108,16 +241,14 @@ interface PlayThisNoteProps {
   clef?: ClefType;
 }
 
-export function PlayThisNote({
-  onAnswer,
-  clef = "treble",
-}: PlayThisNoteProps) {
+export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
   const pool = PLAY_POOLS[clef];
   const [target] = useState(() => randomPlayNote(pool));
   const [keyStates, setKeyStates] = useState<
     Partial<Record<NoteKey, "default" | "correct" | "incorrect" | "hint">>
   >({});
   const [answered, setAnswered] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Render staff on mount
@@ -130,6 +261,12 @@ export function PlayThisNote({
   const handleKeyPress = useCallback(
     async (pressedKey: NoteKey) => {
       if (answered) return;
+
+      if (!isReady()) {
+        setAudioLoading(true);
+        await ensureAudio();
+        setAudioLoading(false);
+      }
 
       const targetKey = target.name as NoteKey;
       const isCorrect = pressedKey === targetKey;
@@ -183,6 +320,19 @@ export function PlayThisNote({
         width: "100%",
       }}
     >
+      {/* Loading */}
+      {audioLoading && (
+        <div
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </div>
+      )}
+
       {/* Staff */}
       <div ref={containerRef} style={{ width: "100%" }} />
 

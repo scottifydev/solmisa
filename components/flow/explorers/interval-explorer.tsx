@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import * as Tone from "tone";
 import Link from "next/link";
 import { brand } from "@/lib/tokens";
+import { ensureAudio, playChord } from "@/lib/audio/solmisa-piano";
 
 interface IntervalDef {
   name: string;
@@ -29,71 +30,35 @@ const INTERVALS: IntervalDef[] = [
 
 const ROOT_MIDI = 60;
 
-function midiToFreq(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
 export function IntervalExplorer() {
   const [activeInterval, setActiveInterval] = useState<string | null>(null);
   const [harmonic, setHarmonic] = useState(false);
   const [descending, setDescending] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
-
-  const synthRef = useRef<Tone.FMSynth | null>(null);
-  const polySynthRef = useRef<Tone.PolySynth | null>(null);
-
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
-    await Tone.start();
-
-    synthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.5 },
-      volume: -10,
-    }).toDestination();
-
-    polySynthRef.current = new Tone.PolySynth(Tone.FMSynth, {
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 },
-      volume: -10,
-    }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
+  const [audioLoading, setAudioLoading] = useState(false);
 
   const playInterval = useCallback(
     async (interval: IntervalDef) => {
-      await initAudio();
+      setAudioLoading(true);
+      const s = await ensureAudio();
+      setAudioLoading(false);
       setActiveInterval(interval.shortName);
 
-      const rootFreq = midiToFreq(ROOT_MIDI);
       const targetMidi = descending
         ? ROOT_MIDI - interval.semitones
         : ROOT_MIDI + interval.semitones;
-      const targetFreq = midiToFreq(targetMidi);
 
       if (harmonic) {
-        polySynthRef.current?.triggerAttackRelease(
-          [rootFreq, targetFreq],
-          "2n",
-        );
+        playChord([ROOT_MIDI, targetMidi], "2n");
       } else {
         const now = Tone.now();
-        synthRef.current?.triggerAttackRelease(rootFreq, "8n", now);
-        synthRef.current?.triggerAttackRelease(targetFreq, "8n", now + 0.3);
+        s.triggerAttackRelease(ROOT_MIDI, "8n", now);
+        s.triggerAttackRelease(targetMidi, "8n", now + 0.3);
       }
 
       setTimeout(() => setActiveInterval(null), 700);
     },
-    [harmonic, descending, initAudio],
+    [harmonic, descending],
   );
-
-  useEffect(() => {
-    return () => {
-      synthRef.current?.dispose();
-      polySynthRef.current?.dispose();
-    };
-  }, []);
 
   return (
     <div
@@ -115,6 +80,18 @@ export function IntervalExplorer() {
         Tap an interval to hear it. Toggle between melodic and harmonic,
         ascending and descending.
       </p>
+
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
 
       <div className="mb-8 flex flex-wrap gap-3">
         <button

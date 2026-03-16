@@ -49,7 +49,10 @@ function randomMode(
     const keyData =
       keyPool[Math.floor(Math.random() * keyPool.length)] ?? KEYS[0]!;
     const combo = `${modeName}-${keyData.name}`;
-    if (combo !== lastModeCombo || (modePool.length <= 1 && keyPool.length <= 1)) {
+    if (
+      combo !== lastModeCombo ||
+      (modePool.length <= 1 && keyPool.length <= 1)
+    ) {
       lastModeCombo = combo;
       return { modeName, alts: MODES[modeName]!.alts, keyData };
     }

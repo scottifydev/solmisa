@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { IdentifyNote, type ClefType } from "@/components/practice/drills/identify-note";
+import {
+  IdentifyNote,
+  type ClefType,
+} from "@/components/practice/drills/identify-note";
 import { PlayThisNote } from "@/components/practice/drills/play-this-note";
 
 const DRILLS = [
@@ -12,8 +15,16 @@ type DrillId = (typeof DRILLS)[number]["id"];
 
 const DIFFICULTIES = [
   { id: "treble", label: "Treble", clefs: ["treble"] as ClefType[] },
-  { id: "treble-bass", label: "Treble + Bass", clefs: ["treble", "bass"] as ClefType[] },
-  { id: "all", label: "All Clefs", clefs: ["treble", "bass", "alto"] as ClefType[] },
+  {
+    id: "treble-bass",
+    label: "Treble + Bass",
+    clefs: ["treble", "bass"] as ClefType[],
+  },
+  {
+    id: "all",
+    label: "All Clefs",
+    clefs: ["treble", "bass", "alto"] as ClefType[],
+  },
 ] as const;
 type DifficultyId = (typeof DIFFICULTIES)[number]["id"];
 

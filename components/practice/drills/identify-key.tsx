@@ -77,10 +77,7 @@ async function renderKeySig(
       "font-family",
       "'Bravura','Academico','Noto Music',serif",
     );
-    text.setAttribute(
-      "style",
-      "user-select:none",
-    );
+    text.setAttribute("style", "user-select:none");
     text.textContent = sym;
     svg.appendChild(text);
   }

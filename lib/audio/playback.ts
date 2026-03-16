@@ -17,8 +17,8 @@ import {
   loadSample,
   type SampleTimbre,
 } from "./timbre";
-import { DEGREE_SYNTH_OPTIONS } from "./shared-synth-config";
 import { noteToMidi, midiToNoteName } from "./music-theory";
+import { ensureAudio, releaseAll } from "./solmisa-piano";
 
 // ─── Music Theory Maps ──────────────────────────────────────
 
@@ -67,66 +67,26 @@ function degreeToNote(
   return midiToNoteName(rootMidi + DEGREE_SEMITONES[degree]);
 }
 
-// ─── Playback Effects ───────────────────────────────────────
+// ─── Playback Effects Config (kept for API compatibility) ────
 
 export interface PlaybackEffectsConfig {
-  filterCutoff?: number; // Hz, default 2000
-  reverbWet?: number; // 0-1, default 0.12
-  reverbDecay?: number; // seconds, default 1.5
+  filterCutoff?: number;
+  reverbWet?: number;
+  reverbDecay?: number;
 }
-
-const PLAYBACK_DEFAULTS: Required<PlaybackEffectsConfig> = {
-  filterCutoff: 2000,
-  reverbWet: 0.12,
-  reverbDecay: 1.5,
-};
 
 // ─── Playback Engine ────────────────────────────────────────
 
 export class PlaybackEngine {
-  private synth: Tone.FMSynth | null = null;
-  private polySynth: Tone.PolySynth | null = null;
-  private filter: Tone.Filter;
-  private reverb: Tone.Reverb;
   private isActive = false;
   private stopRequested = false;
 
-  constructor(effects?: PlaybackEffectsConfig) {
-    const config = { ...PLAYBACK_DEFAULTS, ...effects };
-
-    // Chain: synths → filter → reverb → destination
-    this.reverb = new Tone.Reverb({
-      decay: config.reverbDecay,
-      wet: config.reverbWet,
-      preDelay: 0.01,
-    }).toDestination();
-    this.filter = new Tone.Filter({
-      type: "lowpass",
-      frequency: config.filterCutoff,
-      rolloff: -12,
-      Q: 0.5,
-    }).connect(this.reverb);
+  constructor(_effects?: PlaybackEffectsConfig) {
+    // Effects config no longer used — audio routed through solmisa-piano singleton
   }
 
   get playing(): boolean {
     return this.isActive;
-  }
-
-  private getSynth(): Tone.FMSynth {
-    if (!this.synth) {
-      this.synth = new Tone.FMSynth(DEGREE_SYNTH_OPTIONS).connect(this.filter);
-    }
-    return this.synth;
-  }
-
-  private getPolySynth(): Tone.PolySynth {
-    if (!this.polySynth) {
-      this.polySynth = new Tone.PolySynth(
-        Tone.FMSynth,
-        DEGREE_SYNTH_OPTIONS,
-      ).connect(this.filter);
-    }
-    return this.polySynth;
   }
 
   async playDegree(options: PlayDegreeOptions): Promise<void> {
@@ -134,7 +94,6 @@ export class PlaybackEngine {
     this.isActive = true;
     this.stopRequested = false;
 
-    // Resolve timbre: 'varied' picks random sample, specific sample timbres use samples
     const resolvedTimbre = timbre === "varied" ? randomSampleTimbre() : timbre;
 
     if (resolvedTimbre && isSampleTimbre(resolvedTimbre)) {
@@ -148,13 +107,13 @@ export class PlaybackEngine {
         this.isActive = false;
         return;
       } catch {
-        // Fall through to synth on sample load failure
+        // Fall through to piano on sample load failure
       }
     }
 
     const note = degreeToNote(key, degree, octave);
-    const synth = this.getSynth();
-    synth.triggerAttackRelease(note, duration, Tone.now());
+    const s = await ensureAudio();
+    s.triggerAttackRelease(note, duration, Tone.now());
 
     await this.wait(duration * 1000 + 100);
     this.isActive = false;
@@ -199,14 +158,14 @@ export class PlaybackEngine {
     this.isActive = true;
     this.stopRequested = false;
 
-    const synth = this.getSynth();
-    const gap = duration * 0.15; // slight overlap for legato feel
+    const s = await ensureAudio();
+    const gap = duration * 0.15;
     const now = Tone.now();
 
     for (let i = 0; i < degrees.length; i++) {
       if (this.stopRequested) break;
       const note = degreeToNote(key, degrees[i]!, octave);
-      synth.triggerAttackRelease(note, duration, now + i * (duration - gap));
+      s.triggerAttackRelease(note, duration, now + i * (duration - gap));
     }
 
     await this.wait(degrees.length * (duration - gap) * 1000 + 200);
@@ -215,27 +174,24 @@ export class PlaybackEngine {
 
   async playResolution(options: ResolutionOptions): Promise<void> {
     const { fromDegree, key } = options;
-    if (fromDegree === 1) return; // already at tonic
+    if (fromDegree === 1) return;
 
-    // Build stepwise path to tonic using shortest direction
     const path: DiatonicDegree[] = [];
     if (fromDegree <= 4) {
-      // Resolve downward: e.g. 3 -> 2 -> 1
       for (let d = fromDegree; d >= 1; d--) {
         path.push(d as DiatonicDegree);
       }
     } else {
-      // Resolve upward: e.g. 5 -> 6 -> 7 -> 1(octave above)
       for (let d = fromDegree; d <= 7; d++) {
         path.push(d as DiatonicDegree);
       }
-      path.push(1); // tonic above (handled by octave shift in playback)
+      path.push(1);
     }
 
     this.isActive = true;
     this.stopRequested = false;
 
-    const synth = this.getSynth();
+    const s = await ensureAudio();
     const stepDuration = 0.25;
     const overlap = 0.05;
     const now = Tone.now();
@@ -245,13 +201,12 @@ export class PlaybackEngine {
       if (this.stopRequested) break;
       const degree = path[i]!;
       const isLast = i === path.length - 1;
-      const dur = isLast ? stepDuration * 1.5 : stepDuration; // final tonic rings longer
+      const dur = isLast ? stepDuration * 1.5 : stepDuration;
 
-      // If resolving upward and we've wrapped to degree 1, play octave above
       const octave =
         fromDegree > 4 && degree === 1 ? baseOctave + 1 : baseOctave;
       const note = degreeToNote(key, degree, octave);
-      synth.triggerAttackRelease(note, dur, now + i * (stepDuration - overlap));
+      s.triggerAttackRelease(note, dur, now + i * (stepDuration - overlap));
     }
 
     await this.wait(path.length * (stepDuration - overlap) * 1000 + 300);
@@ -276,15 +231,15 @@ export class PlaybackEngine {
     this.isActive = true;
     this.stopRequested = false;
 
+    const s = await ensureAudio();
+
     if (mode === "harmonic") {
-      const poly = this.getPolySynth();
-      poly.triggerAttackRelease([bottomNote, topNote], duration, Tone.now());
+      s.triggerAttackRelease([bottomNote, topNote], duration, Tone.now());
       await this.wait(duration * 1000 + 100);
     } else {
-      const synth = this.getSynth();
       const now = Tone.now();
-      synth.triggerAttackRelease(bottomNote, duration, now);
-      synth.triggerAttackRelease(topNote, duration, now + duration + gap);
+      s.triggerAttackRelease(bottomNote, duration, now);
+      s.triggerAttackRelease(topNote, duration, now + duration + gap);
       await this.wait((duration * 2 + gap) * 1000 + 100);
     }
 
@@ -306,9 +261,8 @@ export class PlaybackEngine {
     const rootMidi = noteToMidi(root, octave);
     let midiNotes = intervals.map((semi) => rootMidi + semi);
 
-    // Apply inversions
     if (inversion === "first" && midiNotes.length >= 2) {
-      midiNotes[0] = midiNotes[0]! + 12; // raise root octave
+      midiNotes[0] = midiNotes[0]! + 12;
       midiNotes = [
         midiNotes[1]!,
         midiNotes[2]!,
@@ -331,25 +285,16 @@ export class PlaybackEngine {
     this.isActive = true;
     this.stopRequested = false;
 
+    const s = await ensureAudio();
+
     if (mode === "block") {
-      // Block chord - all notes at once, bass slightly louder
-      const poly = this.getPolySynth();
-      // Play bass note separately with more volume
-      const bassSynth = this.getSynth();
-      bassSynth.volume.value = 3; // slightly louder bass
-      bassSynth.triggerAttackRelease(notes[0]!, duration, Tone.now());
-      if (notes.length > 1) {
-        poly.triggerAttackRelease(notes.slice(1), duration, Tone.now());
-      }
+      s.triggerAttackRelease(notes, duration, Tone.now(), 0.7);
       await this.wait(duration * 1000 + 100);
-      bassSynth.volume.value = 0; // restore
     } else {
-      // Arpeggiated
-      const synth = this.getSynth();
       const arpGap = 0.12;
       const now = Tone.now();
       for (let i = 0; i < notes.length; i++) {
-        synth.triggerAttackRelease(notes[i]!, duration, now + i * arpGap);
+        s.triggerAttackRelease(notes[i]!, duration, now + i * arpGap);
       }
       await this.wait((notes.length * arpGap + duration) * 1000 + 100);
     }
@@ -359,19 +304,12 @@ export class PlaybackEngine {
 
   stop(): void {
     this.stopRequested = true;
-    this.synth?.triggerRelease();
-    this.polySynth?.releaseAll();
+    releaseAll();
     this.isActive = false;
   }
 
   dispose(): void {
     this.stop();
-    this.synth?.dispose();
-    this.synth = null;
-    this.polySynth?.dispose();
-    this.polySynth = null;
-    this.filter.dispose();
-    this.reverb.dispose();
   }
 
   private wait(ms: number): Promise<void> {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import * as Tone from "tone";
 import Link from "next/link";
 import { brand } from "@/lib/tokens";
+import { ensureAudio, playChord } from "@/lib/audio/solmisa-piano";
 
 interface InversionDef {
   name: string;
@@ -35,68 +36,33 @@ const INVERSIONS: InversionDef[] = [
 
 const ROOT_MIDI = 60;
 
-function midiToFreq(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
 export function InversionExplorer() {
   const [activeInversion, setActiveInversion] = useState<string | null>(null);
   const [arpeggiated, setArpeggiated] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
-
-  const polySynthRef = useRef<Tone.PolySynth | null>(null);
-  const fmSynthRef = useRef<Tone.FMSynth | null>(null);
-
-  const initAudio = useCallback(async () => {
-    if (audioReady) return;
-    await Tone.start();
-
-    polySynthRef.current = new Tone.PolySynth(Tone.FMSynth, {
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 },
-      volume: -10,
-    }).toDestination();
-
-    fmSynthRef.current = new Tone.FMSynth({
-      oscillator: { type: "fmsine" },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.5 },
-      volume: -10,
-    }).toDestination();
-
-    setAudioReady(true);
-  }, [audioReady]);
+  const [audioLoading, setAudioLoading] = useState(false);
 
   const playInversion = useCallback(
     async (inv: InversionDef) => {
-      await initAudio();
+      setAudioLoading(true);
+      const s = await ensureAudio();
+      setAudioLoading(false);
       setActiveInversion(inv.name);
 
-      const freqs = inv.intervals.map((i) => midiToFreq(ROOT_MIDI + i));
+      const midiNotes = inv.intervals.map((i) => ROOT_MIDI + i);
 
       if (arpeggiated) {
         const now = Tone.now();
-        freqs.forEach((freq, idx) => {
-          fmSynthRef.current?.triggerAttackRelease(
-            freq,
-            "8n",
-            now + idx * 0.15,
-          );
+        midiNotes.forEach((midiNote, idx) => {
+          s.triggerAttackRelease(midiNote, "8n", now + idx * 0.15);
         });
       } else {
-        polySynthRef.current?.triggerAttackRelease(freqs, "2n");
+        playChord(midiNotes, "2n");
       }
 
       setTimeout(() => setActiveInversion(null), 800);
     },
-    [arpeggiated, initAudio],
+    [arpeggiated],
   );
-
-  useEffect(() => {
-    return () => {
-      polySynthRef.current?.dispose();
-      fmSynthRef.current?.dispose();
-    };
-  }, []);
 
   const inversionColors = {
     root: "#34d399",
@@ -124,6 +90,18 @@ export function InversionExplorer() {
         Same three notes (C major triad), different voicings. The lowest note
         changes the color and feel of the chord.
       </p>
+
+      {audioLoading && (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#a09bb3",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Loading piano...
+        </span>
+      )}
 
       <button
         onClick={() => setArpeggiated((v) => !v)}

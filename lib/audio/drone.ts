@@ -6,8 +6,8 @@ import type {
   RandomKeyOptions,
 } from "@/types/audio";
 import { MODULE_KEY_POOLS } from "@/types/audio";
-import { CADENCE_SYNTH_OPTIONS } from "./shared-synth-config";
 import { stripOctave, noteToMidi, midiToNoteName } from "./music-theory";
+import { ensureAudio } from "./solmisa-piano";
 
 function majorTriadMidi(rootMidi: number): number[] {
   return [rootMidi, rootMidi + 4, rootMidi + 7];
@@ -140,7 +140,6 @@ export class DroneGenerator {
   private currentOctave = 4;
   private targetVolume = 0.35;
   private isPlaying = false;
-  private cadenceSynth: Tone.PolySynth | null = null;
   private cadenceFilter: Tone.Filter | null = null;
   private cadenceReverb: Tone.Reverb | null = null;
   private effectsConfig: Required<DroneEffectsConfig>;
@@ -352,11 +351,7 @@ export class DroneGenerator {
       );
     }
 
-    this.cadenceSynth?.dispose();
-    this.cadenceSynth = new Tone.PolySynth(
-      Tone.FMSynth,
-      CADENCE_SYNTH_OPTIONS,
-    ).connect(this.getCadenceChain());
+    const s = await ensureAudio();
 
     const chords = buildCadenceChords(
       key as NoteName,
@@ -367,12 +362,11 @@ export class DroneGenerator {
 
     for (let i = 0; i < chords.length; i++) {
       const time = now + i * (chordDuration + gap);
-      this.cadenceSynth.triggerAttackRelease(chords[i]!, chordDuration, time);
+      s.triggerAttackRelease(chords[i]!, chordDuration, time, 0.5);
     }
 
     const totalTime = chords.length * (chordDuration + gap);
 
-    // Restore drone volume after cadence
     return new Promise<void>((resolve) => {
       setTimeout(
         () => {
@@ -382,8 +376,6 @@ export class DroneGenerator {
               Tone.now() + 0.2,
             );
           }
-          this.cadenceSynth?.dispose();
-          this.cadenceSynth = null;
           resolve();
         },
         totalTime * 1000 + 100,
@@ -393,8 +385,6 @@ export class DroneGenerator {
 
   dispose(): void {
     this.stop();
-    this.cadenceSynth?.dispose();
-    this.cadenceSynth = null;
     this.cadenceFilter?.dispose();
     this.cadenceFilter = null;
     this.cadenceReverb?.dispose();
