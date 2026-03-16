@@ -17,13 +17,20 @@ const MODE_NAMES = Object.keys(MODES);
 
 const KEYS: KeyData[] = [
   { name: "C", positions: [-2, -1, 0, 1, 2, 3, 4], sharps: 0, flats: 0 },
-  { name: "G", positions: [2, 3, 4, 5, 6, 7, 8], sharps: 1, flats: 0 },
+  { name: "D♭", positions: [-1, 0, 1, 2, 3, 4, 5], sharps: 0, flats: 5 },
   { name: "D", positions: [-1, 0, 1, 2, 3, 4, 5], sharps: 2, flats: 0 },
-  { name: "F", positions: [1, 2, 3, 4, 5, 6, 7], sharps: 0, flats: 1 },
-  { name: "B♭", positions: [4, 5, 6, 7, 8, 9, 10], sharps: 0, flats: 2 },
   { name: "E♭", positions: [0, 1, 2, 3, 4, 5, 6], sharps: 0, flats: 3 },
+  { name: "E", positions: [0, 1, 2, 3, 4, 5, 6], sharps: 4, flats: 0 },
+  { name: "F", positions: [1, 2, 3, 4, 5, 6, 7], sharps: 0, flats: 1 },
+  { name: "F♯", positions: [1, 2, 3, 4, 5, 6, 7], sharps: 6, flats: 0 },
+  { name: "G", positions: [2, 3, 4, 5, 6, 7, 8], sharps: 1, flats: 0 },
+  { name: "A♭", positions: [3, 4, 5, 6, 7, 8, 9], sharps: 0, flats: 4 },
+  { name: "A", positions: [3, 4, 5, 6, 7, 8, 9], sharps: 3, flats: 0 },
+  { name: "B♭", positions: [4, 5, 6, 7, 8, 9, 10], sharps: 0, flats: 2 },
+  { name: "B", positions: [4, 5, 6, 7, 8, 9, 10], sharps: 5, flats: 0 },
 ];
 
+let lastModeCombo: string | undefined;
 function randomMode(
   modeFilter?: string,
   keyFilter?: string,
@@ -36,12 +43,26 @@ function randomMode(
     keyFilter && keyFilter !== "all"
       ? KEYS.filter((k) => k.name === keyFilter)
       : KEYS;
+  for (let i = 0; i < 3; i++) {
+    const modeName =
+      modePool[Math.floor(Math.random() * modePool.length)] ?? "Dorian";
+    const keyData =
+      keyPool[Math.floor(Math.random() * keyPool.length)] ?? KEYS[0]!;
+    const combo = `${modeName}-${keyData.name}`;
+    if (
+      combo !== lastModeCombo ||
+      (modePool.length <= 1 && keyPool.length <= 1)
+    ) {
+      lastModeCombo = combo;
+      return { modeName, alts: MODES[modeName]!.alts, keyData };
+    }
+  }
   const modeName =
     modePool[Math.floor(Math.random() * modePool.length)] ?? "Dorian";
-  const alts = MODES[modeName]!.alts;
   const keyData =
     keyPool[Math.floor(Math.random() * keyPool.length)] ?? KEYS[0]!;
-  return { modeName, alts, keyData };
+  lastModeCombo = `${modeName}-${keyData.name}`;
+  return { modeName, alts: MODES[modeName]!.alts, keyData };
 }
 
 interface BuildModeProps {

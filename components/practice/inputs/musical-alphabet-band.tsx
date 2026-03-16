@@ -183,9 +183,8 @@ export function MusicalAlphabetBand({
                 position: "relative",
                 transform:
                   isActive && accidental && !confirmed
-                    ? `translateY(${accidental === "sharp" ? "-6px" : "6px"})`
+                    ? `translateY(${accidental === "sharp" ? "-2px" : "2px"})`
                     : "translateY(0)",
-                borderRadius: isActive && accidental ? 8 : 0,
               }}
             >
               <span
@@ -200,44 +199,19 @@ export function MusicalAlphabetBand({
                 }}
               >
                 {l}
-              </span>
-
-              {/* Bulge */}
-              {isActive && accidental && !confirmed && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    ...(accidental === "sharp"
-                      ? { bottom: "100%", marginBottom: -8 }
-                      : { top: "100%", marginTop: -8 }),
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "radial-gradient(circle, #22222f, #181821)",
-                    border: "1.5px solid #8b5cf6",
-                    boxShadow: "0 0 14px rgba(139,92,246,0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    pointerEvents: "none",
-                    zIndex: 10,
-                  }}
-                >
+                {isActive && accidental && !confirmed && (
                   <span
                     style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: "#8b5cf6",
+                      fontSize: 16,
                       fontFamily: "serif",
-                      textShadow: "0 0 8px rgba(139,92,246,0.3)",
+                      marginLeft: 1,
+                      verticalAlign: accidental === "sharp" ? "super" : "sub",
                     }}
                   >
                     {accidental === "sharp" ? "♯" : "♭"}
                   </span>
-                </div>
-              )}
+                )}
+              </span>
             </div>
           );
         })}

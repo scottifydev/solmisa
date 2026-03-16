@@ -17,6 +17,7 @@ export interface StaffNoteDraggerProps {
   correctAsc: (number | null)[];
   correctDesc?: (number | null)[] | null;
   keyData?: KeyData;
+  startPositions?: number[];
   onComplete: (correct: boolean) => void;
   disabled?: boolean;
 }
@@ -25,25 +26,29 @@ export function StaffNoteDragger({
   correctAsc,
   correctDesc,
   keyData,
+  startPositions,
   onComplete,
   disabled = false,
 }: StaffNoteDraggerProps) {
   const isMode = !!keyData;
   const hasTwoRows = !isMode && (correctDesc ?? null) !== null;
   const noteCount = isMode ? keyData.positions.length : correctAsc.length;
-  const basePositions = isMode ? keyData.positions : C_MAJOR_POS;
+  const basePositions = isMode
+    ? keyData.positions
+    : (startPositions ?? C_MAJOR_POS);
 
   // Layout
   const sp = isMode ? 16 : 14;
-  const W = isMode ? 380 : 340;
+  const W = isMode ? 400 : 400;
   const rowH = 160;
-  const staffTopBase = isMode ? 30 : 10;
+  const staffTopBase = isMode ? 30 : 20;
   const H = hasTwoRows ? rowH * 2 + 30 : rowH + 20;
   const keySigCount = isMode ? keyData.sharps || keyData.flats : 0;
-  const noteStartX = 55 + keySigCount * 14;
+  const clefWidth = 60;
+  const noteStartX = clefWidth + 10 + keySigCount * 14;
   const noteSpacing = isMode
-    ? Math.min(36, (W - noteStartX - 20) / noteCount)
-    : 34;
+    ? Math.min(40, (W - noteStartX - 10) / noteCount)
+    : (W - noteStartX - 10) / noteCount;
   const rx = isMode ? 7.5 : 7;
   const ry = isMode ? 5.5 : 5;
 
@@ -277,15 +282,12 @@ export function StaffNoteDragger({
         {/* Treble clef */}
         <text
           x={18}
-          y={rowLY(1) + sp * 0.5}
-          fontSize={sp * 4.8}
+          y={rowLY(3) + sp * 0.3}
+          fontSize={sp * 3.6}
           fill="#ede9fe"
-          opacity="0.8"
+          opacity="0.6"
           fontFamily="'Bravura','Academico','Noto Music',serif"
-          style={{
-            filter: "drop-shadow(0 0 3px rgba(139,92,246,0.3))",
-            userSelect: "none",
-          }}
+          style={{ userSelect: "none" }}
         >
           𝄞
         </text>
@@ -334,17 +336,40 @@ export function StaffNoteDragger({
 
           return (
             <g key={`${rowId}n${deg}`}>
-              {/* Ledger line for C4 */}
-              {basePos <= -2 && !isMuted && (
-                <line
-                  x1={x - rx * 1.8}
-                  y1={rowPosToY(-2)}
-                  x2={x + rx * 1.8}
-                  y2={rowPosToY(-2)}
-                  stroke="#3a3a4e"
-                  strokeWidth="1"
-                />
-              )}
+              {/* Ledger lines below staff */}
+              {basePos <= -2 &&
+                !isMuted &&
+                Array.from(
+                  { length: Math.floor((-2 - basePos) / 2) + 1 },
+                  (_, li) => -2 - li * 2,
+                ).map((lp) => (
+                  <line
+                    key={`ll${lp}`}
+                    x1={x - rx * 1.8}
+                    y1={rowPosToY(lp)}
+                    x2={x + rx * 1.8}
+                    y2={rowPosToY(lp)}
+                    stroke="#3a3a4e"
+                    strokeWidth="1"
+                  />
+                ))}
+              {/* Ledger lines above staff */}
+              {basePos >= 10 &&
+                !isMuted &&
+                Array.from(
+                  { length: Math.floor((basePos - 8) / 2) + 1 },
+                  (_, li) => 10 + li * 2,
+                ).map((lp) => (
+                  <line
+                    key={`ul${lp}`}
+                    x1={x - rx * 1.8}
+                    y1={rowPosToY(lp)}
+                    x2={x + rx * 1.8}
+                    y2={rowPosToY(lp)}
+                    stroke="#3a3a4e"
+                    strokeWidth="1"
+                  />
+                ))}
 
               {/* Drag/tap zone */}
               <rect

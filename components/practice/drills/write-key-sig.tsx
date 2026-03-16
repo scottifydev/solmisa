@@ -19,8 +19,18 @@ const KEY_SIGS: KeySigData[] = [
   { sharps: 0, flats: 6, major: "G♭", minor: "E♭" },
 ];
 
+let lastKeySigMajor: string | undefined;
 function randomKeySig(): KeySigData {
-  return KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  for (let i = 0; i < 3; i++) {
+    const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+    if (ks.major !== lastKeySigMajor || KEY_SIGS.length <= 1) {
+      lastKeySigMajor = ks.major;
+      return ks;
+    }
+  }
+  const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  lastKeySigMajor = ks.major;
+  return ks;
 }
 
 interface WriteKeySigProps {

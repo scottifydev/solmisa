@@ -327,10 +327,10 @@ function CenterKeySig({
       ))}
       <text
         x={8}
-        y={lY(1) + sp * 0.5}
-        fontSize={sp * 4.2}
+        y={lY(3) + sp * 0.3}
+        fontSize={sp * 3}
         fill="#ede9fe"
-        opacity="0.75"
+        opacity="0.5"
         fontFamily="'Bravura','Academico','Noto Music',serif"
         style={{ userSelect: "none" }}
       >
@@ -481,7 +481,6 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     setGlowRingType(null);
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     newQuestion();
   }, [qType, level]);
@@ -615,40 +614,37 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
 
     if (isLabeled) {
       const d = Math.min(pos, 12 - pos);
-      const op = 1 - d * 0.025;
+      const op = 1 - d * 0.015;
       if (ring === "major")
         return {
-          fill: "rgba(20,16,32,1)",
-          stroke: "rgba(80,65,120,0.3)",
-          sw: 0.5,
+          fill: "rgba(35,28,55,1)",
+          stroke: "rgba(80,65,120,0.5)",
+          sw: 1,
           op,
         };
       return {
-        fill: "rgba(14,16,30,1)",
-        stroke: "rgba(55,65,115,0.3)",
-        sw: 0.5,
+        fill: "rgba(25,28,50,1)",
+        stroke: "rgba(55,65,115,0.5)",
+        sw: 1,
         op,
       };
     }
     if (isLandmark)
       return {
-        fill: "rgba(14,12,24,1)",
-        stroke: "rgba(70,60,100,0.35)",
-        sw: 0.8,
-        op: 0.7,
+        fill: "rgba(40,32,62,1)",
+        stroke: "rgba(100,80,150,0.6)",
+        sw: 1,
       };
     if (ring === "major")
       return {
-        fill: "rgba(12,10,22,1)",
-        stroke: "rgba(50,40,75,0.2)",
-        sw: 0.3,
-        op: 0.5,
+        fill: "rgba(30,24,50,1)",
+        stroke: "rgba(80,65,120,0.5)",
+        sw: 0.8,
       };
     return {
-      fill: "rgba(10,12,22,1)",
-      stroke: "rgba(40,45,75,0.18)",
-      sw: 0.3,
-      op: 0.5,
+      fill: "rgba(22,24,45,1)",
+      stroke: "rgba(65,70,115,0.45)",
+      sw: 0.8,
     };
   }
 

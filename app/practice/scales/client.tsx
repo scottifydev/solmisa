@@ -38,7 +38,21 @@ const MODE_OPTIONS = [
   "Locrian",
 ] as const;
 
-const KEY_OPTIONS = ["All", "C", "G", "D", "F", "B♭", "E♭"] as const;
+const KEY_OPTIONS = [
+  "All",
+  "C",
+  "D♭",
+  "D",
+  "E♭",
+  "E",
+  "F",
+  "F♯",
+  "G",
+  "A♭",
+  "A",
+  "B♭",
+  "B",
+] as const;
 
 export function ScalesDrillClient() {
   const [activeDrill, setActiveDrill] = useState<DrillId>("scale");

@@ -49,7 +49,7 @@ async function renderKeySig(
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.style.width = "100%";
   svg.style.height = "auto";
-  svg.style.filter = "drop-shadow(0 0 4px rgba(139,92,246,0.25))";
+  svg.style.filter = "none";
 
   const yLine0 = stave.getYForLine(0);
   const yLine4 = stave.getYForLine(4);
@@ -77,10 +77,7 @@ async function renderKeySig(
       "font-family",
       "'Bravura','Academico','Noto Music',serif",
     );
-    text.setAttribute(
-      "style",
-      "user-select:none; filter:drop-shadow(0 0 3px rgba(139,92,246,0.3))",
-    );
+    text.setAttribute("style", "user-select:none");
     text.textContent = sym;
     svg.appendChild(text);
   }
@@ -99,8 +96,18 @@ async function renderKeySig(
   }
 }
 
+let lastKeySigId: string | undefined;
 function randomKeySig() {
-  return KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  for (let i = 0; i < 3; i++) {
+    const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+    if (ks.id !== lastKeySigId || KEY_SIGS.length <= 1) {
+      lastKeySigId = ks.id;
+      return ks;
+    }
+  }
+  const ks = KEY_SIGS[Math.floor(Math.random() * KEY_SIGS.length)]!;
+  lastKeySigId = ks.id;
+  return ks;
 }
 
 interface IdentifyKeyProps {

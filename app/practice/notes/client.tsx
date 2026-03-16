@@ -1,37 +1,49 @@
 "use client";
 
 import { useState } from "react";
+import {
+  IdentifyNote,
+  type ClefType,
+} from "@/components/practice/drills/identify-note";
 import { PlayThisNote } from "@/components/practice/drills/play-this-note";
-import { PlaceNoteOnStaff } from "@/components/practice/drills/place-note-on-staff";
 
 const DRILLS = [
+  { id: "name", label: "Name This Note", sub: "Staff → Name" },
   { id: "play", label: "Play This Note", sub: "Staff → Keyboard" },
-  { id: "place", label: "Place on Staff", sub: "Name → Staff" },
 ] as const;
-
 type DrillId = (typeof DRILLS)[number]["id"];
 
-const KEY_OPTIONS = ["C", "G", "D", "F", "B♭", "E♭"] as const;
-type KeyOption = (typeof KEY_OPTIONS)[number];
-
-const RANGES = [
-  { id: "beginner", label: "C4–C5" },
-  { id: "advanced", label: "C4–E5" },
+const DIFFICULTIES = [
+  { id: "treble", label: "Treble", clefs: ["treble"] as ClefType[] },
+  {
+    id: "treble-bass",
+    label: "Treble + Bass",
+    clefs: ["treble", "bass"] as ClefType[],
+  },
+  {
+    id: "all",
+    label: "All Clefs",
+    clefs: ["treble", "bass", "alto"] as ClefType[],
+  },
 ] as const;
-type RangeId = (typeof RANGES)[number]["id"];
+type DifficultyId = (typeof DIFFICULTIES)[number]["id"];
+
+function resolveClef(clefs: readonly ClefType[]): ClefType {
+  return clefs[Math.floor(Math.random() * clefs.length)]!;
+}
 
 export function NotesDrillClient() {
-  const [activeDrill, setActiveDrill] = useState<DrillId>("play");
-  const [activeKey, setActiveKey] = useState<KeyOption>("C");
-  const [activeRange, setActiveRange] = useState<RangeId>("beginner");
+  const [activeDrill, setActiveDrill] = useState<DrillId>("name");
+  const [difficulty, setDifficulty] = useState<DifficultyId>("treble");
+  const [resolvedClef, setResolvedClef] = useState<ClefType>("treble");
   const [roundKey, setRoundKey] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
 
-  const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;
+  const currentDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
 
-  function resetRound() {
+  function resetStreak() {
     setRoundKey((k) => k + 1);
     setCorrect(0);
     setTotal(0);
@@ -40,36 +52,31 @@ export function NotesDrillClient() {
 
   function switchDrill(id: DrillId) {
     setActiveDrill(id);
-    resetRound();
+    resetStreak();
+    setResolvedClef(resolveClef(currentDifficulty.clefs));
   }
 
-  function switchKey(k: KeyOption) {
-    setActiveKey(k);
-    resetRound();
-  }
-
-  function switchRange(r: RangeId) {
-    setActiveRange(r);
-    resetRound();
+  function switchDifficulty(id: DifficultyId) {
+    setDifficulty(id);
+    const diff = DIFFICULTIES.find((d) => d.id === id)!;
+    resetStreak();
+    setResolvedClef(resolveClef(diff.clefs));
   }
 
   function advance() {
     setRoundKey((k) => k + 1);
     setAnswered(false);
+    setResolvedClef(resolveClef(currentDifficulty.clefs));
   }
 
   function handleAnswer(isCorrect: boolean) {
     setAnswered(true);
     setTotal((t) => t + 1);
     if (isCorrect) setCorrect((c) => c + 1);
-    const delay = isCorrect ? 1000 : 2000;
-    setTimeout(advance, delay);
+    setTimeout(advance, isCorrect ? 1000 : 2000);
   }
 
-  const pillBase =
-    "py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer";
-  const pillActive = "border-violet/40 text-violet bg-violet/5";
-  const pillInactive = "border-steel text-ash";
+  const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-4">
@@ -93,33 +100,21 @@ export function NotesDrillClient() {
         ))}
       </div>
 
-      {/* Settings row */}
-      <div className="self-stretch flex flex-wrap gap-3 items-center">
-        {/* Key pills */}
-        <div className="flex gap-1 flex-wrap">
-          {KEY_OPTIONS.map((k) => (
-            <button
-              key={k}
-              onClick={() => switchKey(k)}
-              className={`${pillBase} ${activeKey === k ? pillActive : pillInactive}`}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
-
-        {/* Range toggle */}
-        <div className="flex gap-1 ml-auto">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => switchRange(r.id)}
-              className={`${pillBase} ${activeRange === r.id ? pillActive : pillInactive}`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+      {/* Difficulty pills */}
+      <div className="flex gap-1 self-stretch flex-wrap">
+        {DIFFICULTIES.map((d) => (
+          <button
+            key={d.id}
+            onClick={() => switchDifficulty(d.id)}
+            className={`py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer whitespace-nowrap ${
+              difficulty === d.id
+                ? "border-violet/40 text-violet bg-violet/5"
+                : "border-steel text-ash"
+            }`}
+          >
+            {d.label}
+          </button>
+        ))}
       </div>
 
       {/* Streak */}
@@ -136,25 +131,29 @@ export function NotesDrillClient() {
           <div className="font-display text-lg font-semibold text-ivory">
             {currentDrill.label}
           </div>
+          <div className="font-body text-xs text-ash mt-0.5">
+            {activeDrill === "name"
+              ? "Slide to select · up ♯ · down ♭"
+              : "Tap the correct key"}
+          </div>
         </div>
 
-        {activeDrill === "play" && (
-          <PlayThisNote
+        {activeDrill === "name" && (
+          <IdentifyNote
             key={roundKey}
-            range={activeRange}
+            clef={resolvedClef}
             onAnswer={handleAnswer}
           />
         )}
-        {activeDrill === "place" && (
-          <PlaceNoteOnStaff
+        {activeDrill === "play" && (
+          <PlayThisNote
             key={roundKey}
-            range={activeRange}
+            clef={resolvedClef}
             onAnswer={handleAnswer}
           />
         )}
       </div>
 
-      {/* Manual next */}
       {answered && (
         <button
           onClick={advance}
