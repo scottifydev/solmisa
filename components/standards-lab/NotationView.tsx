@@ -23,10 +23,10 @@ import type {
 
 // ─── Theme ───────────────────────────────────────────────────
 
-const STAFF_COLOR = "#555";
+const STAFF_COLOR = "#666";
 const NOTE_COLOR = "#e0ddd4";
 const CHORD_COLOR = "#f0c97a";
-const BAR_NUMBER_COLOR = "#666";
+const BAR_NUMBER_COLOR = "#555";
 const REHEARSAL_COLOR = "#b794f6";
 
 const CATEGORY_COLORS: Record<NoteCategory, string> = {
@@ -59,7 +59,6 @@ export function NotationView({ notation, currentBar }: NotationViewProps) {
     const el = containerRef.current;
     if (!el) return;
 
-    // Clear previous
     el.innerHTML = "";
 
     const { measures, keySignature, timeSignature } = notation;
@@ -72,6 +71,10 @@ export function NotationView({ notation, currentBar }: NotationViewProps) {
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(totalWidth, totalHeight);
     const context = renderer.getContext();
+
+    // Set default colors BEFORE drawing anything
+    context.setFillStyle(STAFF_COLOR);
+    context.setStrokeStyle(STAFF_COLOR);
 
     for (let sys = 0; sys < systemCount; sys++) {
       const startBar = sys * BARS_PER_SYSTEM;
@@ -98,48 +101,55 @@ export function NotationView({ notation, currentBar }: NotationViewProps) {
       }
     }
 
-    // Style the SVG — force dark theme colors on all VexFlow elements
+    // Post-render: force dark theme on ALL SVG elements
     const svg = el.querySelector("svg");
     if (svg) {
       svg.style.width = "100%";
       svg.style.height = "auto";
       svg.setAttribute("viewBox", `0 0 ${totalWidth} ${totalHeight}`);
 
-      // Force staff lines, barlines, clefs, time sigs to light color
-      // VexFlow renders these as <path> and <line> elements with inline stroke
-      const styleEl = document.createElement("style");
-      styleEl.textContent = `
-        .vf-stave path, .vf-stave line,
-        .vf-barline path, .vf-barline line {
-          stroke: ${STAFF_COLOR} !important;
-          fill: ${STAFF_COLOR} !important;
-        }
-        .vf-clef path { fill: ${STAFF_COLOR} !important; }
-        .vf-keysignature path { fill: ${STAFF_COLOR} !important; }
-        .vf-timesig path { fill: ${STAFF_COLOR} !important; }
-      `;
-      svg.prepend(styleEl);
+      // Walk every SVG element and fix black colors
+      svg.querySelectorAll("*").forEach((node) => {
+        const svgEl = node as SVGElement;
 
-      // Brute-force: find all paths/lines without explicit color and set them
-      svg.querySelectorAll("path, line, rect").forEach((el) => {
-        const htmlEl = el as SVGElement;
-        const fill = htmlEl.getAttribute("fill");
-        const stroke = htmlEl.getAttribute("stroke");
-        // If still default black, make it visible
+        // Check inline style
+        const style = svgEl.style;
         if (
-          fill === "#000000" ||
-          fill === "black" ||
-          (fill === "none" && !stroke)
+          style.fill === "black" ||
+          style.fill === "#000000" ||
+          style.fill === "rgb(0, 0, 0)"
         ) {
-          htmlEl.setAttribute("fill", STAFF_COLOR);
+          style.fill = STAFF_COLOR;
+        }
+        if (
+          style.stroke === "black" ||
+          style.stroke === "#000000" ||
+          style.stroke === "rgb(0, 0, 0)"
+        ) {
+          style.stroke = STAFF_COLOR;
+        }
+
+        // Check attributes
+        const fill = svgEl.getAttribute("fill");
+        const stroke = svgEl.getAttribute("stroke");
+
+        if (fill === "#000000" || fill === "black") {
+          svgEl.setAttribute("fill", STAFF_COLOR);
         }
         if (stroke === "#000000" || stroke === "black") {
-          htmlEl.setAttribute("stroke", STAFF_COLOR);
+          svgEl.setAttribute("stroke", STAFF_COLOR);
         }
-        // Elements with no fill/stroke at all
-        if (!fill && !stroke) {
-          htmlEl.setAttribute("fill", STAFF_COLOR);
-          htmlEl.setAttribute("stroke", STAFF_COLOR);
+
+        // Elements with no explicit color default to black in SVG
+        if (
+          svgEl.tagName === "path" ||
+          svgEl.tagName === "line" ||
+          svgEl.tagName === "rect"
+        ) {
+          if (!fill && !stroke && !style.fill && !style.stroke) {
+            svgEl.setAttribute("fill", STAFF_COLOR);
+            svgEl.setAttribute("stroke", STAFF_COLOR);
+          }
         }
       });
     }
@@ -182,6 +192,10 @@ function renderMeasure(
   timeSignature?: TimeSignatureInput,
   isCurrentBar?: boolean,
 ) {
+  // Set context colors before creating stave
+  context.setFillStyle(STAFF_COLOR);
+  context.setStrokeStyle(STAFF_COLOR);
+
   const stave = new Stave(x, y, width);
 
   if (showClef) stave.addClef("treble");
@@ -192,9 +206,7 @@ function renderMeasure(
     );
   }
 
-  // End barline on last bar
   stave.setBegBarType(Barline.type.NONE);
-
   stave.setStyle({ fillStyle: STAFF_COLOR, strokeStyle: STAFF_COLOR });
   stave.setContext(context);
   stave.draw();
@@ -202,7 +214,7 @@ function renderMeasure(
   // Current bar highlight
   if (isCurrentBar) {
     context.save();
-    context.setFillStyle("rgba(183,148,246,0.06)");
+    context.setFillStyle("rgba(183,148,246,0.08)");
     context.fillRect(x, y, width, 80);
     context.restore();
   }
@@ -225,7 +237,6 @@ function renderMeasure(
 
   // Build VexFlow notes
   const vexNotes = measure.notes.map((note) => buildStaveNote(note));
-
   if (vexNotes.length === 0) return;
 
   // Add chord symbols to first non-rest note
@@ -242,10 +253,9 @@ function renderMeasure(
   const beats = timeSignature?.numerator ?? 4;
   const beatValue = timeSignature?.denominator ?? 4;
   const voice = new Voice({ numBeats: beats, beatValue });
-  voice.setMode(Voice.Mode.SOFT); // Don't throw on duration mismatch
+  voice.setMode(Voice.Mode.SOFT);
   voice.addTickables(vexNotes);
 
-  // Auto-beam 8th notes
   const beams = Beam.generateBeams(
     vexNotes.filter((n) => {
       const dur = n.getDuration();
@@ -278,17 +288,15 @@ function buildStaveNote(note: QuantizedNote): StaveNote {
     autoStem: true,
   });
 
-  // Accidental
   if (note.accidental && !note.rest) {
     staveNote.addModifier(new Accidental(note.accidental), 0);
   }
 
-  // Dotted
   if (note.dotted) {
     Dot.buildAndAttach([staveNote], { all: true });
   }
 
-  // Color by category
+  // Color by category — notes get bright colors, rests get staff color
   if (!note.rest && note.noteCategory) {
     const color = CATEGORY_COLORS[note.noteCategory];
     staveNote.setStyle({ fillStyle: color, strokeStyle: color });
@@ -306,9 +314,6 @@ function buildStaveNote(note: QuantizedNote): StaveNote {
 function addChordSymbol(note: StaveNote, symbol: string): void {
   const cs = new ChordSymbol();
 
-  // Parse chord symbol: root + suffix
-  // e.g. "Bbm7" → root="Bb", suffix="m7"
-  // e.g. "F#7" → root="F#", suffix="7"
   const match = symbol.match(/^([A-G][b#]?)(.*)/);
   if (!match) return;
 

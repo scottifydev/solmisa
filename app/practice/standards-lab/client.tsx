@@ -3,6 +3,9 @@
 import { useEffect } from "react";
 import { useStandardsStore } from "@/lib/stores/standards-store";
 import { NotationView } from "@/components/standards-lab/NotationView";
+import PlaybackControls from "@/components/standards-lab/PlaybackControls";
+import { AnalysisPanel } from "@/components/standards-lab/AnalysisPanel";
+import { playNote } from "@/lib/audio/solmisa-piano";
 import { brand } from "@/lib/tokens";
 
 export function StandardsLabClient() {
@@ -14,9 +17,10 @@ export function StandardsLabClient() {
     parseStatus,
     parseError,
     detectedChords,
-    chordDetectionStatus,
     notation,
     currentBar,
+    activeChordIndex,
+    setActiveChordIndex,
   } = useStandardsStore();
 
   // Load default tune on mount
@@ -26,7 +30,15 @@ export function StandardsLabClient() {
     }
   }, [selectedTuneId, catalog, selectTune]);
 
-  const selectedTune = catalog.find((t) => t.id === selectedTuneId);
+  const activeChord = detectedChords[activeChordIndex] ?? null;
+
+  function handleKeyClick(midi: number) {
+    playNote(midi, "8n", 0.7);
+  }
+
+  function handleChordClick(index: number) {
+    setActiveChordIndex(index);
+  }
 
   return (
     <div
@@ -34,28 +46,29 @@ export function StandardsLabClient() {
         minHeight: "100vh",
         background: brand.night,
         color: brand.ivory,
-        padding: "24px",
+        padding: "16px 24px",
       }}
     >
-      {/* Tune Selector */}
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Header */}
         <h1
           style={{
             fontFamily: "'Outfit', sans-serif",
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: 700,
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
           Standards Lab
         </h1>
 
+        {/* Tune Selector */}
         <div
           style={{
             display: "flex",
-            gap: 8,
+            gap: 6,
             flexWrap: "wrap",
-            marginBottom: 24,
+            marginBottom: 16,
           }}
         >
           {catalog.map((tune) => (
@@ -63,39 +76,34 @@ export function StandardsLabClient() {
               key={tune.id}
               onClick={() => selectTune(tune.id)}
               style={{
-                padding: "6px 14px",
-                borderRadius: 8,
+                padding: "5px 12px",
+                borderRadius: 6,
                 border: `1px solid ${tune.id === selectedTuneId ? brand.violet : brand.steel}`,
                 background:
-                  tune.id === selectedTuneId ? brand.graphite : brand.obsidian,
+                  tune.id === selectedTuneId ? brand.graphite : "transparent",
                 color: tune.id === selectedTuneId ? brand.violet : brand.silver,
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
+                fontSize: 12,
                 cursor: "pointer",
                 transition: "all 0.15s",
               }}
             >
               {tune.title}
-              <span
-                style={{
-                  marginLeft: 6,
-                  fontSize: 11,
-                  color: brand.ash,
-                }}
-              >
+              <span style={{ marginLeft: 5, fontSize: 10, color: brand.ash }}>
                 {tune.key}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Status */}
+        {/* Loading */}
         {parseStatus === "loading" && (
           <div
             style={{
               color: brand.silver,
               fontSize: 13,
               fontFamily: "'IBM Plex Mono', monospace",
+              padding: "40px 0",
             }}
           >
             Loading MIDI...
@@ -103,317 +111,81 @@ export function StandardsLabClient() {
         )}
 
         {parseStatus === "error" && (
-          <div style={{ color: brand.incorrect, fontSize: 13 }}>
-            Error: {parseError}
+          <div
+            style={{ color: brand.incorrect, fontSize: 13, padding: "40px 0" }}
+          >
+            {parseError}
           </div>
         )}
 
-        {/* Notation */}
+        {/* Main content: notation + analysis side by side */}
         {notation && (
-          <div style={{ marginBottom: 24 }}>
-            <NotationView notation={notation} currentBar={currentBar} />
-          </div>
-        )}
+          <>
+            {/* Playback controls */}
+            <PlaybackControls parsed={parsedStandard} />
 
-        {/* Parse results (debug view) */}
-        {parseStatus === "ready" && parsedStandard && (
-          <div>
+            {/* Layout: notation (left) + analysis (right) */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 12,
-                marginBottom: 24,
+                gridTemplateColumns: "1fr 320px",
+                gap: 16,
+                marginTop: 12,
               }}
             >
-              <StatCard label="Title" value={parsedStandard.title} />
-              <StatCard label="Key" value={parsedStandard.keySignature} />
-              <StatCard
-                label="Time"
-                value={`${parsedStandard.timeSignature.numerator}/${parsedStandard.timeSignature.denominator}`}
-              />
-              <StatCard label="Bars" value={String(parsedStandard.totalBars)} />
-              <StatCard
-                label="Tempo"
-                value={
-                  parsedStandard.tempoEvents[0]
-                    ? `${Math.round(parsedStandard.tempoEvents[0].bpm)} BPM`
-                    : "—"
-                }
-              />
-              <StatCard
-                label="Duration"
-                value={`${Math.round(parsedStandard.durationSeconds)}s`}
-              />
-              <StatCard
-                label="Melody notes"
-                value={String(parsedStandard.tracks.melody.length)}
-              />
-              <StatCard
-                label="Harmony notes"
-                value={String(parsedStandard.tracks.harmony.length)}
-              />
-            </div>
+              {/* Notation */}
+              <div>
+                <NotationView notation={notation} currentBar={currentBar} />
 
-            {/* Text events (may contain chord info) */}
-            {parsedStandard.textEvents.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <h3
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: brand.silver,
-                    marginBottom: 8,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  MIDI Text Events
-                </h3>
-                <div
-                  style={{
-                    fontFamily: "'IBM Plex Mono', monospace",
-                    fontSize: 11,
-                    color: brand.ash,
-                    background: brand.obsidian,
-                    border: `1px solid ${brand.steel}`,
-                    borderRadius: 8,
-                    padding: 12,
-                    maxHeight: 120,
-                    overflow: "auto",
-                  }}
-                >
-                  {parsedStandard.textEvents.map((t, i) => (
-                    <div key={i}>{t}</div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Melody note range debug */}
-            <TrackSummary
-              label="Melody"
-              notes={parsedStandard.tracks.melody}
-              color={brand.violet}
-            />
-            <TrackSummary
-              label="Harmony"
-              notes={parsedStandard.tracks.harmony}
-              color={brand.info}
-            />
-
-            {/* Detected Chords */}
-            {chordDetectionStatus === "ready" && detectedChords.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <h3
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: brand.silver,
-                    marginBottom: 8,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  Detected Chords ({detectedChords.length})
-                </h3>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 4,
-                    background: brand.obsidian,
-                    border: `1px solid ${brand.steel}`,
-                    borderRadius: 8,
-                    padding: 12,
-                    maxHeight: 240,
-                    overflow: "auto",
-                  }}
-                >
-                  {detectedChords.map((chord, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: "3px 8px",
-                        borderRadius: 4,
-                        background:
-                          chord.function.functionType === "dominant"
-                            ? "rgba(248,113,113,0.15)"
-                            : chord.function.functionType === "subdominant"
-                              ? "rgba(96,165,250,0.15)"
-                              : chord.function.functionType === "tonic"
-                                ? "rgba(74,222,128,0.15)"
-                                : "rgba(160,155,179,0.1)",
-                        border: `1px solid ${brand.steel}`,
-                        fontSize: 12,
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        color: brand.ivory,
-                        lineHeight: 1.4,
-                      }}
-                      title={`Bar ${chord.bar + 1} · ${chord.function.romanNumeral} · ${chord.voicingType} · conf ${(chord.confidence * 100).toFixed(0)}%`}
-                    >
-                      <span style={{ fontWeight: 700 }}>{chord.symbol}</span>
-                      <span
-                        style={{
-                          marginLeft: 4,
-                          fontSize: 10,
-                          color: brand.ash,
-                        }}
-                      >
-                        {chord.function.romanNumeral}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {detectedChords[0] && (
+                {/* Chord progression bar */}
+                {detectedChords.length > 0 && (
                   <div
                     style={{
-                      marginTop: 8,
-                      fontSize: 11,
-                      color: brand.ash,
-                      fontFamily: "'IBM Plex Mono', monospace",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 3,
+                      marginTop: 12,
+                      padding: 10,
+                      background: brand.obsidian,
+                      border: `1px solid ${brand.steel}`,
+                      borderRadius: 8,
                     }}
                   >
-                    Key center: {detectedChords[0].function.keyCenter}
+                    {detectedChords.map((chord, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleChordClick(i)}
+                        style={{
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          border: `1px solid ${i === activeChordIndex ? brand.violet : brand.steel}`,
+                          background:
+                            i === activeChordIndex
+                              ? "rgba(183,148,246,0.15)"
+                              : "transparent",
+                          fontSize: 11,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          fontWeight: 600,
+                          color:
+                            i === activeChordIndex
+                              ? brand.violet
+                              : brand.silver,
+                          cursor: "pointer",
+                          transition: "all 0.1s",
+                        }}
+                      >
+                        {chord.symbol}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
-            )}
-            {chordDetectionStatus === "running" && (
-              <div style={{ color: brand.silver, fontSize: 13, marginTop: 12 }}>
-                Detecting chords...
-              </div>
-            )}
 
-            {/* Sections from catalog */}
-            {selectedTune?.sections && (
-              <div style={{ marginTop: 16 }}>
-                <h3
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: brand.silver,
-                    marginBottom: 8,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  Form: {selectedTune.form}
-                </h3>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {selectedTune.sections.map((s) => (
-                    <div
-                      key={s.label}
-                      style={{
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        background: brand.graphite,
-                        border: `1px solid ${brand.steel}`,
-                        fontSize: 12,
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        color: brand.silver,
-                      }}
-                    >
-                      {s.label}: bars {s.startBar + 1}–{s.endBar + 1}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              {/* Analysis panel */}
+              <AnalysisPanel chord={activeChord} onKeyClick={handleKeyClick} />
+            </div>
+          </>
         )}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        background: brand.obsidian,
-        border: `1px solid ${brand.steel}`,
-        borderRadius: 8,
-        padding: "10px 14px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          color: brand.ash,
-          fontFamily: "'DM Sans', sans-serif",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 18,
-          fontWeight: 700,
-          fontFamily: "'Outfit', sans-serif",
-          color: brand.ivory,
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function TrackSummary({
-  label,
-  notes,
-  color,
-}: {
-  label: string;
-  notes: { midi: number; bar: number }[];
-  color: string;
-}) {
-  if (notes.length === 0) return null;
-  const midis = notes.map((n) => n.midi);
-  const lowest = Math.min(...midis);
-  const highest = Math.max(...midis);
-  const bars = new Set(notes.map((n) => n.bar));
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "8px 0",
-        borderBottom: `1px solid ${brand.steel}`,
-      }}
-    >
-      <div
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 4,
-          background: color,
-          flexShrink: 0,
-        }}
-      />
-      <div
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          fontFamily: "'DM Sans', sans-serif",
-          color: brand.silver,
-          width: 70,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 12,
-          fontFamily: "'IBM Plex Mono', monospace",
-          color: brand.ash,
-        }}
-      >
-        {notes.length} notes · MIDI {lowest}–{highest} · {bars.size} bars
       </div>
     </div>
   );
