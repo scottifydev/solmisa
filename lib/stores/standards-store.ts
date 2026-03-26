@@ -4,7 +4,7 @@ import type {
   PlaybackSettings,
 } from "@/types/standards-lab";
 import { fetchAndParseMidi } from "@/lib/midi/parser";
-import { detectChords } from "@/lib/midi/chord-detector";
+import { detectChords, quantizeChordsToBar } from "@/lib/midi/chord-detector";
 import { buildNotation } from "@/lib/midi/quantizer";
 import { STANDARDS_CATALOG } from "@/data/standards/catalog";
 
@@ -69,7 +69,8 @@ export const useStandardsStore = create<StandardsLabState>()((set, get) => ({
       // Run chord detection
       set({ chordDetectionStatus: "running" });
       try {
-        const chords = detectChords(parsed.tracks.harmony, parsed);
+        const rawChords = detectChords(parsed.tracks.harmony, parsed);
+        const chords = quantizeChordsToBar(rawChords, parsed.totalBars);
         set({ detectedChords: chords, chordDetectionStatus: "ready" });
 
         // Build notation — limit to first chorus if tune has known bar count

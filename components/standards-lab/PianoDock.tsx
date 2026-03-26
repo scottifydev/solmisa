@@ -337,7 +337,7 @@ export function PianoDock({
                   justifyContent: "center",
                   paddingBottom: 4,
                   boxSizing: "border-box",
-                  transition: "background 0.1s, box-shadow 0.1s",
+                  transition: "all 0.3s ease",
                   ...style,
                 }}
               >
@@ -395,7 +395,7 @@ export function PianoDock({
                   cursor: "pointer",
                   zIndex: 2,
                   boxSizing: "border-box",
-                  transition: "background 0.1s, box-shadow 0.1s",
+                  transition: "all 0.3s ease",
                   ...style,
                 }}
               />

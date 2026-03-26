@@ -450,3 +450,42 @@ function getCompatibleScales(
 
   return base;
 }
+
+// ─── Bar-Level Chord Quantization (SCO-474) ──────────────────
+
+/**
+ * Reduce chords to max one (or two) per bar.
+ * Picks the longest-duration chord in each bar as the structural chord.
+ * If a second chord occupies >= 40% of the bar, it's kept too.
+ */
+export function quantizeChordsToBar(
+  chords: AnalyzedChord[],
+  totalBars: number,
+): AnalyzedChord[] {
+  if (chords.length === 0) return [];
+
+  const result: AnalyzedChord[] = [];
+
+  for (let bar = 0; bar < totalBars; bar++) {
+    const barChords = chords.filter((c) => c.bar === bar);
+    if (barChords.length === 0) continue;
+
+    // Sort by duration descending
+    const sorted = [...barChords].sort((a, b) => b.duration - a.duration);
+    const totalDur = sorted.reduce((s, c) => s + c.duration, 0);
+
+    // Always keep the longest
+    result.push(sorted[0]!);
+
+    // Keep a second chord if it fills >= 40% of the bar and is different
+    if (sorted.length > 1 && sorted[1]!.duration / totalDur >= 0.4) {
+      if (sorted[1]!.symbol !== sorted[0]!.symbol) {
+        result.push(sorted[1]!);
+      }
+    }
+  }
+
+  // Sort by time
+  result.sort((a, b) => a.time - b.time);
+  return result;
+}
