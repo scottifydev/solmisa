@@ -135,7 +135,11 @@ export function StandardsLabClient() {
             >
               {/* Notation */}
               <div>
-                <NotationView notation={notation} currentBar={currentBar} />
+                <NotationView
+                  notation={notation}
+                  chords={detectedChords}
+                  currentBar={currentBar}
+                />
 
                 {/* Chord progression bar */}
                 {detectedChords.length > 0 && (
