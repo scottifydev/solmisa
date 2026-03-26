@@ -42,6 +42,8 @@ const SAMPLE_URLS: Record<string, string> = {
 interface PlaybackPosition {
   time: number;
   bar: number;
+  melodyMidi: number | null;
+  harmonyMidis: number[];
 }
 
 export function useStandardsPlayback(parsed: ParsedStandard | null) {
@@ -50,6 +52,8 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const [position, setPosition] = useState<PlaybackPosition>({
     time: 0,
     bar: 1,
+    melodyMidi: null,
+    harmonyMidis: [],
   });
   const [tempoRatio, setTempoRatioState] = useState(1);
   const [melodyMuted, setMelodyMutedState] = useState(false);
@@ -104,7 +108,12 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
           }
 
           Tone.Draw.schedule(() => {
-            setPosition({ time: note.time, bar: note.bar });
+            setPosition((prev) => ({
+              ...prev,
+              time: note.time,
+              bar: note.bar,
+              melodyMidi: note.midi,
+            }));
           }, time);
         }, note.time);
       }
@@ -153,7 +162,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       transport.cancel();
       setIsPlaying(false);
       setIsPaused(false);
-      setPosition({ time: 0, bar: 1 });
+      setPosition({ time: 0, bar: 1, melodyMidi: null, harmonyMidis: [] });
     }, parsed.durationSeconds);
 
     transport.start();
@@ -173,7 +182,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     transport.cancel();
     setIsPlaying(false);
     setIsPaused(false);
-    setPosition({ time: 0, bar: 1 });
+    setPosition({ time: 0, bar: 1, melodyMidi: null, harmonyMidis: [] });
   }, []);
 
   const setTempoRatio = useCallback((ratio: number) => {
