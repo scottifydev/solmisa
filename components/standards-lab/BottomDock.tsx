@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { ParsedStandard, AnalyzedChord } from "@/types/standards-lab";
 import { useStandardsPlayback } from "@/hooks/use-standards-playback";
 import { PianoDock } from "./PianoDock";
@@ -54,7 +54,18 @@ export function BottomDock({
   } = useStandardsPlayback(parsed);
 
   const [showScale, setShowScale] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
   const scrubberRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const check = () =>
+      setIsLandscape(
+        window.innerHeight < window.innerWidth && window.innerHeight < 500,
+      );
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const activeBar = isPlaying || isPaused ? position.bar - 1 : currentBar;
   const activeTime = isPlaying || isPaused ? position.time : playbackPosition;
@@ -156,17 +167,16 @@ export function BottomDock({
         zIndex: 100,
       }}
     >
-      {/* Transport Row */}
+      {/* Transport + Scrubber — merged in landscape */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
-          padding: "8px 16px",
+          gap: isLandscape ? 8 : 12,
+          padding: isLandscape ? "4px 12px" : "8px 16px",
           borderBottom: `1px solid ${BORDER}`,
         }}
       >
-        {/* Play/Stop */}
         <button
           onClick={() => {
             if (isPlaying) pause();
@@ -206,8 +216,6 @@ export function BottomDock({
         >
           {"\u25A0"}
         </button>
-
-        {/* Mute toggles */}
         <button
           onClick={() => setMelodyMuted(!melodyMuted)}
           style={{
@@ -243,103 +251,138 @@ export function BottomDock({
           H
         </button>
 
-        {/* Tempo */}
-        <span
-          style={{
-            fontSize: 11,
-            color: DIM,
-            fontFamily: "'DM Sans', sans-serif",
-            marginLeft: 8,
-          }}
-        >
-          Tempo
-        </span>
+        {/* Scrubber inline in landscape */}
+        {isLandscape && (
+          <div style={{ flex: 1, margin: "0 8px" }}>
+            <div
+              style={{
+                height: 6,
+                background: "#1a1a24",
+                borderRadius: 3,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress * 100}%`,
+                  background: `linear-gradient(90deg, ${AMBER}88, ${AMBER})`,
+                  borderRadius: 3,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${progress * 100}%`,
+                  top: -4,
+                  width: 12,
+                  height: 12,
+                  borderRadius: 6,
+                  background: AMBER,
+                  boxShadow: `0 0 6px ${AMBER}66`,
+                  transform: "translateX(-6px)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {!isLandscape && (
+          <span
+            style={{
+              fontSize: 11,
+              color: DIM,
+              fontFamily: "'DM Sans', sans-serif",
+              marginLeft: 8,
+            }}
+          >
+            Tempo
+          </span>
+        )}
         <input
           type="range"
           min={25}
           max={150}
           value={Math.round(tempoRatio * 100)}
           onChange={(e) => setTempoRatio(Number(e.target.value) / 100)}
-          style={{ width: 100, accentColor: AMBER }}
+          style={{ width: isLandscape ? 60 : 100, accentColor: AMBER }}
         />
         <span
           style={{
             fontSize: 12,
             fontFamily: "'IBM Plex Mono', monospace",
             color: AMBER,
-            minWidth: 40,
+            minWidth: 30,
           }}
         >
           {effectiveBpm}
         </span>
-
-        {/* Position */}
         <div
           style={{
             marginLeft: "auto",
-            fontSize: 12,
+            fontSize: 11,
             fontFamily: "'IBM Plex Mono', monospace",
             color: SILVER,
           }}
         >
-          Bar {activeBar + 1} &middot; {formatTime(activeTime)}
+          Bar {activeBar + 1} · {formatTime(activeTime)}
         </div>
       </div>
 
-      {/* Scrubber */}
-      <div
-        ref={scrubberRef}
-        style={{
-          padding: "6px 16px",
-          borderBottom: `1px solid ${BORDER}`,
-        }}
-      >
+      {/* Scrubber — separate row in portrait only */}
+      {!isLandscape && (
         <div
-          style={{
-            height: 8,
-            background: "#1a1a24",
-            borderRadius: 4,
-            position: "relative",
-            overflow: "hidden",
-          }}
+          ref={scrubberRef}
+          style={{ padding: "6px 16px", borderBottom: `1px solid ${BORDER}` }}
         >
           <div
             style={{
-              height: "100%",
-              width: `${progress * 100}%`,
-              background: `linear-gradient(90deg, ${AMBER}88, ${AMBER})`,
+              height: 8,
+              background: "#1a1a24",
               borderRadius: 4,
-              transition: isPlaying ? "none" : "width 0.2s",
+              position: "relative",
+              overflow: "hidden",
             }}
-          />
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${progress * 100}%`,
+                background: `linear-gradient(90deg, ${AMBER}88, ${AMBER})`,
+                borderRadius: 4,
+                transition: isPlaying ? "none" : "width 0.2s",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                left: `${progress * 100}%`,
+                top: -3,
+                width: 14,
+                height: 14,
+                borderRadius: 7,
+                background: AMBER,
+                boxShadow: `0 0 8px ${AMBER}66`,
+                transform: "translateX(-7px)",
+              }}
+            />
+          </div>
           <div
             style={{
-              position: "absolute",
-              left: `${progress * 100}%`,
-              top: -3,
-              width: 14,
-              height: 14,
-              borderRadius: 7,
-              background: AMBER,
-              boxShadow: `0 0 8px ${AMBER}66`,
-              transform: "translateX(-7px)",
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 10,
+              color: DIM,
+              fontFamily: "'IBM Plex Mono', monospace",
+              marginTop: 2,
             }}
-          />
+          >
+            <span>{formatTime(activeTime)}</span>
+            <span>{formatTime(totalDuration)}</span>
+          </div>
         </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 10,
-            color: DIM,
-            fontFamily: "'IBM Plex Mono', monospace",
-            marginTop: 2,
-          }}
-        >
-          <span>{formatTime(activeTime)}</span>
-          <span>{formatTime(totalDuration)}</span>
-        </div>
-      </div>
+      )}
 
       {/* Chord Info Strip */}
       {activeChord && (
@@ -414,6 +457,7 @@ export function BottomDock({
         commonToneMidis={pianoState.commonToneMidis}
         showScale={showScale}
         onKeyClick={handleKeyClick}
+        compact={isLandscape}
       />
     </div>
   );

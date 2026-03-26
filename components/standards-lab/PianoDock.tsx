@@ -60,6 +60,7 @@ interface PianoDockProps {
   commonToneMidis: number[];
   showScale: boolean;
   onKeyClick?: (midi: number) => void;
+  compact?: boolean;
 }
 
 interface KeyDef {
@@ -221,7 +222,10 @@ export function PianoDock({
   commonToneMidis,
   showScale,
   onKeyClick,
+  compact = false,
 }: PianoDockProps) {
+  const keyH = compact ? 48 : WHITE_KEY_H;
+  const blackH = compact ? 30 : BLACK_KEY_H;
   const voicingSet = useMemo(() => new Set(voicingMidis), [voicingMidis]);
   const scaleSet = useMemo(() => new Set(scalePcs), [scalePcs]);
   const avoidSet = useMemo(() => new Set(avoidPcs), [avoidPcs]);
@@ -233,43 +237,45 @@ export function PianoDock({
 
   return (
     <div style={{ width: "100%", background: brand.night }}>
-      {/* Zone labels */}
-      <div
-        style={{
-          position: "relative",
-          width: LAYOUT.totalWidth,
-          margin: "0 auto",
-          height: 20,
-          fontFamily: typeTokens.body,
-          fontSize: 10,
-          letterSpacing: "0.05em",
-          color: brand.ash,
-          userSelect: "none",
-        }}
-      >
-        <span
+      {/* Zone labels — hidden in compact/landscape */}
+      {!compact && (
+        <div
           style={{
-            position: "absolute",
-            left: separatorX / 2,
-            top: 2,
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
+            position: "relative",
+            width: LAYOUT.totalWidth,
+            margin: "0 auto",
+            height: 20,
+            fontFamily: typeTokens.body,
+            fontSize: 10,
+            letterSpacing: "0.05em",
+            color: brand.ash,
+            userSelect: "none",
           }}
         >
-          &larr; VOICING (LH)
-        </span>
-        <span
-          style={{
-            position: "absolute",
-            left: separatorX + (LAYOUT.totalWidth - separatorX) / 2,
-            top: 2,
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          SCALE (RH) &rarr;
-        </span>
-      </div>
+          <span
+            style={{
+              position: "absolute",
+              left: separatorX / 2,
+              top: 2,
+              transform: "translateX(-50%)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            &larr; VOICING (LH)
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              left: separatorX + (LAYOUT.totalWidth - separatorX) / 2,
+              top: 2,
+              transform: "translateX(-50%)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            SCALE (RH) &rarr;
+          </span>
+        </div>
+      )}
 
       {/* Scrollable keyboard */}
       <div
@@ -284,7 +290,7 @@ export function PianoDock({
           style={{
             position: "relative",
             width: LAYOUT.totalWidth,
-            height: WHITE_KEY_H,
+            height: keyH,
             margin: "0 auto",
           }}
         >
@@ -322,7 +328,7 @@ export function PianoDock({
                   left: key.x,
                   top: 0,
                   width: WHITE_KEY_W,
-                  height: WHITE_KEY_H,
+                  height: keyH,
                   borderRadius: "0 0 3px 3px",
                   cursor: "pointer",
                   zIndex: 1,
@@ -384,7 +390,7 @@ export function PianoDock({
                   left: key.x,
                   top: 0,
                   width: BLACK_KEY_W,
-                  height: BLACK_KEY_H,
+                  height: blackH,
                   borderRadius: "0 0 2px 2px",
                   cursor: "pointer",
                   zIndex: 2,
@@ -403,7 +409,7 @@ export function PianoDock({
               left: separatorX - 1,
               top: 0,
               width: 2,
-              height: WHITE_KEY_H,
+              height: keyH,
               background: COLORS.separator,
               zIndex: 3,
               pointerEvents: "none",
@@ -413,41 +419,43 @@ export function PianoDock({
         </div>
       </div>
 
-      {/* Legend row */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 14,
-          padding: "6px 0 8px",
-          fontFamily: typeTokens.body,
-          fontSize: 10,
-          color: brand.silver,
-          userSelect: "none",
-        }}
-      >
-        {LEGEND.map((item) => (
-          <span
-            key={item.label}
-            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-          >
+      {/* Legend row — hidden in compact/landscape */}
+      {!compact && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 14,
+            padding: "6px 0 8px",
+            fontFamily: typeTokens.body,
+            fontSize: 10,
+            color: brand.silver,
+            userSelect: "none",
+          }}
+        >
+          {LEGEND.map((item) => (
             <span
-              style={{
-                display: "inline-block",
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: item.outline ? "transparent" : item.color,
-                border: item.outline
-                  ? `2px dotted ${COLORS.ghostBorder}`
-                  : `1px solid ${item.color}`,
-                boxSizing: "border-box",
-              }}
-            />
-            {item.label}
-          </span>
-        ))}
-      </div>
+              key={item.label}
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: item.outline ? "transparent" : item.color,
+                  border: item.outline
+                    ? `2px dotted ${COLORS.ghostBorder}`
+                    : `1px solid ${item.color}`,
+                  boxSizing: "border-box",
+                }}
+              />
+              {item.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
