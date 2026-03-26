@@ -74,6 +74,35 @@ const CATEGORIES = [
       </svg>
     ),
   },
+  {
+    href: "/practice/standards-lab",
+    label: "Standards",
+    sub: "Jazz analysis",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path
+          d="M4 10h20M4 14h20M4 18h20M4 22h20"
+          stroke="currentColor"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 8v16"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle cx="12" cy="14" r="2" fill="currentColor" />
+        <circle cx="18" cy="10" r="2" fill="currentColor" />
+        <path
+          d="M14 14V8M20 10V4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
 ];
 
 export default function PracticeLandingPage() {
