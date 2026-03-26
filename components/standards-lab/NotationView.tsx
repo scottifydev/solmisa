@@ -40,10 +40,10 @@ const CATEGORY_COLORS: Record<NoteCategory, string> = {
 // ─── Layout Constants ────────────────────────────────────────
 
 const BARS_PER_SYSTEM = 4;
-const STAVE_WIDTH = 220;
-const STAVE_HEIGHT = 140;
-const SYSTEM_PADDING_LEFT = 40;
-const SYSTEM_PADDING_TOP = 50;
+const STAVE_WIDTH = 320;
+const STAVE_HEIGHT = 150;
+const SYSTEM_PADDING_LEFT = 50;
+const SYSTEM_PADDING_TOP = 55;
 
 // ─── Component ───────────────────────────────────────────────
 
@@ -98,12 +98,50 @@ export function NotationView({ notation, currentBar }: NotationViewProps) {
       }
     }
 
-    // Style the SVG
+    // Style the SVG — force dark theme colors on all VexFlow elements
     const svg = el.querySelector("svg");
     if (svg) {
       svg.style.width = "100%";
       svg.style.height = "auto";
       svg.setAttribute("viewBox", `0 0 ${totalWidth} ${totalHeight}`);
+
+      // Force staff lines, barlines, clefs, time sigs to light color
+      // VexFlow renders these as <path> and <line> elements with inline stroke
+      const styleEl = document.createElement("style");
+      styleEl.textContent = `
+        .vf-stave path, .vf-stave line,
+        .vf-barline path, .vf-barline line {
+          stroke: ${STAFF_COLOR} !important;
+          fill: ${STAFF_COLOR} !important;
+        }
+        .vf-clef path { fill: ${STAFF_COLOR} !important; }
+        .vf-keysignature path { fill: ${STAFF_COLOR} !important; }
+        .vf-timesig path { fill: ${STAFF_COLOR} !important; }
+      `;
+      svg.prepend(styleEl);
+
+      // Brute-force: find all paths/lines without explicit color and set them
+      svg.querySelectorAll("path, line, rect").forEach((el) => {
+        const htmlEl = el as SVGElement;
+        const fill = htmlEl.getAttribute("fill");
+        const stroke = htmlEl.getAttribute("stroke");
+        // If still default black, make it visible
+        if (
+          fill === "#000000" ||
+          fill === "black" ||
+          (fill === "none" && !stroke)
+        ) {
+          htmlEl.setAttribute("fill", STAFF_COLOR);
+        }
+        if (stroke === "#000000" || stroke === "black") {
+          htmlEl.setAttribute("stroke", STAFF_COLOR);
+        }
+        // Elements with no fill/stroke at all
+        if (!fill && !stroke) {
+          htmlEl.setAttribute("fill", STAFF_COLOR);
+          htmlEl.setAttribute("stroke", STAFF_COLOR);
+        }
+      });
     }
   }, [notation, currentBar]);
 

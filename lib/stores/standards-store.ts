@@ -72,9 +72,28 @@ export const useStandardsStore = create<StandardsLabState>()((set, get) => ({
         const chords = detectChords(parsed.tracks.harmony, parsed);
         set({ detectedChords: chords, chordDetectionStatus: "ready" });
 
-        // Build notation
+        // Build notation — limit to first chorus if tune has known bar count
         const tune = get().catalog.find((t) => t.id === get().selectedTuneId);
-        const notation = buildNotation(parsed, chords, tune?.sections);
+        const maxBars = tune?.bars;
+        const trimmedParsed =
+          maxBars && parsed.totalBars > maxBars
+            ? {
+                ...parsed,
+                totalBars: maxBars,
+                tracks: {
+                  melody: parsed.tracks.melody.filter((n) => n.bar < maxBars),
+                  harmony: parsed.tracks.harmony.filter((n) => n.bar < maxBars),
+                },
+              }
+            : parsed;
+        const trimmedChords = maxBars
+          ? chords.filter((c) => c.bar < maxBars)
+          : chords;
+        const notation = buildNotation(
+          trimmedParsed,
+          trimmedChords,
+          tune?.sections,
+        );
         set({ notation });
       } catch {
         set({ chordDetectionStatus: "error" });
