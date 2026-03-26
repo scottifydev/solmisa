@@ -23,6 +23,7 @@ import type {
   AnalyzedChord,
 } from "@/types/standards-lab";
 import { ChordChart } from "./ChordChart";
+import { OverlayToggles, type OverlayState } from "./OverlayToggles";
 
 // ─── SCO-468 Colors (exact spec) ─────────────────────────────
 
@@ -62,6 +63,12 @@ export function NotationView({
   currentBar,
 }: NotationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("lead-chords");
+  const [overlays, setOverlays] = useState<OverlayState>({
+    guideTones: false,
+    gravity: false,
+    beatGrid: false,
+    voicingStaff: false,
+  });
 
   return (
     <div>
@@ -69,38 +76,52 @@ export function NotationView({
       <div
         style={{
           display: "flex",
-          gap: 0,
+          gap: 8,
+          alignItems: "center",
+          flexWrap: "wrap",
           marginBottom: 10,
-          borderRadius: 8,
-          overflow: "hidden",
-          border: "1px solid #2e2e3e",
-          width: "fit-content",
         }}
       >
-        {[
-          { mode: "lead-chords" as ViewMode, label: "Lead + Chords" },
-          { mode: "lead-only" as ViewMode, label: "Lead Only" },
-          { mode: "chords-only" as ViewMode, label: "Chord Chart" },
-        ].map(({ mode, label }) => (
-          <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            style={{
-              padding: "6px 16px",
-              background: viewMode === mode ? "#1a1a24" : "transparent",
-              color: viewMode === mode ? CHORD_COLOR : "#888",
-              border: "none",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              fontWeight: viewMode === mode ? 600 : 400,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              borderRight: "1px solid #2e2e3e",
-            }}
-          >
-            {label}
-          </button>
-        ))}
+        <div
+          style={{
+            display: "flex",
+            gap: 0,
+            borderRadius: 8,
+            overflow: "hidden",
+            border: "1px solid #2e2e3e",
+            width: "fit-content",
+          }}
+        >
+          {[
+            { mode: "lead-chords" as ViewMode, label: "Lead + Chords" },
+            { mode: "lead-only" as ViewMode, label: "Lead Only" },
+            { mode: "chords-only" as ViewMode, label: "Chord Chart" },
+          ].map(({ mode, label }) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: "6px 16px",
+                background: viewMode === mode ? "#1a1a24" : "transparent",
+                color: viewMode === mode ? CHORD_COLOR : "#888",
+                border: "none",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                fontWeight: viewMode === mode ? 600 : 400,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                borderRight: "1px solid #2e2e3e",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Overlay toggles — only show for staff views */}
+        {viewMode !== "chords-only" && (
+          <OverlayToggles state={overlays} onChange={setOverlays} />
+        )}
       </div>
 
       {/* Render based on mode */}
@@ -113,9 +134,11 @@ export function NotationView({
       ) : (
         <StaffView
           notation={notation}
+          chords={chords}
           currentBar={currentBar}
           showChords={viewMode === "lead-chords"}
           showDegreeColors={viewMode === "lead-chords"}
+          overlays={overlays}
         />
       )}
     </div>
@@ -126,14 +149,18 @@ export function NotationView({
 
 function StaffView({
   notation,
+  chords,
   currentBar,
   showChords,
   showDegreeColors,
+  overlays,
 }: {
   notation: StandardNotation;
+  chords: AnalyzedChord[];
   currentBar?: number;
   showChords: boolean;
   showDegreeColors: boolean;
+  overlays: OverlayState;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -147,7 +174,10 @@ function StaffView({
 
     const systemCount = Math.ceil(measures.length / BARS_PER_SYSTEM);
     const totalWidth = PAD_LEFT + STAVE_WIDTH * BARS_PER_SYSTEM + 20;
-    const totalHeight = PAD_TOP + STAVE_HEIGHT * systemCount + 40;
+    const systemHeight = overlays.voicingStaff
+      ? STAVE_HEIGHT + 100
+      : STAVE_HEIGHT;
+    const totalHeight = PAD_TOP + systemHeight * systemCount + 40;
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(totalWidth, totalHeight);
@@ -158,7 +188,7 @@ function StaffView({
     for (let sys = 0; sys < systemCount; sys++) {
       const startBar = sys * BARS_PER_SYSTEM;
       const endBar = Math.min(startBar + BARS_PER_SYSTEM, measures.length);
-      const y = PAD_TOP + sys * STAVE_HEIGHT;
+      const y = PAD_TOP + sys * systemHeight;
 
       for (let barIdx = startBar; barIdx < endBar; barIdx++) {
         const localIdx = barIdx - startBar;
@@ -178,19 +208,137 @@ function StaffView({
           barIdx === currentBar,
           showChords,
           showDegreeColors,
+          overlays.gravity,
         );
+
+        // Beat grid overlay
+        if (overlays.beatGrid) {
+          const beats = timeSignature?.numerator ?? 4;
+          const beatWidth = STAVE_WIDTH / beats;
+          for (let b = 0; b < beats; b++) {
+            const bx =
+              x +
+              b * beatWidth +
+              (isFirst
+                ? ((
+                    context as unknown as {
+                      stave?: { getModifierXShift?: () => number };
+                    }
+                  ).stave?.getModifierXShift?.() ?? 40)
+                : 0);
+            context.save();
+            context.setStrokeStyle(b % 2 === 0 ? "#2a2a30" : "#1e1e24");
+            context.setLineWidth(1);
+            context.beginPath();
+            context.moveTo(x + b * beatWidth, y);
+            context.lineTo(x + b * beatWidth, y + 80);
+            context.stroke();
+            context.restore();
+          }
+        }
+
+        // Voicing staff
+        if (overlays.voicingStaff) {
+          const voicingY = y + 95;
+          const vStave = new Stave(x, voicingY, STAVE_WIDTH);
+          if (isFirst) vStave.addClef("bass");
+          vStave.setBegBarType(Barline.type.NONE);
+          vStave.setStyle({ fillStyle: "#1e1e24", strokeStyle: "#1e1e24" });
+          vStave.setContext(context);
+          vStave.draw();
+
+          // Render voicing notes for this bar
+          const barChord = chords.find((c) => c.bar === barIdx);
+          if (barChord && barChord.notes.length > 0) {
+            const vexKeys = barChord.notes.map((midi) => {
+              const oct = Math.floor(midi / 12) - 1;
+              const names = [
+                "c",
+                "c",
+                "d",
+                "d",
+                "e",
+                "f",
+                "f",
+                "g",
+                "g",
+                "a",
+                "a",
+                "b",
+              ];
+              return `${names[midi % 12]}/${oct}`;
+            });
+            try {
+              const vNote = new StaveNote({
+                keys: vexKeys,
+                duration: "w",
+                clef: "bass",
+              });
+              const rootPc = barChord.rootMidi % 12;
+              for (let ki = 0; ki < barChord.notes.length; ki++) {
+                const notePc = barChord.notes[ki]! % 12;
+                if (notePc === rootPc) {
+                  vNote.setKeyStyle(ki, {
+                    fillStyle: "#F0997B",
+                    strokeStyle: "#F0997B",
+                  });
+                } else {
+                  vNote.setKeyStyle(ki, {
+                    fillStyle: "#7F77DD",
+                    strokeStyle: "#7F77DD",
+                  });
+                }
+                // Accidentals
+                const acc = [
+                  null,
+                  "#",
+                  null,
+                  "#",
+                  null,
+                  null,
+                  "#",
+                  null,
+                  "#",
+                  null,
+                  "#",
+                  null,
+                ][notePc];
+                if (acc) vNote.addModifier(new Accidental(acc), ki);
+              }
+              const voice = new Voice({ numBeats: 4, beatValue: 4 });
+              voice.setMode(Voice.Mode.SOFT);
+              voice.addTickables([vNote]);
+              new Formatter()
+                .joinVoices([voice])
+                .format([voice], STAVE_WIDTH - 60);
+              voice.draw(context, vStave);
+            } catch {
+              // Skip if VexFlow can't render
+            }
+          }
+        }
       }
     }
 
-    // Post-render: fix any remaining black SVG elements
+    // Post-render: fix black SVG elements + apply gravity opacity
     const svg = el.querySelector("svg");
     if (svg) {
       svg.style.width = "100%";
       svg.style.height = "auto";
       svg.setAttribute("viewBox", `0 0 ${totalWidth} ${totalHeight}`);
       fixBlackSvgElements(svg);
+
+      // Gravity effect: dim notes with data-gravity="weak" attribute
+      if (overlays.gravity) {
+        applyGravityEffect(svg);
+      }
+
+      // Guide tone arcs
+      if (overlays.guideTones && chords.length > 1) {
+        drawGuideToneArcs(svg, chords, measures, totalWidth);
+      }
     }
-  }, [notation, currentBar, showChords, showDegreeColors]);
+  }, [notation, chords, currentBar, showChords, showDegreeColors, overlays]);
 
   useEffect(() => {
     render();
@@ -270,6 +418,7 @@ function renderMeasure(
   isCurrentBar: boolean,
   showChords: boolean,
   showDegreeColors: boolean,
+  gravityMode?: boolean,
 ) {
   context.setFillStyle(STAFF_COLOR);
   context.setStrokeStyle(STAFF_COLOR);
@@ -315,7 +464,7 @@ function renderMeasure(
 
   // Build notes
   const vexNotes = measure.notes.map((note) =>
-    buildStaveNote(note, showDegreeColors),
+    buildStaveNote(note, showDegreeColors, gravityMode),
   );
   if (vexNotes.length === 0) return;
 
@@ -355,6 +504,7 @@ function renderMeasure(
 function buildStaveNote(
   note: QuantizedNote,
   showDegreeColors: boolean,
+  gravityMode?: boolean,
 ): StaveNote {
   const dur = note.rest ? `${note.duration}r` : note.duration;
   const staveNote = new StaveNote({
@@ -371,13 +521,24 @@ function buildStaveNote(
     Dot.buildAndAttach([staveNote], { all: true });
   }
 
+  // Gravity: weak beats (2, 4) get 25% opacity
+  const isWeakBeat =
+    gravityMode &&
+    !note.rest &&
+    (note.beat === 2 ||
+      note.beat === 2.5 ||
+      note.beat === 4 ||
+      note.beat === 4.5);
+
   if (note.rest) {
     staveNote.setStyle({ fillStyle: STAFF_COLOR, strokeStyle: STAFF_COLOR });
   } else if (showDegreeColors && note.noteCategory) {
-    const color = DEGREE_COLORS[note.noteCategory];
+    let color = DEGREE_COLORS[note.noteCategory];
+    if (isWeakBeat) color = color + "40"; // 25% opacity via hex alpha
     staveNote.setStyle({ fillStyle: color, strokeStyle: color });
   } else {
-    staveNote.setStyle({ fillStyle: NOTE_COLOR, strokeStyle: NOTE_COLOR });
+    const color = isWeakBeat ? NOTE_COLOR + "40" : NOTE_COLOR;
+    staveNote.setStyle({ fillStyle: color, strokeStyle: color });
   }
 
   return staveNote;
@@ -400,4 +561,159 @@ function addChordSymbol(note: StaveNote, symbol: string): void {
   cs.setFont("DM Sans", 12);
   cs.setStyle({ fillStyle: CHORD_COLOR, strokeStyle: CHORD_COLOR });
   note.addModifier(cs);
+}
+
+// ─── Gravity Effect ──────────────────────────────────────────
+
+function applyGravityEffect(_svg: SVGSVGElement) {
+  // Gravity is already applied via buildStaveNote with hex alpha
+  // This hook exists for future post-render adjustments
+}
+
+// ─── Guide Tone Arcs ─────────────────────────────────────────
+
+const THIRD_ARC_COLOR = "#d4a0d4";
+const SEVENTH_ARC_COLOR = "#a0d4d4";
+
+function drawGuideToneArcs(
+  svg: SVGSVGElement,
+  chords: AnalyzedChord[],
+  measures: QuantizedMeasure[],
+  _totalWidth: number,
+) {
+  // Create an SVG group for arcs
+  const ns = "http://www.w3.org/2000/svg";
+  const g = document.createElementNS(ns, "g");
+  g.setAttribute("class", "guide-tone-arcs");
+
+  for (let i = 0; i < chords.length - 1; i++) {
+    const curr = chords[i]!;
+    const next = chords[i + 1]!;
+
+    const currBar = curr.bar;
+    const nextBar = next.bar;
+    if (nextBar >= measures.length) continue;
+
+    // 3rd of current chord → 3rd of next chord
+    const curr3rd = (curr.rootMidi + 4) % 12; // major 3rd
+    const next3rd =
+      (next.rootMidi +
+        ([
+          "min",
+          "min7",
+          "min9",
+          "min11",
+          "min6",
+          "min7b5",
+          "dim",
+          "dim7",
+        ].includes(next.quality)
+          ? 3
+          : 4)) %
+      12;
+
+    // 7th of current chord → 7th of next chord
+    const curr7th =
+      (curr.rootMidi + (["maj7", "maj9"].includes(curr.quality) ? 11 : 10)) %
+      12;
+    const next7th =
+      (next.rootMidi + (["maj7", "maj9"].includes(next.quality) ? 11 : 10)) %
+      12;
+
+    // Estimate x positions from bar numbers
+    const system1 = Math.floor(currBar / BARS_PER_SYSTEM);
+    const system2 = Math.floor(nextBar / BARS_PER_SYSTEM);
+    if (system1 !== system2) continue; // skip cross-system arcs
+
+    const localBar1 = currBar % BARS_PER_SYSTEM;
+    const localBar2 = nextBar % BARS_PER_SYSTEM;
+    const x1 = PAD_LEFT + localBar1 * STAVE_WIDTH + STAVE_WIDTH * 0.8;
+    const x2 = PAD_LEFT + localBar2 * STAVE_WIDTH + STAVE_WIDTH * 0.2;
+    const systemHeight = STAVE_HEIGHT;
+    const yBase = PAD_TOP + system1 * systemHeight;
+
+    // 3rd arc (above staff)
+    const y3 = yBase + 20;
+    const arc3 = document.createElementNS(ns, "path");
+    const cy3 = y3 - 15;
+    arc3.setAttribute(
+      "d",
+      `M ${x1} ${y3} Q ${(x1 + x2) / 2} ${cy3} ${x2} ${y3}`,
+    );
+    arc3.setAttribute("fill", "none");
+    arc3.setAttribute("stroke", THIRD_ARC_COLOR);
+    arc3.setAttribute("stroke-width", "1.5");
+    arc3.setAttribute("opacity", "0.6");
+    g.appendChild(arc3);
+
+    // Dots at endpoints
+    const dot3a = document.createElementNS(ns, "circle");
+    dot3a.setAttribute("cx", String(x1));
+    dot3a.setAttribute("cy", String(y3));
+    dot3a.setAttribute("r", "3");
+    dot3a.setAttribute("fill", THIRD_ARC_COLOR);
+    dot3a.setAttribute("opacity", "0.6");
+    g.appendChild(dot3a);
+
+    const dot3b = document.createElementNS(ns, "circle");
+    dot3b.setAttribute("cx", String(x2));
+    dot3b.setAttribute("cy", String(y3));
+    dot3b.setAttribute("r", "3");
+    dot3b.setAttribute("fill", THIRD_ARC_COLOR);
+    dot3b.setAttribute("opacity", "0.6");
+    g.appendChild(dot3b);
+
+    // Label
+    const label3 = document.createElementNS(ns, "text");
+    label3.setAttribute("x", String(x1 - 8));
+    label3.setAttribute("y", String(y3 + 4));
+    label3.setAttribute("fill", THIRD_ARC_COLOR);
+    label3.setAttribute("font-size", "9");
+    label3.setAttribute("font-family", "DM Sans, sans-serif");
+    label3.setAttribute("opacity", "0.6");
+    label3.textContent = "3";
+    g.appendChild(label3);
+
+    // 7th arc (below staff)
+    const y7 = yBase + 75;
+    const arc7 = document.createElementNS(ns, "path");
+    const cy7 = y7 + 15;
+    arc7.setAttribute(
+      "d",
+      `M ${x1} ${y7} Q ${(x1 + x2) / 2} ${cy7} ${x2} ${y7}`,
+    );
+    arc7.setAttribute("fill", "none");
+    arc7.setAttribute("stroke", SEVENTH_ARC_COLOR);
+    arc7.setAttribute("stroke-width", "1.5");
+    arc7.setAttribute("opacity", "0.6");
+    g.appendChild(arc7);
+
+    const dot7a = document.createElementNS(ns, "circle");
+    dot7a.setAttribute("cx", String(x1));
+    dot7a.setAttribute("cy", String(y7));
+    dot7a.setAttribute("r", "3");
+    dot7a.setAttribute("fill", SEVENTH_ARC_COLOR);
+    dot7a.setAttribute("opacity", "0.6");
+    g.appendChild(dot7a);
+
+    const dot7b = document.createElementNS(ns, "circle");
+    dot7b.setAttribute("cx", String(x2));
+    dot7b.setAttribute("cy", String(y7));
+    dot7b.setAttribute("r", "3");
+    dot7b.setAttribute("fill", SEVENTH_ARC_COLOR);
+    dot7b.setAttribute("opacity", "0.6");
+    g.appendChild(dot7b);
+
+    const label7 = document.createElementNS(ns, "text");
+    label7.setAttribute("x", String(x1 - 8));
+    label7.setAttribute("y", String(y7 + 4));
+    label7.setAttribute("fill", SEVENTH_ARC_COLOR);
+    label7.setAttribute("font-size", "9");
+    label7.setAttribute("font-family", "DM Sans, sans-serif");
+    label7.setAttribute("opacity", "0.6");
+    label7.textContent = "7";
+    g.appendChild(label7);
+  }
+
+  svg.appendChild(g);
 }
