@@ -118,6 +118,8 @@ export type NoteCategory =
   | "avoid"
   | "chromatic";
 
+export type ViewMode = "lead-chords" | "lead-only" | "chords-only";
+
 // ─── Notation (SCO-463) ─────────────────────────────────────
 
 export interface QuantizedNote {
