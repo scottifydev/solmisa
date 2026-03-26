@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { ParsedStandard, AnalyzedChord } from "@/types/standards-lab";
+import { useStandardsStore } from "@/lib/stores/standards-store";
 import { useStandardsPlayback } from "@/hooks/use-standards-playback";
 import { PianoDock } from "./PianoDock";
 import { playNote } from "@/lib/audio/solmisa-piano";
@@ -69,6 +70,14 @@ export function BottomDock({
 
   const activeBar = isPlaying || isPaused ? position.bar - 1 : currentBar;
   const activeTime = isPlaying || isPaused ? position.time : playbackPosition;
+  const setCurrentBar = useStandardsStore((s) => s.setCurrentBar);
+
+  // Sync playback bar to store so NotationView can highlight it
+  useEffect(() => {
+    if (isPlaying || isPaused) {
+      setCurrentBar(activeBar);
+    }
+  }, [activeBar, isPlaying, isPaused, setCurrentBar]);
 
   // Find active chord at current position
   const activeChord = useMemo(() => {

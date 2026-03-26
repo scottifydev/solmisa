@@ -451,11 +451,18 @@ function renderMeasure(
   stave.setContext(context);
   stave.draw();
 
-  // Current bar highlight
+  // Current bar highlight + amber cursor line (SCO-474 #2)
   if (isCurrentBar) {
     context.save();
     context.setFillStyle("#f0c97a0c");
     context.fillRect(x, y, width, 80);
+    // 2px amber cursor line with glow
+    context.setStrokeStyle("#f0c97a");
+    context.setLineWidth(2);
+    context.beginPath();
+    context.moveTo(x + 2, y);
+    context.lineTo(x + 2, y + 80);
+    context.stroke();
     context.restore();
   }
 
