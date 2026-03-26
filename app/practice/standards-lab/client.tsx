@@ -26,6 +26,8 @@ export function StandardsLabClient() {
     }
   }, [selectedTuneId, catalog, selectTune]);
 
+  const selectedTune = catalog.find((t) => t.id === selectedTuneId);
+
   return (
     <div
       style={{
@@ -36,48 +38,53 @@ export function StandardsLabClient() {
       }}
     >
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 24px" }}>
-        <h1
-          style={{
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: 22,
-            fontWeight: 700,
-            marginBottom: 12,
-          }}
-        >
-          Standards Lab
-        </h1>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
-        >
-          {catalog.map((tune) => (
-            <button
-              key={tune.id}
-              onClick={() => selectTune(tune.id)}
+        {/* Tune selector — dropdown + header (SCO-471 #2) */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+            <span
               style={{
-                padding: "5px 12px",
-                borderRadius: 6,
-                border: `1px solid ${tune.id === selectedTuneId ? brand.violet : brand.steel}`,
-                background:
-                  tune.id === selectedTuneId ? brand.graphite : "transparent",
-                color: tune.id === selectedTuneId ? brand.violet : brand.silver,
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                cursor: "pointer",
-                transition: "all 0.15s",
+                fontFamily: "'Outfit', sans-serif",
+                fontSize: "1.1rem",
+                fontWeight: 700,
+                color: "#e0ddd4",
               }}
             >
-              {tune.title}
-              <span style={{ marginLeft: 5, fontSize: 10, color: brand.ash }}>
-                {tune.key}
-              </span>
-            </button>
-          ))}
+              {selectedTune?.title ?? "Standards Lab"}
+            </span>
+            <select
+              value={selectedTuneId ?? ""}
+              onChange={(e) => selectTune(e.target.value)}
+              style={{
+                background: brand.graphite,
+                border: `1px solid ${brand.steel}`,
+                borderRadius: 4,
+                color: brand.silver,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                padding: "3px 8px",
+                cursor: "pointer",
+              }}
+            >
+              {catalog.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedTune && (
+            <div
+              style={{
+                fontSize: "0.55rem",
+                fontFamily: "'IBM Plex Mono', monospace",
+                color: "#666",
+                marginTop: 2,
+              }}
+            >
+              {selectedTune.key} · {selectedTune.form} · {selectedTune.style} ·{" "}
+              {selectedTune.composer}
+            </div>
+          )}
         </div>
 
         {parseStatus === "loading" && (

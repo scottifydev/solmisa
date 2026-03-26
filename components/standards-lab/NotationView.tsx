@@ -23,7 +23,7 @@ import type {
   AnalyzedChord,
 } from "@/types/standards-lab";
 import { ChordChart } from "./ChordChart";
-import { OverlayToggles, type OverlayState } from "./OverlayToggles";
+import type { OverlayState } from "./OverlayToggles";
 
 // ─── SCO-468 Colors (exact spec) ─────────────────────────────
 
@@ -72,55 +72,71 @@ export function NotationView({
 
   return (
     <div>
-      {/* View mode toggle */}
+      {/* SCO-471 #3: Compact single-row toggle bar */}
       <div
         style={{
           display: "flex",
-          gap: 8,
           alignItems: "center",
-          flexWrap: "wrap",
-          marginBottom: 10,
+          gap: 0,
+          marginBottom: 8,
+          borderRadius: 6,
+          overflow: "hidden",
+          border: "1px solid #2e2e3e",
+          width: "fit-content",
+          height: 32,
         }}
       >
-        <div
+        {/* View mode selector */}
+        <select
+          value={viewMode}
+          onChange={(e) => setViewMode(e.target.value as ViewMode)}
           style={{
-            display: "flex",
-            gap: 0,
-            borderRadius: 8,
-            overflow: "hidden",
-            border: "1px solid #2e2e3e",
-            width: "fit-content",
+            background: "#1a1a24",
+            color: CHORD_COLOR,
+            border: "none",
+            borderRight: "1px solid #2e2e3e",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "0 10px",
+            height: "100%",
+            cursor: "pointer",
           }}
         >
-          {[
-            { mode: "lead-chords" as ViewMode, label: "Lead + Chords" },
-            { mode: "lead-only" as ViewMode, label: "Lead Only" },
-            { mode: "chords-only" as ViewMode, label: "Chord Chart" },
-          ].map(({ mode, label }) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              style={{
-                padding: "6px 16px",
-                background: viewMode === mode ? "#1a1a24" : "transparent",
-                color: viewMode === mode ? CHORD_COLOR : "#888",
-                border: "none",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                fontWeight: viewMode === mode ? 600 : 400,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                borderRight: "1px solid #2e2e3e",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+          <option value="lead-chords">Lead+Chords</option>
+          <option value="lead-only">Lead Only</option>
+          <option value="chords-only">Chord Chart</option>
+        </select>
 
-        {/* Overlay toggles — only show for staff views */}
+        {/* Overlay toggles inline — only for staff views */}
         {viewMode !== "chords-only" && (
-          <OverlayToggles state={overlays} onChange={setOverlays} />
+          <>
+            {[
+              { key: "guideTones" as const, label: "GT" },
+              { key: "gravity" as const, label: "CT" },
+              { key: "voicingStaff" as const, label: "VS" },
+              { key: "beatGrid" as const, label: "BG" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setOverlays((s) => ({ ...s, [key]: !s[key] }))}
+                style={{
+                  padding: "0 10px",
+                  height: "100%",
+                  background: overlays[key] ? "#1a1a24" : "transparent",
+                  color: overlays[key] ? CHORD_COLOR : "#555",
+                  border: "none",
+                  borderRight: "1px solid #2e2e3e",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  fontWeight: overlays[key] ? 600 : 400,
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </>
         )}
       </div>
 

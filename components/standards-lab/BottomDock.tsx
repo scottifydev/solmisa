@@ -112,7 +112,7 @@ export function BottomDock({
     }
 
     return {
-      melodyMidi: null as number | null, // TODO: wire to current melody note from playback
+      melodyMidi: position.melodyMidi,
       voicingMidis: activeChord.notes,
       rootPc,
       scalePcs,
@@ -256,7 +256,7 @@ export function BottomDock({
         </span>
         <input
           type="range"
-          min={50}
+          min={25}
           max={150}
           value={Math.round(tempoRatio * 100)}
           onChange={(e) => setTempoRatio(Number(e.target.value) / 100)}
