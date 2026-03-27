@@ -57,12 +57,14 @@ interface NotationViewProps {
   chords: AnalyzedChord[];
   currentBar?: number;
   cursorProgress?: number;
+  parsedBpm?: number;
 }
 
 export function NotationView({
   notation,
   chords,
   currentBar,
+  parsedBpm = 120,
   cursorProgress: cursorProg,
 }: NotationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("lead-chords");
@@ -237,6 +239,7 @@ export function NotationView({
           chords={chords}
           currentBar={currentBar}
           cursorProgress={cursorProg}
+          parsedBpm={parsedBpm}
           showChords={viewMode === "lead-chords"}
           showDegreeColors={colorMode === "chord-tone"}
           colorMode={colorMode}
@@ -254,6 +257,7 @@ function StaffView({
   chords,
   currentBar,
   cursorProgress,
+  parsedBpm,
   showChords,
   showDegreeColors,
   colorMode,
@@ -263,6 +267,7 @@ function StaffView({
   chords: AnalyzedChord[];
   currentBar?: number;
   cursorProgress?: number;
+  parsedBpm: number;
   showChords: boolean;
   showDegreeColors: boolean;
   colorMode: "plain" | "chord-tone" | "degree";
@@ -481,8 +486,10 @@ function StaffView({
 
       const seconds = transport.seconds;
       // Compute bar duration from tempo
-      const transportBpm = transport.bpm.value;
-      const barDuration = (60 / transportBpm) * beatsPerBar;
+      // Use the ORIGINAL parsed BPM for bar duration calculation
+      // because note.time values in the MIDI are in real seconds at the original tempo.
+      // Transport.seconds maps to these same values regardless of tempo ratio.
+      const barDuration = (60 / parsedBpm) * beatsPerBar;
       if (barDuration <= 0) {
         rafRef.current = requestAnimationFrame(tick);
         return;
@@ -523,7 +530,7 @@ function StaffView({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [notation, overlays.voicingStaff]);
+  }, [notation, overlays.voicingStaff, parsedBpm]);
 
   return (
     <div
