@@ -227,7 +227,6 @@ function StaffView({
           isFirst ? keySignature : undefined,
           isFirst && sys === 0 ? timeSignature : undefined,
           barIdx === currentBar,
-          barIdx === currentBar ? cursorProgress : undefined,
           showChords,
           showDegreeColors,
           overlays.gravity,
@@ -360,23 +359,50 @@ function StaffView({
         drawGuideToneArcs(svg, chords, measures, totalWidth);
       }
     }
-  }, [
-    notation,
-    chords,
-    currentBar,
-    cursorProgress,
-    showChords,
-    showDegreeColors,
-    overlays,
-  ]);
+  }, [notation, chords, currentBar, showChords, showDegreeColors, overlays]);
 
   useEffect(() => {
     render();
   }, [render]);
 
+  const svgRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Compute cursor position + auto-scroll
+  useEffect(() => {
+    if (currentBar === undefined || cursorProgress === undefined) return;
+    const { measures } = notation;
+    if (measures.length === 0) return;
+
+    const systemHeight = overlays.voicingStaff
+      ? STAVE_HEIGHT + 100
+      : STAVE_HEIGHT;
+    const sys = Math.floor(currentBar / BARS_PER_SYSTEM);
+    const localBar = currentBar % BARS_PER_SYSTEM;
+
+    const cursorX =
+      PAD_LEFT + localBar * STAVE_WIDTH + cursorProgress * STAVE_WIDTH;
+    const cursorY = PAD_TOP + sys * systemHeight;
+
+    // Position the cursor line
+    if (cursorRef.current) {
+      cursorRef.current.style.left = `${cursorX}px`;
+      cursorRef.current.style.top = `${cursorY}px`;
+      cursorRef.current.style.height = "80px";
+      cursorRef.current.style.display = "block";
+    }
+
+    // Auto-scroll to keep current system near top
+    if (scrollRef.current) {
+      const targetScroll = Math.max(0, cursorY - 60);
+      scrollRef.current.scrollTo({ top: targetScroll, behavior: "smooth" });
+    }
+  }, [currentBar, cursorProgress, notation, overlays.voicingStaff]);
+
   return (
     <div
-      ref={containerRef}
+      ref={scrollRef}
       style={{
         width: "100%",
         overflow: "auto",
@@ -384,8 +410,27 @@ function StaffView({
         border: "1px solid #2e2e3e",
         background: "#0f0f16",
         padding: "8px 0",
+        position: "relative",
+        maxHeight: "70vh",
       }}
-    />
+    >
+      <div ref={containerRef} style={{ position: "relative" }}>
+        {/* Cursor overlay — separate from VexFlow SVG */}
+        <div
+          ref={cursorRef}
+          style={{
+            position: "absolute",
+            width: 2,
+            background: "#f0c97a",
+            boxShadow: "0 0 8px #f0c97a55",
+            pointerEvents: "none",
+            zIndex: 10,
+            display: "none",
+            transition: "left 0.05s linear",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -446,7 +491,6 @@ function renderMeasure(
   keySignature: string | undefined,
   timeSignature: { numerator: number; denominator: number } | undefined,
   isCurrentBar: boolean,
-  cursorProgress: number | undefined,
   showChords: boolean,
   showDegreeColors: boolean,
   gravityMode?: boolean,
@@ -466,24 +510,11 @@ function renderMeasure(
   stave.setContext(context);
   stave.draw();
 
-  // Current bar highlight + amber cursor line
+  // Current bar highlight (cursor overlay is a separate DOM element)
   if (isCurrentBar) {
     context.save();
-    // Subtle background
     context.setFillStyle("#f0c97a0c");
     context.fillRect(x, y, width, 80);
-    context.restore();
-  }
-  // Cursor line drawn separately with cursorX (set after notation renders)
-  if (isCurrentBar && cursorProgress !== undefined) {
-    const cx = x + cursorProgress * width;
-    context.save();
-    context.setStrokeStyle("#f0c97a");
-    context.setLineWidth(2);
-    context.beginPath();
-    context.moveTo(cx, y);
-    context.lineTo(cx, y + 80);
-    context.stroke();
     context.restore();
   }
 
