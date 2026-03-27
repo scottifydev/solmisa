@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useStandardsStore } from "@/lib/stores/standards-store";
 import { NotationView } from "@/components/standards-lab/NotationView";
 import { BottomDock } from "@/components/standards-lab/BottomDock";
@@ -27,6 +27,18 @@ export function StandardsLabClient() {
   }, [selectedTuneId, catalog, selectTune]);
 
   const selectedTune = catalog.find((t) => t.id === selectedTuneId);
+
+  // Compute cursor progress within current bar (0-1)
+  const cursorProgress = useMemo(() => {
+    if (!parsedStandard || !notation) return undefined;
+    const bpm = parsedStandard.tempoEvents[0]?.bpm ?? 120;
+    const beatsPerBar = parsedStandard.timeSignature.numerator;
+    const barDuration = (60 / bpm) * beatsPerBar;
+    if (barDuration <= 0) return undefined;
+    const barStart = currentBar * barDuration;
+    const offset = playbackPosition - barStart;
+    return Math.max(0, Math.min(1, offset / barDuration));
+  }, [parsedStandard, notation, currentBar, playbackPosition]);
 
   return (
     <div
@@ -112,6 +124,7 @@ export function StandardsLabClient() {
             notation={notation}
             chords={detectedChords}
             currentBar={currentBar}
+            cursorProgress={cursorProgress}
           />
         )}
       </div>

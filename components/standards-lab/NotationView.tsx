@@ -55,12 +55,14 @@ interface NotationViewProps {
   notation: StandardNotation;
   chords: AnalyzedChord[];
   currentBar?: number;
+  cursorProgress?: number;
 }
 
 export function NotationView({
   notation,
   chords,
   currentBar,
+  cursorProgress: cursorProg,
 }: NotationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("lead-chords");
   const [overlays, setOverlays] = useState<OverlayState>({
@@ -152,6 +154,7 @@ export function NotationView({
           notation={notation}
           chords={chords}
           currentBar={currentBar}
+          cursorProgress={cursorProg}
           showChords={viewMode === "lead-chords"}
           showDegreeColors={viewMode === "lead-chords"}
           overlays={overlays}
@@ -167,6 +170,7 @@ function StaffView({
   notation,
   chords,
   currentBar,
+  cursorProgress,
   showChords,
   showDegreeColors,
   overlays,
@@ -174,6 +178,7 @@ function StaffView({
   notation: StandardNotation;
   chords: AnalyzedChord[];
   currentBar?: number;
+  cursorProgress?: number;
   showChords: boolean;
   showDegreeColors: boolean;
   overlays: OverlayState;
@@ -222,6 +227,7 @@ function StaffView({
           isFirst ? keySignature : undefined,
           isFirst && sys === 0 ? timeSignature : undefined,
           barIdx === currentBar,
+          barIdx === currentBar ? cursorProgress : undefined,
           showChords,
           showDegreeColors,
           overlays.gravity,
@@ -354,7 +360,15 @@ function StaffView({
         drawGuideToneArcs(svg, chords, measures, totalWidth);
       }
     }
-  }, [notation, chords, currentBar, showChords, showDegreeColors, overlays]);
+  }, [
+    notation,
+    chords,
+    currentBar,
+    cursorProgress,
+    showChords,
+    showDegreeColors,
+    overlays,
+  ]);
 
   useEffect(() => {
     render();
@@ -432,6 +446,7 @@ function renderMeasure(
   keySignature: string | undefined,
   timeSignature: { numerator: number; denominator: number } | undefined,
   isCurrentBar: boolean,
+  cursorProgress: number | undefined,
   showChords: boolean,
   showDegreeColors: boolean,
   gravityMode?: boolean,
@@ -451,17 +466,23 @@ function renderMeasure(
   stave.setContext(context);
   stave.draw();
 
-  // Current bar highlight + amber cursor line (SCO-474 #2)
+  // Current bar highlight + amber cursor line
   if (isCurrentBar) {
     context.save();
+    // Subtle background
     context.setFillStyle("#f0c97a0c");
     context.fillRect(x, y, width, 80);
-    // 2px amber cursor line with glow
+    context.restore();
+  }
+  // Cursor line drawn separately with cursorX (set after notation renders)
+  if (isCurrentBar && cursorProgress !== undefined) {
+    const cx = x + cursorProgress * width;
+    context.save();
     context.setStrokeStyle("#f0c97a");
     context.setLineWidth(2);
     context.beginPath();
-    context.moveTo(x + 2, y);
-    context.lineTo(x + 2, y + 80);
+    context.moveTo(cx, y);
+    context.lineTo(cx, y + 80);
     context.stroke();
     context.restore();
   }
