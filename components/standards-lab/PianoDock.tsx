@@ -42,9 +42,9 @@ const COLORS = {
   avoid: "#791F1F",
   ghostBorder: "#7F77DD55",
   commonTone: "#5DCAA5",
-  whiteKey: "#1a1a1f",
-  whiteKeyBorder: "#333",
-  blackKey: "#0a0a0e",
+  whiteKey: "#c8c4bc",
+  whiteKeyBorder: "#999",
+  blackKey: "#1a1a20",
   separator: "#f0c97a",
 } as const;
 

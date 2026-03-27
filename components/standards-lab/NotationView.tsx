@@ -27,7 +27,7 @@ import type { OverlayState } from "./OverlayToggles";
 
 // ─── SCO-468 Colors (exact spec) ─────────────────────────────
 
-const STAFF_COLOR = "#2a2a30";
+const STAFF_COLOR = "#888";
 const NOTE_COLOR = "#e0ddd4";
 const CHORD_COLOR = "#f0c97a";
 const BAR_NUMBER_COLOR = "#888";
@@ -141,6 +141,45 @@ export function NotationView({
           </>
         )}
       </div>
+
+      {/* Degree color legend */}
+      {viewMode === "lead-chords" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 14,
+            marginBottom: 8,
+            fontSize: 11,
+            fontFamily: "'DM Sans', sans-serif",
+            color: "#999",
+          }}
+        >
+          {(
+            [
+              { label: "Root", color: DEGREE_COLORS.root },
+              { label: "Chord tone", color: DEGREE_COLORS["chord-tone"] },
+              { label: "Tension", color: DEGREE_COLORS.tension },
+              { label: "Avoid", color: DEGREE_COLORS.avoid },
+            ] as const
+          ).map(({ label, color }) => (
+            <span
+              key={label}
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: color,
+                }}
+              />
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Render based on mode */}
       {viewMode === "chords-only" ? (
@@ -414,22 +453,21 @@ function StaffView({
         maxHeight: "70vh",
       }}
     >
-      <div ref={containerRef} style={{ position: "relative" }}>
-        {/* Cursor overlay — separate from VexFlow SVG */}
-        <div
-          ref={cursorRef}
-          style={{
-            position: "absolute",
-            width: 2,
-            background: "#f0c97a",
-            boxShadow: "0 0 8px #f0c97a55",
-            pointerEvents: "none",
-            zIndex: 10,
-            display: "none",
-            transition: "left 0.05s linear",
-          }}
-        />
-      </div>
+      {/* Cursor overlay — OUTSIDE containerRef so innerHTML="" doesn't destroy it */}
+      <div
+        ref={cursorRef}
+        style={{
+          position: "absolute",
+          width: 2,
+          background: "#f0c97a",
+          boxShadow: "0 0 8px #f0c97a66",
+          pointerEvents: "none",
+          zIndex: 10,
+          display: "none",
+          transition: "left 0.06s linear, top 0.1s ease",
+        }}
+      />
+      <div ref={containerRef} />
     </div>
   );
 }
