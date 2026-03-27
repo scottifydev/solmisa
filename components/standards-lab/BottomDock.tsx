@@ -73,12 +73,20 @@ export function BottomDock({
   const activeTime = isPlaying || isPaused ? position.time : playbackPosition;
   const setCurrentBar = useStandardsStore((s) => s.setCurrentBar);
 
-  // Sync playback bar to store so NotationView can highlight it
+  const setPlaybackPosition = useStandardsStore((s) => s.setPlaybackPosition);
+
+  // Sync playback state to store so NotationView can render cursor
   useEffect(() => {
     if (isPlaying || isPaused) {
       setCurrentBar(activeBar);
     }
   }, [activeBar, isPlaying, isPaused, setCurrentBar]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      setPlaybackPosition(continuousTime);
+    }
+  }, [continuousTime, isPlaying, setPlaybackPosition]);
 
   // Find active chord at current position
   const activeChord = useMemo(() => {
