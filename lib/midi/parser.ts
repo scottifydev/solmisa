@@ -47,6 +47,14 @@ function parseMidi(midi: Midi, title?: string): ParsedStandard {
   const totalBars =
     allNotes.length > 0 ? Math.max(...allNotes.map((n) => n.bar)) + 1 : 0;
 
+  // Precompute bar start times from tick-based measure boundaries
+  const barStartTimes: number[] = [];
+  const beatsPerBar = timeSignature.numerator;
+  const ticksPerBar = header.ppq * beatsPerBar;
+  for (let bar = 0; bar < totalBars; bar++) {
+    barStartTimes.push(header.ticksToSeconds(bar * ticksPerBar));
+  }
+
   return {
     title: title ?? midi.name ?? "Untitled",
     tracks: { melody, harmony },
@@ -57,6 +65,7 @@ function parseMidi(midi: Midi, title?: string): ParsedStandard {
     totalBars,
     ppq: header.ppq,
     textEvents,
+    barStartTimes,
   };
 }
 

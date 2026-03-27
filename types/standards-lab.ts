@@ -37,6 +37,7 @@ export interface ParsedStandard {
   totalBars: number;
   ppq: number;
   textEvents: string[];
+  barStartTimes: number[];
 }
 
 export type TrackRole = "melody" | "harmony";
