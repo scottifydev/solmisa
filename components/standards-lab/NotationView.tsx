@@ -65,6 +65,9 @@ export function NotationView({
   cursorProgress: cursorProg,
 }: NotationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("lead-chords");
+  const [colorMode, setColorMode] = useState<"plain" | "chord-tone" | "degree">(
+    "chord-tone",
+  );
   const [overlays, setOverlays] = useState<OverlayState>({
     guideTones: false,
     gravity: false,
@@ -142,8 +145,47 @@ export function NotationView({
         )}
       </div>
 
+      {/* Note coloring toggle */}
+      {viewMode !== "chords-only" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 0,
+            marginBottom: 6,
+            borderRadius: 5,
+            overflow: "hidden",
+            border: "1px solid #2e2e3e",
+            width: "fit-content",
+          }}
+        >
+          {[
+            { key: "plain" as const, label: "Plain" },
+            { key: "chord-tone" as const, label: "Chord/Tension" },
+            { key: "degree" as const, label: "Scale Degree" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setColorMode(key)}
+              style={{
+                padding: "3px 10px",
+                background: colorMode === key ? "#1a1a24" : "transparent",
+                color: colorMode === key ? CHORD_COLOR : "#555",
+                border: "none",
+                borderRight: "1px solid #2e2e3e",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 10,
+                fontWeight: colorMode === key ? 600 : 400,
+                cursor: "pointer",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Degree color legend */}
-      {viewMode === "lead-chords" && (
+      {viewMode !== "chords-only" && colorMode === "chord-tone" && (
         <div
           style={{
             display: "flex",
@@ -195,7 +237,8 @@ export function NotationView({
           currentBar={currentBar}
           cursorProgress={cursorProg}
           showChords={viewMode === "lead-chords"}
-          showDegreeColors={viewMode === "lead-chords"}
+          showDegreeColors={colorMode === "chord-tone"}
+          colorMode={colorMode}
           overlays={overlays}
         />
       )}
@@ -212,6 +255,7 @@ function StaffView({
   cursorProgress,
   showChords,
   showDegreeColors,
+  colorMode,
   overlays,
 }: {
   notation: StandardNotation;
@@ -220,6 +264,7 @@ function StaffView({
   cursorProgress?: number;
   showChords: boolean;
   showDegreeColors: boolean;
+  colorMode: "plain" | "chord-tone" | "degree";
   overlays: OverlayState;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -265,7 +310,7 @@ function StaffView({
           isFirst,
           isFirst ? keySignature : undefined,
           isFirst && sys === 0 ? timeSignature : undefined,
-          barIdx === currentBar,
+          false, // bar highlight handled by cursor overlay
           showChords,
           showDegreeColors,
           overlays.gravity,
@@ -398,7 +443,7 @@ function StaffView({
         drawGuideToneArcs(svg, chords, measures, totalWidth);
       }
     }
-  }, [notation, chords, currentBar, showChords, showDegreeColors, overlays]);
+  }, [notation, chords, showChords, showDegreeColors, colorMode, overlays]);
 
   useEffect(() => {
     render();

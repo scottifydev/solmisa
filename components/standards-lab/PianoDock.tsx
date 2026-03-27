@@ -144,12 +144,10 @@ function resolveRole(
 ): KeyRole {
   if (melodyMidi !== null && midi === melodyMidi) return "melody";
   if (voicingSet.has(midi)) return "voicing";
-  // Root: only highlight if this specific MIDI note is in the voicing AND is the root pitch class
+  // Root: only if this MIDI note is in the voicing AND is the root pitch class
   if (voicingSet.size > 0 && midi % 12 === rootPc && voicingSet.has(midi))
     return "root";
-  if (ghostSet.has(midi)) return "ghost";
-  if (commonSet.has(midi)) return "commonTone";
-  // Scale/avoid: only in RH range (above split), only when toggle is on
+  // Scale/avoid: only in RH range, only when toggle is on
   if (showScale && midi >= LH_RH_SPLIT_MIDI && scaleSet.has(midi % 12))
     return "scale";
   if (showScale && midi >= LH_RH_SPLIT_MIDI && avoidSet.has(midi % 12))
