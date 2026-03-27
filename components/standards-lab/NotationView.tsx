@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import * as Tone from "tone";
 import {
   Renderer,
   Stave,
@@ -449,40 +450,80 @@ function StaffView({
     render();
   }, [render]);
 
-  const svgRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastScrollSys = useRef(-1);
 
-  // Compute cursor position + auto-scroll
+  // rAF-driven cursor — reads Transport.seconds directly, no React state
   useEffect(() => {
-    if (currentBar === undefined || cursorProgress === undefined) return;
-    const { measures } = notation;
+    const { measures, timeSignature } = notation;
     if (measures.length === 0) return;
 
-    const systemHeight = overlays.voicingStaff
-      ? STAVE_HEIGHT + 100
-      : STAVE_HEIGHT;
-    const sys = Math.floor(currentBar / BARS_PER_SYSTEM);
-    const localBar = currentBar % BARS_PER_SYSTEM;
+    const bpm = notation.measures[0]?.chord?.time !== undefined ? 120 : 120;
+    const beatsPerBar = timeSignature.numerator;
+    const sysH = overlays.voicingStaff ? STAVE_HEIGHT + 100 : STAVE_HEIGHT;
 
-    const cursorX =
-      PAD_LEFT + localBar * STAVE_WIDTH + cursorProgress * STAVE_WIDTH;
-    const cursorY = PAD_TOP + sys * systemHeight;
+    // We need BPM from parsed data — get it from the parent via a data attribute
+    // or compute bar duration from the notation's total bars and total duration
+    // For now, read from the tempo the store computed
+    const parsedBpm = cursorProgress !== undefined ? 120 : 120; // fallback
 
-    // Position the cursor line
-    if (cursorRef.current) {
-      cursorRef.current.style.left = `${cursorX}px`;
-      cursorRef.current.style.top = `${cursorY}px`;
-      cursorRef.current.style.height = "80px";
-      cursorRef.current.style.display = "block";
-    }
+    const tick = () => {
+      const transport = Tone.getTransport();
+      const state = transport.state;
 
-    // Auto-scroll to keep current system near top
-    if (scrollRef.current) {
-      const targetScroll = Math.max(0, cursorY - 60);
-      scrollRef.current.scrollTo({ top: targetScroll, behavior: "smooth" });
-    }
-  }, [currentBar, cursorProgress, notation, overlays.voicingStaff]);
+      if (state !== "started") {
+        if (cursorRef.current) cursorRef.current.style.display = "none";
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const seconds = transport.seconds;
+      // Compute bar duration from tempo
+      const transportBpm = transport.bpm.value;
+      const barDuration = (60 / transportBpm) * beatsPerBar;
+      if (barDuration <= 0) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const currentBarNum = Math.floor(seconds / barDuration);
+      const barProgress = (seconds % barDuration) / barDuration;
+
+      if (currentBarNum >= measures.length) {
+        if (cursorRef.current) cursorRef.current.style.display = "none";
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const sys = Math.floor(currentBarNum / BARS_PER_SYSTEM);
+      const localBar = currentBarNum % BARS_PER_SYSTEM;
+      const cx = PAD_LEFT + localBar * STAVE_WIDTH + barProgress * STAVE_WIDTH;
+      const cy = PAD_TOP + sys * sysH;
+
+      if (cursorRef.current) {
+        cursorRef.current.style.left = `${cx}px`;
+        cursorRef.current.style.top = `${cy}px`;
+        cursorRef.current.style.height = "80px";
+        cursorRef.current.style.display = "block";
+      }
+
+      // Auto-scroll when system changes
+      if (sys !== lastScrollSys.current && scrollRef.current) {
+        lastScrollSys.current = sys;
+        const targetScroll = Math.max(0, cy - 60);
+        scrollRef.current.scrollTo({ top: targetScroll, behavior: "smooth" });
+      }
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [notation, overlays.voicingStaff]);
 
   return (
     <div
@@ -503,13 +544,13 @@ function StaffView({
         ref={cursorRef}
         style={{
           position: "absolute",
-          width: 2,
+          width: 3,
           background: "#f0c97a",
-          boxShadow: "0 0 8px #f0c97a66",
+          boxShadow: "0 0 12px 2px #f0c97a88",
           pointerEvents: "none",
           zIndex: 10,
           display: "none",
-          transition: "left 0.06s linear, top 0.1s ease",
+          borderRadius: 2,
         }}
       />
       <div ref={containerRef} />
