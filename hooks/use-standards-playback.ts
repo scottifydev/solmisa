@@ -164,7 +164,11 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     baseBpmRef.current = baseBpm;
 
     transport.cancel();
-    transport.bpm.value = baseBpm * tempoRatioRef.current;
+    // Set BPM to 60 * tempoRatio so that transport beats = real seconds.
+    // note.time values from MIDI are in real seconds, so scheduling at
+    // note.time beats with 60 BPM means 1 beat = 1 second = correct timing.
+    // tempoRatio scales playback speed (0.5 = half speed, 2.0 = double).
+    transport.bpm.value = 60 * tempoRatioRef.current;
     transport.position = 0;
 
     scheduleNotes(parsed.tracks.melody, melodySampler, melodyMutedRef);
@@ -209,7 +213,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     const clamped = Math.max(0.5, Math.min(2, ratio));
     tempoRatioRef.current = clamped;
     setTempoRatioState(clamped);
-    Tone.getTransport().bpm.value = baseBpmRef.current * clamped;
+    Tone.getTransport().bpm.value = 60 * clamped;
   }, []);
 
   const setMelodyMuted = useCallback((muted: boolean) => {
