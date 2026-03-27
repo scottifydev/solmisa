@@ -126,6 +126,7 @@ export function StandardsLabClient() {
             currentBar={currentBar}
             cursorProgress={cursorProgress}
             parsedBpm={parsedStandard?.tempoEvents[0]?.bpm}
+            barStartTimes={parsedStandard?.barStartTimes}
           />
         )}
       </div>

@@ -58,6 +58,7 @@ interface NotationViewProps {
   currentBar?: number;
   cursorProgress?: number;
   parsedBpm?: number;
+  barStartTimes?: number[];
 }
 
 export function NotationView({
@@ -65,6 +66,7 @@ export function NotationView({
   chords,
   currentBar,
   parsedBpm = 120,
+  barStartTimes,
   cursorProgress: cursorProg,
 }: NotationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("lead-chords");
@@ -240,6 +242,7 @@ export function NotationView({
           currentBar={currentBar}
           cursorProgress={cursorProg}
           parsedBpm={parsedBpm}
+          barStartTimes={barStartTimes}
           showChords={viewMode === "lead-chords"}
           showDegreeColors={colorMode === "chord-tone"}
           colorMode={colorMode}
@@ -258,6 +261,7 @@ function StaffView({
   currentBar,
   cursorProgress,
   parsedBpm,
+  barStartTimes,
   showChords,
   showDegreeColors,
   colorMode,
@@ -268,6 +272,7 @@ function StaffView({
   currentBar?: number;
   cursorProgress?: number;
   parsedBpm: number;
+  barStartTimes?: number[];
   showChords: boolean;
   showDegreeColors: boolean;
   colorMode: "plain" | "chord-tone" | "degree";
@@ -468,35 +473,27 @@ function StaffView({
     const bpm = notation.measures[0]?.chord?.time !== undefined ? 120 : 120;
     const beatsPerBar = timeSignature.numerator;
     const sysH = overlays.voicingStaff ? STAVE_HEIGHT + 100 : STAVE_HEIGHT;
-
-    // We need BPM from parsed data — get it from the parent via a data attribute
-    // or compute bar duration from the notation's total bars and total duration
-    // For now, read from the tempo the store computed
-    const parsedBpm = cursorProgress !== undefined ? 120 : 120; // fallback
+    // Copy barStartTimes into closure — these are tick-exact bar boundaries
+    const starts = barStartTimes ?? [];
 
     const tick = () => {
       const transport = Tone.getTransport();
-      const state = transport.state;
-
-      if (state !== "started") {
+      if (transport.state !== "started") {
         if (cursorRef.current) cursorRef.current.style.display = "none";
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
 
       const seconds = transport.seconds;
-      // Compute bar duration from tempo
-      // Use the ORIGINAL parsed BPM for bar duration calculation
-      // because note.time values in the MIDI are in real seconds at the original tempo.
-      // Transport.seconds maps to these same values regardless of tempo ratio.
-      const barDuration = (60 / parsedBpm) * beatsPerBar;
-      if (barDuration <= 0) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
 
-      const currentBarNum = Math.floor(seconds / barDuration);
-      const barProgress = (seconds % barDuration) / barDuration;
+      // Find current bar using precomputed tick-exact start times
+      let currentBarNum = 0;
+      for (let i = starts.length - 1; i >= 0; i--) {
+        if (seconds >= starts[i]!) {
+          currentBarNum = i;
+          break;
+        }
+      }
 
       if (currentBarNum >= measures.length) {
         if (cursorRef.current) cursorRef.current.style.display = "none";
@@ -504,9 +501,20 @@ function StaffView({
         return;
       }
 
+      // Progress within bar
+      const barStart = starts[currentBarNum] ?? 0;
+      const barEnd =
+        starts[currentBarNum + 1] ?? barStart + (60 / parsedBpm) * beatsPerBar;
+      const barDuration = barEnd - barStart;
+      const barProgress =
+        barDuration > 0 ? (seconds - barStart) / barDuration : 0;
+
       const sys = Math.floor(currentBarNum / BARS_PER_SYSTEM);
       const localBar = currentBarNum % BARS_PER_SYSTEM;
-      const cx = PAD_LEFT + localBar * STAVE_WIDTH + barProgress * STAVE_WIDTH;
+      const cx =
+        PAD_LEFT +
+        localBar * STAVE_WIDTH +
+        Math.min(barProgress, 1) * STAVE_WIDTH;
       const cy = PAD_TOP + sys * sysH;
 
       if (cursorRef.current) {
@@ -516,11 +524,12 @@ function StaffView({
         cursorRef.current.style.display = "block";
       }
 
-      // Auto-scroll when system changes
       if (sys !== lastScrollSys.current && scrollRef.current) {
         lastScrollSys.current = sys;
-        const targetScroll = Math.max(0, cy - 60);
-        scrollRef.current.scrollTo({ top: targetScroll, behavior: "smooth" });
+        scrollRef.current.scrollTo({
+          top: Math.max(0, cy - 60),
+          behavior: "smooth",
+        });
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -530,7 +539,7 @@ function StaffView({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [notation, overlays.voicingStaff, parsedBpm]);
+  }, [notation, overlays.voicingStaff, parsedBpm, barStartTimes]);
 
   return (
     <div
