@@ -125,6 +125,7 @@ export function StandardsLabClient() {
             chords={detectedChords}
             currentBar={currentBar}
             cursorProgress={cursorProgress}
+            parsedBpm={parsedStandard?.tempoEvents[0]?.bpm}
           />
         )}
       </div>
