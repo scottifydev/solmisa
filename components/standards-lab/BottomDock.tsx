@@ -52,6 +52,7 @@ export function BottomDock({
     setHarmonyMuted,
     position,
     baseBpm,
+    continuousTime,
   } = useStandardsPlayback(parsed);
 
   const [showScale, setShowScale] = useState(false);
@@ -112,35 +113,40 @@ export function BottomDock({
     }
 
     const rootPc = activeChord.rootMidi % 12;
-    const chordTones =
-      CHORD_TONES[activeChord.quality]?.map((i) => (rootPc + i) % 12) ?? [];
-    const tensions =
-      AVAILABLE_TENSIONS[activeChord.quality]?.map((i) => (rootPc + i) % 12) ??
-      [];
-    const avoid =
-      AVOID_NOTES[activeChord.quality]?.map((i) => (rootPc + i) % 12) ?? [];
-    const scalePcs = [...chordTones, ...tensions];
 
-    // Ghost and common tones
+    // Scale/avoid are template-derived — only shown when Scale toggle is ON
+    const scalePcs = showScale
+      ? [
+          ...(CHORD_TONES[activeChord.quality]?.map((i) => (rootPc + i) % 12) ??
+            []),
+          ...(AVAILABLE_TENSIONS[activeChord.quality]?.map(
+            (i) => (rootPc + i) % 12,
+          ) ?? []),
+        ]
+      : [];
+    const avoidPcs = showScale
+      ? (AVOID_NOTES[activeChord.quality]?.map((i) => (rootPc + i) % 12) ?? [])
+      : [];
+
+    // Ghost and common tones — from actual MIDI notes only
     let ghostMidis: number[] = [];
     let commonToneMidis: number[] = [];
     if (nextChord) {
       const currentSet = new Set(activeChord.notes);
-      const nextSet = new Set(nextChord.notes);
       ghostMidis = nextChord.notes.filter((n) => !currentSet.has(n));
       commonToneMidis = nextChord.notes.filter((n) => currentSet.has(n));
     }
 
     return {
       melodyMidi: position.melodyMidi,
-      voicingMidis: activeChord.notes,
+      voicingMidis: activeChord.notes, // actual MIDI notes from LH track
       rootPc,
       scalePcs,
-      avoidPcs: avoid,
+      avoidPcs,
       ghostMidis,
       commonToneMidis,
     };
-  }, [activeChord, nextChord]);
+  }, [activeChord, nextChord, showScale]);
 
   // Tempo
   const effectiveBpm = Math.round(baseBpm * tempoRatio);
@@ -153,7 +159,9 @@ export function BottomDock({
   }, []);
 
   const totalDuration = parsed?.durationSeconds ?? 0;
-  const progress = totalDuration > 0 ? activeTime / totalDuration : 0;
+  // Use continuousTime (rAF-driven) for smooth scrubber, activeTime for chord/note tracking
+  const scrubberTime = isPlaying ? continuousTime : activeTime;
+  const progress = totalDuration > 0 ? scrubberTime / totalDuration : 0;
 
   // Scale info for chord info strip
   const scaleLabel = activeChord?.compatibleScales[0] ?? "";
@@ -335,7 +343,7 @@ export function BottomDock({
             color: SILVER,
           }}
         >
-          Bar {activeBar + 1} · {formatTime(activeTime)}
+          Bar {activeBar + 1} · {formatTime(scrubberTime)}
         </div>
       </div>
 

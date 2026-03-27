@@ -59,6 +59,9 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const [melodyMuted, setMelodyMutedState] = useState(false);
   const [harmonyMuted, setHarmonyMutedState] = useState(false);
 
+  const [continuousTime, setContinuousTime] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
   const melodySamplerRef = useRef<Tone.Sampler | null>(null);
   const harmonySamplerRef = useRef<Tone.Sampler | null>(null);
   const harmonyLoadedRef = useRef(false);
@@ -66,6 +69,23 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const melodyMutedRef = useRef(false);
   const harmonyMutedRef = useRef(false);
   const baseBpmRef = useRef(120);
+
+  // Smooth scrubber: update continuousTime via rAF while playing
+  useEffect(() => {
+    if (!isPlaying) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      return;
+    }
+    const tick = () => {
+      setContinuousTime(Tone.getTransport().seconds);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [isPlaying]);
 
   const initHarmonySampler = useCallback(async (): Promise<Tone.Sampler> => {
     if (harmonySamplerRef.current && harmonyLoadedRef.current) {
@@ -229,5 +249,6 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     setMelodyMuted,
     setHarmonyMuted,
     baseBpm: baseBpmRef.current,
+    continuousTime,
   };
 }
