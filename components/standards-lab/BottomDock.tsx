@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { ParsedStandard, AnalyzedChord } from "@/types/standards-lab";
 import { useStandardsStore } from "@/lib/stores/standards-store";
 import { useStandardsPlayback } from "@/hooks/use-standards-playback";
+import { barAtTime } from "@/lib/notation/cursor-position";
 import { PianoDock } from "./PianoDock";
 import { playNote } from "@/lib/audio/solmisa-piano";
 import {
@@ -70,8 +71,16 @@ export function BottomDock({
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const activeBar = isPlaying || isPaused ? position.bar - 1 : currentBar;
-  const activeTime = isPlaying || isPaused ? position.time : playbackPosition;
+  // Read the bar and the elapsed time from the transport clock, the same
+  // source the notation cursor uses, so the readout and the cursor cannot
+  // disagree. Deriving them from note onsets left both stale between notes,
+  // and position.bar is already zero-based, so subtracting one reported a
+  // bar behind the music.
+  const activeBar =
+    isPlaying || isPaused
+      ? barAtTime(continuousTime, parsed?.barStartTimes ?? [])
+      : currentBar;
+  const activeTime = isPlaying || isPaused ? continuousTime : playbackPosition;
   const setCurrentBar = useStandardsStore((s) => s.setCurrentBar);
 
   const setPlaybackPosition = useStandardsStore((s) => s.setPlaybackPosition);
@@ -367,6 +376,8 @@ export function BottomDock({
             fontSize: 11,
             fontFamily: "'IBM Plex Mono', monospace",
             color: SILVER,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
           Bar {activeBar + 1} · {formatTime(scrubberTime)}
