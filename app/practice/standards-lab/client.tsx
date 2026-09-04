@@ -52,13 +52,21 @@ export function StandardsLabClient() {
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 24px" }}>
         {/* Tune selector — dropdown + header (SCO-471 #2) */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <span
               style={{
                 fontFamily: "'Outfit', sans-serif",
                 fontSize: "1.1rem",
                 fontWeight: 700,
                 color: "#e0ddd4",
+                whiteSpace: "nowrap",
               }}
             >
               {selectedTune?.title ?? "Standards Lab"}

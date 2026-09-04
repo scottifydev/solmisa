@@ -286,6 +286,20 @@ function StaffView({
   overlays: OverlayState;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Four bars per line is unreadable on a phone: each bar gets about 80px and
+  // the noteheads collapse into specks. Fewer bars per line keeps the music
+  // legible at the cost of a taller score, which the auto-scroll already handles.
+  const [barsPerSystem, setBarsPerSystem] = useState(BARS_PER_SYSTEM);
+
+  useEffect(() => {
+    const pick = () => {
+      const width = window.innerWidth;
+      setBarsPerSystem(width < 480 ? 1 : width < 768 ? 2 : BARS_PER_SYSTEM);
+    };
+    pick();
+    window.addEventListener("resize", pick);
+    return () => window.removeEventListener("resize", pick);
+  }, []);
 
   const render = useCallback(() => {
     const el = containerRef.current;
@@ -295,8 +309,8 @@ function StaffView({
     const { measures, keySignature, timeSignature } = notation;
     if (measures.length === 0) return;
 
-    const systemCount = Math.ceil(measures.length / BARS_PER_SYSTEM);
-    const totalWidth = PAD_LEFT + STAVE_WIDTH * BARS_PER_SYSTEM + 20;
+    const systemCount = Math.ceil(measures.length / barsPerSystem);
+    const totalWidth = PAD_LEFT + STAVE_WIDTH * barsPerSystem + 20;
     const systemHeight = overlays.voicingStaff
       ? STAVE_HEIGHT + 100
       : STAVE_HEIGHT;
@@ -309,8 +323,8 @@ function StaffView({
     context.setStrokeStyle(STAFF_COLOR);
 
     for (let sys = 0; sys < systemCount; sys++) {
-      const startBar = sys * BARS_PER_SYSTEM;
-      const endBar = Math.min(startBar + BARS_PER_SYSTEM, measures.length);
+      const startBar = sys * barsPerSystem;
+      const endBar = Math.min(startBar + barsPerSystem, measures.length);
       const y = PAD_TOP + sys * systemHeight;
 
       for (let barIdx = startBar; barIdx < endBar; barIdx++) {
@@ -461,7 +475,15 @@ function StaffView({
         drawGuideToneArcs(svg, chords, measures, totalWidth);
       }
     }
-  }, [notation, chords, showChords, showDegreeColors, colorMode, overlays]);
+  }, [
+    notation,
+    chords,
+    showChords,
+    showDegreeColors,
+    colorMode,
+    overlays,
+    barsPerSystem,
+  ]);
 
   useEffect(() => {
     render();
@@ -504,7 +526,7 @@ function StaffView({
     const observer = new ResizeObserver(() => measureCursorMetrics());
     observer.observe(scroller);
     return () => observer.disconnect();
-  }, [measureCursorMetrics, notation, overlays.voicingStaff]);
+  }, [measureCursorMetrics, notation, overlays.voicingStaff, barsPerSystem]);
 
   // rAF-driven cursor — reads Transport.seconds directly, no React state
   useEffect(() => {
@@ -516,7 +538,7 @@ function StaffView({
       padTop: PAD_TOP,
       staveWidth: STAVE_WIDTH,
       systemHeight: overlays.voicingStaff ? STAVE_HEIGHT + 100 : STAVE_HEIGHT,
-      barsPerSystem: BARS_PER_SYSTEM,
+      barsPerSystem,
     };
     // Only the last bar needs this; every other bar is bounded by the next
     // tick-exact start time.
@@ -575,7 +597,13 @@ function StaffView({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [notation, overlays.voicingStaff, parsedBpm, barStartTimes]);
+  }, [
+    notation,
+    overlays.voicingStaff,
+    parsedBpm,
+    barStartTimes,
+    barsPerSystem,
+  ]);
 
   return (
     <div

@@ -121,13 +121,23 @@ export default function Home() {
         <section className="pb-16">
           <Link href="/practice/standards-lab" className="group block">
             <div className="rounded-lg border border-steel overflow-hidden bg-obsidian transition-colors group-hover:border-violet/50">
+              {/* Four bars per line is unreadable on a phone, so small screens
+                  get the one-bar-per-line view the lab itself renders there. */}
+              <Image
+                src="/standards-lab-mobile.png"
+                alt="Autumn Leaves engraved one bar per line, with the key signature and melody notes clearly legible"
+                width={327}
+                height={285}
+                priority
+                className="w-full h-auto block sm:hidden"
+              />
               <Image
                 src="/standards-lab.png"
                 alt="Autumn Leaves engraved on a staff with chord symbols above each bar and melody notes colored by their role in the chord"
                 width={1153}
                 height={396}
                 priority
-                className="w-full h-auto block"
+                className="w-full h-auto hidden sm:block"
               />
             </div>
             <div className="mt-4 flex items-baseline justify-between gap-4">

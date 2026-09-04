@@ -376,6 +376,8 @@ export function BottomDock({
             fontSize: 11,
             fontFamily: "'IBM Plex Mono', monospace",
             color: SILVER,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
           Bar {activeBar + 1} · {formatTime(scrubberTime)}
