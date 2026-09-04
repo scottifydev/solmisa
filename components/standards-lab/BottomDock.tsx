@@ -207,6 +207,11 @@ export function BottomDock({
         style={{
           display: "flex",
           alignItems: "center",
+          // On a narrow screen the row cannot hold the transport, the tempo
+          // slider and the readout at once. Let it wrap so the readout drops
+          // to its own line rather than being clipped mid-word.
+          flexWrap: "wrap",
+          rowGap: 6,
           gap: isLandscape ? 8 : 12,
           padding: isLandscape ? "4px 12px" : "8px 16px",
           borderBottom: `1px solid ${BORDER}`,
