@@ -44,6 +44,7 @@ export function BottomDock({
     stop,
     isPlaying,
     isPaused,
+    isLoading,
     tempoRatio,
     setTempoRatio,
     melodyMuted,
@@ -207,6 +208,10 @@ export function BottomDock({
             if (isPlaying) pause();
             else play();
           }}
+          disabled={isLoading}
+          aria-label={
+            isLoading ? "Loading piano" : isPlaying ? "Pause" : "Play"
+          }
           style={{
             width: 26,
             height: 26,
@@ -215,14 +220,27 @@ export function BottomDock({
             background: isPlaying ? `${AMBER}22` : "transparent",
             color: isPlaying ? AMBER : SILVER,
             fontSize: 11,
-            cursor: "pointer",
+            cursor: isLoading ? "progress" : "pointer",
+            opacity: isLoading ? 0.5 : 1,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {isPlaying ? "\u23F8" : "\u25B6"}
+          {isLoading ? "\u00B7\u00B7\u00B7" : isPlaying ? "\u23F8" : "\u25B6"}
         </button>
+        {isLoading && (
+          <span
+            style={{
+              fontSize: 10,
+              fontFamily: "'IBM Plex Mono', monospace",
+              color: SILVER,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Loading piano
+          </span>
+        )}
         <button
           onClick={stop}
           style={{

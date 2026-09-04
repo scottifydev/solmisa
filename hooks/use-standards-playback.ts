@@ -49,6 +49,8 @@ interface PlaybackPosition {
 export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  // True while the piano samples download, which takes seconds on first play.
+  const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState<PlaybackPosition>({
     time: 0,
     bar: 1,
@@ -153,10 +155,18 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       return;
     }
 
-    const [melodySampler] = await Promise.all([
-      ensureAudio(),
-      initHarmonySampler(),
-    ]);
+    setIsLoading(true);
+    let melodySampler: Tone.Sampler;
+    try {
+      [melodySampler] = await Promise.all([
+        ensureAudio(),
+        initHarmonySampler(),
+      ]);
+    } catch {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(false);
     melodySamplerRef.current = melodySampler;
 
     const firstTempo = parsed.tempoEvents[0];
@@ -226,6 +236,19 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     setHarmonyMutedState(muted);
   }, []);
 
+  // Switching tunes must silence the previous one. Without this the old audio
+  // keeps playing against the new score, and resuming replays the old tune.
+  useEffect(() => {
+    const transport = Tone.getTransport();
+    transport.stop();
+    transport.cancel();
+    transport.position = 0;
+    setIsPlaying(false);
+    setIsPaused(false);
+    setContinuousTime(0);
+    setPosition({ time: 0, bar: 1, melodyMidi: null, harmonyMidis: [] });
+  }, [parsed]);
+
   useEffect(() => {
     return () => {
       const transport = Tone.getTransport();
@@ -245,6 +268,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     stop,
     isPlaying,
     isPaused,
+    isLoading,
     position,
     tempoRatio,
     melodyMuted,

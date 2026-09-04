@@ -176,7 +176,7 @@ export function LessonPlayer({
       try {
         const [seedResult, ctx] = await Promise.all([
           userId
-            ? seedLessonCardsV2(userId, lesson.id).catch((err) => {
+            ? seedLessonCardsV2(lesson.id).catch((err) => {
                 console.warn("Card seeding failed:", err);
                 return null;
               })
@@ -196,7 +196,7 @@ export function LessonPlayer({
 
         // Activate any chains unlocked by completing this lesson's module
         if (userId) {
-          await activateChainsForLesson(userId, lesson.id).catch((err) => {
+          await activateChainsForLesson(lesson.id).catch((err) => {
             console.warn("Chain activation failed:", err);
           });
         }

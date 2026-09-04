@@ -10,14 +10,21 @@ interface SeedCardsV2Result {
 }
 
 export async function seedLessonCardsV2(
-  userId: string,
   lessonId: string,
   initialIntervalOverride?: number,
 ): Promise<SeedCardsV2Result> {
   const supabase = await createClient();
 
+  // The user is read from the session, never from the caller. seed_lesson_cards_v2
+  // is SECURITY DEFINER and does not check ownership, so a client-supplied id
+  // would let any signed-in user seed cards for someone else.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
   const { data, error } = await supabase.rpc("seed_lesson_cards_v2", {
-    p_user_id: userId,
+    p_user_id: user.id,
     p_lesson_id: lessonId,
     ...(initialIntervalOverride !== undefined && {
       p_initial_interval_override: `${initialIntervalOverride} hours`,

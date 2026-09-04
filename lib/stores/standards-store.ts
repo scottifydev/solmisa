@@ -63,7 +63,30 @@ export const useStandardsStore = create<StandardsLabState>()((set, get) => ({
     });
 
     try {
-      const parsed = await fetchAndParseMidi(url, title);
+      const full = await fetchAndParseMidi(url, title);
+
+      // Trim to the first chorus before anything else reads the data, so the
+      // score, the scrubber and playback all agree on where the tune ends.
+      // Without this, audio keeps playing for minutes past the last drawn bar.
+      const tune = get().catalog.find((t) => t.id === get().selectedTuneId);
+      const maxBars = tune?.bars;
+      const parsed =
+        maxBars && full.totalBars > maxBars
+          ? {
+              ...full,
+              totalBars: maxBars,
+              // barStartTimes[maxBars] is the downbeat after the last kept bar,
+              // which is exactly where the trimmed score ends.
+              durationSeconds:
+                full.barStartTimes[maxBars] ?? full.durationSeconds,
+              barStartTimes: full.barStartTimes.slice(0, maxBars),
+              tracks: {
+                melody: full.tracks.melody.filter((n) => n.bar < maxBars),
+                harmony: full.tracks.harmony.filter((n) => n.bar < maxBars),
+              },
+            }
+          : full;
+
       set({ parsedStandard: parsed, parseStatus: "ready" });
 
       // Run chord detection
@@ -73,28 +96,7 @@ export const useStandardsStore = create<StandardsLabState>()((set, get) => ({
         const chords = quantizeChordsToBar(rawChords, parsed.totalBars);
         set({ detectedChords: chords, chordDetectionStatus: "ready" });
 
-        // Build notation — limit to first chorus if tune has known bar count
-        const tune = get().catalog.find((t) => t.id === get().selectedTuneId);
-        const maxBars = tune?.bars;
-        const trimmedParsed =
-          maxBars && parsed.totalBars > maxBars
-            ? {
-                ...parsed,
-                totalBars: maxBars,
-                tracks: {
-                  melody: parsed.tracks.melody.filter((n) => n.bar < maxBars),
-                  harmony: parsed.tracks.harmony.filter((n) => n.bar < maxBars),
-                },
-              }
-            : parsed;
-        const trimmedChords = maxBars
-          ? chords.filter((c) => c.bar < maxBars)
-          : chords;
-        const notation = buildNotation(
-          trimmedParsed,
-          trimmedChords,
-          tune?.sections,
-        );
+        const notation = buildNotation(parsed, chords, tune?.sections);
         set({ notation });
       } catch {
         set({ chordDetectionStatus: "error" });
