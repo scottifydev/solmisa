@@ -11,15 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
+      # Pinned: `latest` moved to pnpm 11, which needs Node 22.13+ and broke
+      # the install on Node 20. Keep this in step with pnpm-lock.yaml (v9).
       - uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
 
       - name: Install dependencies
@@ -30,6 +32,9 @@ jobs:
 
       - name: Type check
         run: pnpm type-check
+
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build

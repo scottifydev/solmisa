@@ -29,3 +29,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude code agent worktrees (nested checkouts, ~1.3GB)
+.claude/worktrees/
+
+# local scratch
+practice-mockups-extracted/
+*.zip

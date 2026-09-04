@@ -23,10 +23,16 @@ const TRACK_MODULE_TO_TOPIC: Record<string, Record<number, string>> = {
 };
 
 export async function activateChainsForLesson(
-  userId: string,
   lessonId: string,
 ): Promise<number> {
   const supabase = await createClient();
+
+  // Read the user from the session rather than trusting the caller.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const userId = user.id;
 
   // Look up lesson → module → track to determine which topic to unlock
   const { data: lesson } = await supabase
