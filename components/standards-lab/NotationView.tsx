@@ -15,6 +15,13 @@ import {
   SymbolModifiers,
   Barline,
 } from "vexflow";
+import {
+  barAtTime,
+  barProgressAtTime,
+  cursorPosition,
+  type CursorLayout,
+  type CursorMetrics,
+} from "@/lib/notation/cursor-position";
 import type {
   StandardNotation,
   QuantizedMeasure,
@@ -464,16 +471,56 @@ function StaffView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const lastScrollSys = useRef(-1);
+  // The stave is engraved in SVG user units and then scaled to the container
+  // width by its viewBox, so cursor coordinates must be converted to CSS
+  // pixels. Measured on render and on resize rather than every frame.
+  const metricsRef = useRef<CursorMetrics>({
+    scale: 1,
+    offsetX: 0,
+    offsetY: 0,
+  });
+
+  const measureCursorMetrics = useCallback(() => {
+    const scroller = scrollRef.current;
+    const svg = containerRef.current?.querySelector("svg");
+    if (!scroller || !svg) return;
+
+    const viewBoxWidth = svg.viewBox.baseVal.width;
+    const svgRect = svg.getBoundingClientRect();
+    if (!viewBoxWidth || !svgRect.width) return;
+
+    const scrollerRect = scroller.getBoundingClientRect();
+    metricsRef.current = {
+      scale: svgRect.width / viewBoxWidth,
+      offsetX: svgRect.left - scrollerRect.left + scroller.scrollLeft,
+      offsetY: svgRect.top - scrollerRect.top + scroller.scrollTop,
+    };
+  }, []);
+
+  useEffect(() => {
+    measureCursorMetrics();
+    const scroller = scrollRef.current;
+    if (!scroller || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => measureCursorMetrics());
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [measureCursorMetrics, notation, overlays.voicingStaff]);
 
   // rAF-driven cursor — reads Transport.seconds directly, no React state
   useEffect(() => {
     const { measures, timeSignature } = notation;
     if (measures.length === 0) return;
 
-    const bpm = notation.measures[0]?.chord?.time !== undefined ? 120 : 120;
-    const beatsPerBar = timeSignature.numerator;
-    const sysH = overlays.voicingStaff ? STAVE_HEIGHT + 100 : STAVE_HEIGHT;
-    // Copy barStartTimes into closure — these are tick-exact bar boundaries
+    const layout: CursorLayout = {
+      padLeft: PAD_LEFT,
+      padTop: PAD_TOP,
+      staveWidth: STAVE_WIDTH,
+      systemHeight: overlays.voicingStaff ? STAVE_HEIGHT + 100 : STAVE_HEIGHT,
+      barsPerSystem: BARS_PER_SYSTEM,
+    };
+    // Only the last bar needs this; every other bar is bounded by the next
+    // tick-exact start time.
+    const fallbackBarDuration = (60 / parsedBpm) * timeSignature.numerator;
     const starts = barStartTimes ?? [];
 
     const tick = () => {
@@ -485,49 +532,38 @@ function StaffView({
       }
 
       const seconds = transport.seconds;
+      const bar = barAtTime(seconds, starts);
 
-      // Find current bar using precomputed tick-exact start times
-      let currentBarNum = 0;
-      for (let i = starts.length - 1; i >= 0; i--) {
-        if (seconds >= starts[i]!) {
-          currentBarNum = i;
-          break;
-        }
-      }
-
-      if (currentBarNum >= measures.length) {
+      if (bar >= measures.length) {
         if (cursorRef.current) cursorRef.current.style.display = "none";
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
 
-      // Progress within bar
-      const barStart = starts[currentBarNum] ?? 0;
-      const barEnd =
-        starts[currentBarNum + 1] ?? barStart + (60 / parsedBpm) * beatsPerBar;
-      const barDuration = barEnd - barStart;
-      const barProgress =
-        barDuration > 0 ? (seconds - barStart) / barDuration : 0;
-
-      const sys = Math.floor(currentBarNum / BARS_PER_SYSTEM);
-      const localBar = currentBarNum % BARS_PER_SYSTEM;
-      const cx =
-        PAD_LEFT +
-        localBar * STAVE_WIDTH +
-        Math.min(barProgress, 1) * STAVE_WIDTH;
-      const cy = PAD_TOP + sys * sysH;
+      const progress = barProgressAtTime(
+        seconds,
+        bar,
+        starts,
+        fallbackBarDuration,
+      );
+      const placement = cursorPosition(
+        bar,
+        progress,
+        layout,
+        metricsRef.current,
+      );
 
       if (cursorRef.current) {
-        cursorRef.current.style.left = `${cx}px`;
-        cursorRef.current.style.top = `${cy}px`;
-        cursorRef.current.style.height = "80px";
+        cursorRef.current.style.left = `${placement.left}px`;
+        cursorRef.current.style.top = `${placement.top}px`;
+        cursorRef.current.style.height = `${placement.height}px`;
         cursorRef.current.style.display = "block";
       }
 
-      if (sys !== lastScrollSys.current && scrollRef.current) {
-        lastScrollSys.current = sys;
+      if (placement.system !== lastScrollSys.current && scrollRef.current) {
+        lastScrollSys.current = placement.system;
         scrollRef.current.scrollTo({
-          top: Math.max(0, cy - 60),
+          top: Math.max(0, placement.top - 60),
           behavior: "smooth",
         });
       }
