@@ -67,7 +67,19 @@ export async function ensureAudio(): Promise<Tone.Sampler> {
     await Tone.loaded();
     ready = true;
     return sampler;
-  })();
+  })().catch((err) => {
+    // Without this the module-level promise would memoise its own rejection,
+    // so one dropped connection would silence every tool for the whole
+    // session, even after the network came back. Clear it so the next call
+    // starts a fresh attempt.
+    loadingPromise = null;
+    ready = false;
+    sampler?.dispose();
+    sampler = null;
+    reverbNode?.dispose();
+    reverbNode = null;
+    throw err;
+  });
 
   return loadingPromise;
 }

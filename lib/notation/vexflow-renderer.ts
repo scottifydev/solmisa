@@ -10,7 +10,7 @@ import {
   Annotation,
   Barline,
   type StaveNoteStruct,
-} from "vexflow";
+} from "vexflow/bravura";
 import type { NotationData, NoteEvent } from "./types";
 
 const STAFF_LINE_COLOR = "#3a3a4e"; // bumped steel — visible grid, not competing

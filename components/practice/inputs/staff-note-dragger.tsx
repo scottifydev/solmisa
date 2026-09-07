@@ -382,6 +382,14 @@ export function StaffNoteDragger({
                 onPointerDown={(e) => {
                   if (done || disabled) return;
                   e.preventDefault();
+                  // Capture so a vertical drag keeps working past the edge of
+                  // this notehead's hit area, which is only a few pixels wide.
+                  try {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  } catch {
+                    // Capture is best-effort; the drag still works within the
+                    // element if the engine refuses it.
+                  }
                   setDragging({ row: rowId, deg });
                   startYRef.current = e.clientY;
                 }}

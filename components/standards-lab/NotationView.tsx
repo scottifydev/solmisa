@@ -14,7 +14,7 @@ import {
   ChordSymbol,
   SymbolModifiers,
   Barline,
-} from "vexflow";
+} from "vexflow/bravura";
 import {
   barAtTime,
   barProgressAtTime,

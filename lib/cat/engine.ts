@@ -80,16 +80,28 @@ export function selectNextItem(state: CATState): CATItem | null {
 
     if (available.length === 0) continue;
 
-    // Select item with difficulty closest to current ability estimate
-    // Map theta to 1-5 scale: theta 0 = difficulty 3
-    const targetDifficulty = Math.max(1, Math.min(5, estimate.theta + 3));
-    available.sort(
-      (a, b) =>
-        Math.abs(a.difficulty - targetDifficulty) -
-        Math.abs(b.difficulty - targetDifficulty),
-    );
+    // Maximum-information selection: administer the item whose difficulty
+    // tells us the most at the current ability estimate. Under the 1PL model
+    // information peaks where the response is least predictable, so this
+    // picks the item the learner has closest to even odds on.
+    let best: CATItem | null = null;
+    let bestInfo = -Infinity;
+    for (const item of available) {
+      const info = fisherInfo(estimate.theta, item.difficulty);
+      // Ties resolve toward the lower difficulty so a run is reproducible
+      // rather than depending on item-bank order.
+      if (
+        info > bestInfo ||
+        (info === bestInfo &&
+          best !== null &&
+          item.difficulty < best.difficulty)
+      ) {
+        bestInfo = info;
+        best = item;
+      }
+    }
 
-    return available[0] ?? null;
+    return best;
   }
 
   return null;

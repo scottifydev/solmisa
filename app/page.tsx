@@ -206,8 +206,10 @@ export default function Home() {
               every animation frame.
             </p>
             <p>
-              Every tool shares one sampled grand piano, loaded once and
-              scheduled on the Web Audio clock rather than on timers.
+              The tools share one sampled grand piano behind a lazy singleton,
+              and every note is scheduled on the Web Audio clock rather than on
+              timers. The Standards Lab adds a second voice from the same
+              samples so the accompaniment can sit under the melody.
             </p>
           </div>
         </section>

@@ -6,6 +6,8 @@ import { ensureAudio } from "@/lib/audio/solmisa-piano";
 import type { ParsedStandard, MidiNoteEvent } from "@/types/standards-lab";
 
 const SALAMANDER_BASE_URL = "https://tonejs.github.io/audio/salamander/";
+/** Give the sample download a bounded time to fail rather than hanging. */
+const SAMPLE_LOAD_TIMEOUT_MS = 15_000;
 const SAMPLE_URLS: Record<string, string> = {
   A0: "A0.mp3",
   C1: "C1.mp3",
@@ -51,6 +53,8 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const [isPaused, setIsPaused] = useState(false);
   // True while the piano samples download, which takes seconds on first play.
   const [isLoading, setIsLoading] = useState(false);
+  // Set when the samples could not be fetched, so the dock can say so.
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [position, setPosition] = useState<PlaybackPosition>({
     time: 0,
     bar: 1,
@@ -94,15 +98,38 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       return harmonySamplerRef.current;
     }
 
-    return new Promise<Tone.Sampler>((resolve) => {
+    return new Promise<Tone.Sampler>((resolve, reject) => {
+      // Tone defaults onerror to a no-op, so without an explicit reject and a
+      // timeout this promise could never settle: a failed sample download left
+      // play() awaiting forever and the button stuck on "Loading piano".
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error("Piano samples timed out"));
+      }, SAMPLE_LOAD_TIMEOUT_MS);
+
       const sampler = new Tone.Sampler({
         urls: SAMPLE_URLS,
         baseUrl: SALAMANDER_BASE_URL,
         release: 1.2,
         volume: -8,
         onload: () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
           harmonyLoadedRef.current = true;
           resolve(sampler);
+        },
+        onerror: (err) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          harmonySamplerRef.current = null;
+          harmonyLoadedRef.current = false;
+          reject(
+            err instanceof Error ? err : new Error("Piano samples failed"),
+          );
         },
       }).toDestination();
 
@@ -163,10 +190,16 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
         initHarmonySampler(),
       ]);
     } catch {
+      // Surface it. Failing silently here left the user clicking a dead Play
+      // button with no indication that the samples never arrived.
       setIsLoading(false);
+      setAudioError(
+        "Piano samples could not be loaded. Check your connection and try again.",
+      );
       return;
     }
     setIsLoading(false);
+    setAudioError(null);
     melodySamplerRef.current = melodySampler;
 
     const firstTempo = parsed.tempoEvents[0];
@@ -269,6 +302,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     isPlaying,
     isPaused,
     isLoading,
+    audioError,
     position,
     tempoRatio,
     melodyMuted,
