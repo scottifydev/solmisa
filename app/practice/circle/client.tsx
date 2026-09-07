@@ -14,8 +14,15 @@ export function CircleDrillClient() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-4">
+      {/* Named for assistive tech; the visual design carries the title
+          through the nav, so it is not repeated on screen. */}
+      <h1 className="sr-only">Circle of Fifths</h1>
       {/* Streak */}
-      <div className="self-end font-mono text-[13px] text-silver">
+      <div
+        className="self-end font-mono text-[13px] text-silver"
+        role="status"
+        aria-label={total > 0 ? `${correct} correct of ${total}` : undefined}
+      >
         {total > 0 ? `${correct}/${total}` : "\u00a0"}
       </div>
 

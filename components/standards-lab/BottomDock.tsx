@@ -117,11 +117,13 @@ export function BottomDock({
     return idx >= 0 && idx < chords.length - 1 ? chords[idx + 1]! : null;
   }, [chords, activeChord]);
 
-  // Compute piano key states from active chord
+  // Compute piano key states from active chord. The melody note is
+  // deliberately NOT in here: it changes on every note onset, while this memo
+  // only recomputes per chord, so including it froze the melody highlight
+  // between chord changes.
   const pianoState = useMemo(() => {
     if (!activeChord) {
       return {
-        melodyMidi: null as number | null,
         voicingMidis: [] as number[],
         rootPc: 0,
         scalePcs: [] as number[],
@@ -157,7 +159,6 @@ export function BottomDock({
     }
 
     return {
-      melodyMidi: position.melodyMidi,
       voicingMidis: activeChord.notes, // actual MIDI notes from LH track
       rootPc,
       scalePcs,
@@ -520,7 +521,7 @@ export function BottomDock({
 
       {/* Piano */}
       <PianoDock
-        melodyMidi={pianoState.melodyMidi}
+        melodyMidi={position.melodyMidi}
         voicingMidis={pianoState.voicingMidis}
         rootPc={pianoState.rootPc}
         scalePcs={pianoState.scalePcs}

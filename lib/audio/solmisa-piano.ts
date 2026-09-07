@@ -57,16 +57,26 @@ export async function ensureAudio(): Promise<Tone.Sampler> {
     reverbNode = new Tone.Reverb({ decay: 2.0, wet: 0.2 }).toDestination();
     await reverbNode.ready;
 
-    sampler = new Tone.Sampler({
-      urls: SALAMANDER_URLS,
-      baseUrl: SALAMANDER_BASE_URL,
-      release: 1.2,
-      volume: -6,
-    }).connect(reverbNode);
+    // Tone.loaded() waits on every buffer in flight, but a failed fetch
+    // resolves rather than rejecting, so without an explicit onerror the
+    // sampler was marked ready and then threw at the first note.
+    const loaded = new Promise<void>((resolve, reject) => {
+      sampler = new Tone.Sampler({
+        urls: SALAMANDER_URLS,
+        baseUrl: SALAMANDER_BASE_URL,
+        release: 1.2,
+        volume: -6,
+        onload: () => resolve(),
+        onerror: (err) =>
+          reject(
+            err instanceof Error ? err : new Error("Piano samples failed"),
+          ),
+      }).connect(reverbNode!);
+    });
 
-    await Tone.loaded();
+    await loaded;
     ready = true;
-    return sampler;
+    return sampler!;
   })().catch((err) => {
     // Without this the module-level promise would memoise its own rejection,
     // so one dropped connection would silence every tool for the whole

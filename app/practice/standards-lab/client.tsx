@@ -15,6 +15,7 @@ export function StandardsLabClient() {
     parseError,
     parsedStandard,
     detectedChords,
+    chordDetectionStatus,
     notation,
     currentBar,
     playbackPosition,
@@ -60,18 +61,20 @@ export function StandardsLabClient() {
               flexWrap: "wrap",
             }}
           >
-            <span
+            <h1
               style={{
                 fontFamily: "'Outfit', sans-serif",
                 fontSize: "1.1rem",
                 fontWeight: 700,
                 color: "#e0ddd4",
                 whiteSpace: "nowrap",
+                margin: 0,
               }}
             >
               {selectedTune?.title ?? "Standards Lab"}
-            </span>
+            </h1>
             <select
+              aria-label="Choose a standard"
               value={selectedTuneId ?? ""}
               onChange={(e) => selectTune(e.target.value)}
               style={{
@@ -119,11 +122,14 @@ export function StandardsLabClient() {
             Loading MIDI...
           </div>
         )}
-        {parseStatus === "error" && (
+        {/* Also covers a chord-detection failure, which used to leave a
+            titled page with no score and nothing explaining why. */}
+        {(parseStatus === "error" || chordDetectionStatus === "error") && (
           <div
+            role="alert"
             style={{ color: brand.incorrect, fontSize: 13, padding: "40px 0" }}
           >
-            {parseError}
+            {parseError ?? "Could not load this tune."}
           </div>
         )}
 

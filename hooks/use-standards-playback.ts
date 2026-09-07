@@ -75,6 +75,8 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   const melodyMutedRef = useRef(false);
   const harmonyMutedRef = useRef(false);
   const baseBpmRef = useRef(120);
+  /** Bumped by play, stop and tune changes so a pending load can bail out. */
+  const playAttemptRef = useRef(0);
 
   // Smooth scrubber: update continuousTime via rAF while playing
   useEffect(() => {
@@ -103,19 +105,33 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       // timeout this promise could never settle: a failed sample download left
       // play() awaiting forever and the button stuck on "Loading piano".
       let settled = false;
+      let sampler: Tone.Sampler | null = null;
+
+      // Release the audio nodes on the failure paths too. Leaving them
+      // connected leaked a sampler and its buffers on every retry.
+      const abandon = () => {
+        sampler?.dispose();
+        sampler = null;
+        harmonySamplerRef.current = null;
+        harmonyLoadedRef.current = false;
+      };
+
       const timeout = setTimeout(() => {
         if (settled) return;
         settled = true;
+        abandon();
         reject(new Error("Piano samples timed out"));
       }, SAMPLE_LOAD_TIMEOUT_MS);
 
-      const sampler = new Tone.Sampler({
+      sampler = new Tone.Sampler({
         urls: SAMPLE_URLS,
         baseUrl: SALAMANDER_BASE_URL,
         release: 1.2,
         volume: -8,
         onload: () => {
-          if (settled) return;
+          // A late onload after the timeout must not resurrect a sampler the
+          // abandon path already disposed.
+          if (settled || !sampler) return;
           settled = true;
           clearTimeout(timeout);
           harmonyLoadedRef.current = true;
@@ -125,8 +141,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
           if (settled) return;
           settled = true;
           clearTimeout(timeout);
-          harmonySamplerRef.current = null;
-          harmonyLoadedRef.current = false;
+          abandon();
           reject(
             err instanceof Error ? err : new Error("Piano samples failed"),
           );
@@ -142,6 +157,12 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       notes: MidiNoteEvent[],
       sampler: Tone.Sampler,
       mutedRef: React.RefObject<boolean>,
+      /**
+       * Only the melody drives the highlighted key. Scheduling both tracks
+       * through the same writer let accompaniment notes overwrite the melody
+       * note, so the piano lit up a left-hand pitch as if it were the tune.
+       */
+      track: "melody" | "harmony",
     ) => {
       const transport = Tone.getTransport();
 
@@ -156,6 +177,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
             );
           }
 
+          if (track !== "melody") return;
           Tone.Draw.schedule(() => {
             setPosition((prev) => ({
               ...prev,
@@ -182,6 +204,12 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
       return;
     }
 
+    // Loading the samples takes seconds on a cold start. Anything that
+    // happens meanwhile — Stop, a tune switch, leaving the page — must stop
+    // this call from starting the transport when it finally resumes.
+    const attempt = ++playAttemptRef.current;
+    const isCurrent = () => attempt === playAttemptRef.current;
+
     setIsLoading(true);
     let melodySampler: Tone.Sampler;
     try {
@@ -192,12 +220,14 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     } catch {
       // Surface it. Failing silently here left the user clicking a dead Play
       // button with no indication that the samples never arrived.
+      if (!isCurrent()) return;
       setIsLoading(false);
       setAudioError(
         "Piano samples could not be loaded. Check your connection and try again.",
       );
       return;
     }
+    if (!isCurrent()) return;
     setIsLoading(false);
     setAudioError(null);
     melodySamplerRef.current = melodySampler;
@@ -214,13 +244,19 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     transport.bpm.value = 60 * tempoRatioRef.current;
     transport.position = 0;
 
-    scheduleNotes(parsed.tracks.melody, melodySampler, melodyMutedRef);
+    scheduleNotes(
+      parsed.tracks.melody,
+      melodySampler,
+      melodyMutedRef,
+      "melody",
+    );
 
     if (harmonySamplerRef.current) {
       scheduleNotes(
         parsed.tracks.harmony,
         harmonySamplerRef.current,
         harmonyMutedRef,
+        "harmony",
       );
     }
 
@@ -244,9 +280,12 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   }, []);
 
   const stop = useCallback(() => {
+    // Invalidate any load still in flight so it cannot start after this.
+    playAttemptRef.current++;
     const transport = Tone.getTransport();
     transport.stop();
     transport.cancel();
+    setIsLoading(false);
     setIsPlaying(false);
     setIsPaused(false);
     setPosition({ time: 0, bar: 1, melodyMidi: null, harmonyMidis: [] });
@@ -272,10 +311,13 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
   // Switching tunes must silence the previous one. Without this the old audio
   // keeps playing against the new score, and resuming replays the old tune.
   useEffect(() => {
+    // Also invalidates a load still in flight for the tune being left.
+    playAttemptRef.current++;
     const transport = Tone.getTransport();
     transport.stop();
     transport.cancel();
     transport.position = 0;
+    setIsLoading(false);
     setIsPlaying(false);
     setIsPaused(false);
     setContinuousTime(0);

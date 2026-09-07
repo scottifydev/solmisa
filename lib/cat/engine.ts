@@ -80,10 +80,15 @@ export function selectNextItem(state: CATState): CATItem | null {
 
     if (available.length === 0) continue;
 
-    // Maximum-information selection: administer the item whose difficulty
-    // tells us the most at the current ability estimate. Under the 1PL model
-    // information peaks where the response is least predictable, so this
-    // picks the item the learner has closest to even odds on.
+    // Maximum-information selection: administer the item that tells us the
+    // most at the current ability estimate.
+    //
+    // Under a 1PL model this is provably the same ordering as "difficulty
+    // nearest to theta", because information p(1-p) peaks at p = 0.5 and
+    // falls monotonically either side. It is written this way because it
+    // states the actual criterion, and because it stays correct if the model
+    // ever gains a discrimination parameter, where the two rules diverge.
+    // It is not a behavioural change on its own.
     let best: CATItem | null = null;
     let bestInfo = -Infinity;
     for (const item of available) {

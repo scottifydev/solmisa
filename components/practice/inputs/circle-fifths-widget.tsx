@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -471,6 +472,7 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
   const segStep = (2 * Math.PI) / 12;
 
   function newQuestion() {
+    cancel();
     setQuestion(genQuestion(qType, display.mode));
     setActivePos(null);
     setActiveRing(null);
@@ -481,8 +483,14 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     setGlowRingType(null);
   }
 
+  // Timers were previously dropped on the floor here, so switching question
+  // type or level left a pending advance that replaced the fresh question a
+  // second or two later.
+  const { schedule, cancel } = useAutoAdvance(newQuestion);
+
   useEffect(() => {
     newQuestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qType, level]);
 
   // ── Geometry ────────────────────────────────────────────────────────────────
@@ -788,6 +796,20 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     setSlideIdx(newIdx);
   }
 
+  /**
+   * Abandon an in-progress drag without grading it. The browser fires
+   * pointercancel when it takes over the gesture, such as a touch turning
+   * into a scroll, which would otherwise leave the widget stuck mid-drag.
+   */
+  function cancelDrag() {
+    if (!dragging) return;
+    setDragging(false);
+    setSlideFloat(0);
+    setOverCancel(false);
+    setActivePos(null);
+    setActiveRing(null);
+  }
+
   function handlePointerUp(e: React.PointerEvent<SVGSVGElement>) {
     if (!dragging) return;
     const wasCancelling = overCancel;
@@ -826,7 +848,7 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
       };
       setAnswered(result);
       onAnswer(correct);
-      setTimeout(newQuestion, correct ? 1000 : 2000);
+      schedule(correct ? 1000 : 2000);
       return;
     }
 
@@ -860,7 +882,7 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     };
     setAnswered(result);
     onAnswer(correct);
-    setTimeout(newQuestion, correct ? 1000 : 2200);
+    schedule(correct ? 1000 : 2200);
   }
 
   // ── Slide rule renderer ──────────────────────────────────────────────────────
@@ -1254,6 +1276,8 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
           // the cursor when it crossed the edge.
           setOverCancel(false);
         }}
+        onPointerCancel={cancelDrag}
+        onLostPointerCapture={cancelDrag}
       >
         <defs />
 
@@ -1531,7 +1555,7 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
               feedback: `→ ${question.correctAnswer}`,
             });
             onAnswer(false);
-            setTimeout(newQuestion, 2200);
+            schedule(2200);
           }}
           style={{
             marginTop: 2,

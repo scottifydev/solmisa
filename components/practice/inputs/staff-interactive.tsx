@@ -29,7 +29,7 @@ async function renderStaffBase(
   ghostPos: number | null,
   correctPos: number | null,
 ) {
-  const { Renderer, Stave } = await import("vexflow");
+  const { Renderer, Stave } = await import("vexflow/bravura");
 
   container.innerHTML = "";
 
