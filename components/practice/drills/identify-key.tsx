@@ -27,7 +27,7 @@ async function renderKeySig(
   container: HTMLDivElement,
   keySig: (typeof KEY_SIGS)[0],
 ) {
-  const { Renderer, Stave } = await import("vexflow");
+  const { Renderer, Stave } = await import("vexflow/bravura");
 
   container.innerHTML = "";
   const W = 240,

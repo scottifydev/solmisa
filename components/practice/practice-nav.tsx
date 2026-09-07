@@ -34,6 +34,8 @@ export function PracticeNav() {
                 <Link
                   key={tab.href}
                   href={tab.href}
+                  // The active tab is otherwise signalled by colour alone.
+                  aria-current={isActive ? "page" : undefined}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold font-body transition-all ${
                     isActive
                       ? "bg-violet/10 border border-violet text-violet"

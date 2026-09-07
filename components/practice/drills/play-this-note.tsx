@@ -249,7 +249,11 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
   >({});
   const [answered, setAnswered] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [audioFailed, setAudioFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  /** Synchronous guard against a second press before `answered` commits. */
+  const submittedRef = useRef(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Render staff on mount
   useEffect(() => {
@@ -260,20 +264,34 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
 
   const handleKeyPress = useCallback(
     async (pressedKey: NoteKey) => {
-      if (answered) return;
+      // `answered` is set asynchronously on the wrong-answer path, so reading
+      // state alone let a fast second press score the same question twice.
+      // The ref flips synchronously and closes that window.
+      if (answered || submittedRef.current) return;
+      submittedRef.current = true;
 
       if (!isReady()) {
         setAudioLoading(true);
-        await ensureAudio();
+        try {
+          await ensureAudio();
+        } catch {
+          // Without this the drill sat on "Loading piano" forever and threw
+          // the answer away. Score it silently rather than blocking progress.
+          setAudioLoading(false);
+          setAudioFailed(true);
+        }
         setAudioLoading(false);
       }
 
       const targetKey = target.name as NoteKey;
       const isCorrect = pressedKey === targetKey;
 
-      // Play the pressed note immediately
+      // Play the pressed note immediately. Audio is feedback, not scoring, so
+      // a failure here must not stop the answer being graded.
       const octave = target.tone.match(/\d+/)?.[0] ?? "4";
-      await playNote(`${pressedKey}${octave}`);
+      await playNote(`${pressedKey}${octave}`).catch(() =>
+        setAudioFailed(true),
+      );
 
       if (isCorrect) {
         setAnswered(true);
@@ -284,10 +302,11 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
         onAnswer(true);
       } else {
         setKeyStates({ [pressedKey]: "incorrect" });
-        setTimeout(async () => {
+        revealTimerRef.current = setTimeout(async () => {
+          revealTimerRef.current = null;
           setAnswered(true);
           setKeyStates({ [pressedKey]: "incorrect", [targetKey]: "hint" });
-          await playNote(target.tone);
+          await playNote(target.tone).catch(() => setAudioFailed(true));
           if (containerRef.current) {
             renderNoteOnStaff(containerRef.current, clef, target, "#4ade80");
           }
@@ -297,6 +316,15 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
     },
     [answered, target, clef, onAnswer],
   );
+
+  // Clear the reveal timer if the question changes before it fires.
+  useEffect(() => {
+    return () => {
+      if (revealTimerRef.current !== null) {
+        clearTimeout(revealTimerRef.current);
+      }
+    };
+  }, []);
 
   function handleIDontKnow() {
     if (answered) return;
@@ -330,6 +358,19 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
           }}
         >
           Loading piano...
+        </div>
+      )}
+
+      {!audioLoading && audioFailed && (
+        <div
+          role="status"
+          style={{
+            fontSize: 11,
+            color: "#f87171",
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}
+        >
+          Sound unavailable — the drill still works.
         </div>
       )}
 

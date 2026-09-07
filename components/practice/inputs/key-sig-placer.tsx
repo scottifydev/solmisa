@@ -16,7 +16,7 @@ async function renderKeySigStaff(
   correctPositions: number[],
   showCorrectHints: boolean,
 ) {
-  const { Renderer, Stave } = await import("vexflow");
+  const { Renderer, Stave } = await import("vexflow/bravura");
 
   container.innerHTML = "";
 

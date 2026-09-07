@@ -102,12 +102,16 @@ export function ScalesDrillClient() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-4">
+      {/* Named for assistive tech; the visual design carries the title
+          through the nav, so it is not repeated on screen. */}
+      <h1 className="sr-only">Scales and Modes</h1>
       {/* Drill type tabs */}
       <div className="flex gap-2 self-stretch">
         {DRILLS.map((drill) => (
           <button
             key={drill.id}
             onClick={() => switchDrill(drill.id)}
+            aria-pressed={activeDrill === drill.id}
             className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold font-body transition-all border ${
               activeDrill === drill.id
                 ? "bg-violet/10 border-violet text-violet"

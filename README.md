@@ -57,7 +57,7 @@ Two invariants are pinned by tests: every engraved bar sums to the time signatur
 The public tools grew out of a larger ear-training app that is still in development and sits behind authentication. It is not part of the demo, but two pieces of it are the most interesting code here:
 
 - **`lib/srs/scheduler.ts`** — a spaced-repetition scheduler adapted for music. Eleven sub-stages across five named groups, separate handling for perceptual and declarative material, difficulty tiers that gate progression, and ease adjusted by the learner's self-reported confidence. It is a pure function: the clock is a parameter, which is what lets `__tests__/srs-scheduler.test.ts` assert intervals exactly. Persistence happens in a Postgres routine that writes the review record and card state together.
-- **`lib/cat/engine.ts`** — an adaptive placement test using a Rasch (one-parameter logistic) model. Item difficulty maps to a logit scale, each question is the one carrying the most Fisher information at the current ability estimate, and ability is tracked independently across twelve dimensions. Covered by `__tests__/cat-engine.test.ts`.
+- **`lib/cat/engine.ts`** — an adaptive placement test using a Rasch (one-parameter logistic) model. Item difficulty maps to a logit scale, each question is the one carrying the most Fisher information at the current ability estimate, and ability is tracked independently across twelve dimensions. Under a one-parameter model that selection rule reduces to picking the difficulty nearest the current estimate; it is written as information maximisation because that is the actual criterion, and because the two diverge if the model ever gains a discrimination parameter. Covered by `__tests__/cat-engine.test.ts`.
 
 ## Project structure
 

@@ -218,7 +218,7 @@ export interface StandardsLabState {
   activeChordIndex: number;
 
   selectTune: (tuneId: string) => Promise<void>;
-  loadMidi: (url: string, title?: string) => Promise<void>;
+  loadMidi: (url: string, title?: string, tune?: TuneMetadata) => Promise<void>;
   setPlaybackState: (state: PlaybackState) => void;
   setPlaybackPosition: (time: number) => void;
   setPlaybackSettings: (settings: Partial<PlaybackSettings>) => void;

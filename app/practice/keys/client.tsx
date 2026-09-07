@@ -73,12 +73,16 @@ export function KeysDrillClient() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 flex flex-col items-center gap-5">
+      {/* Named for assistive tech; the visual design carries the title
+          through the nav, so it is not repeated on screen. */}
+      <h1 className="sr-only">Key Signatures</h1>
       {/* Drill type tabs */}
       <div className="flex gap-2 self-stretch">
         {DRILLS.map((drill) => (
           <button
             key={drill.id}
             onClick={() => switchDrill(drill.id)}
+            aria-pressed={activeDrill === drill.id}
             className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold font-body transition-all border ${
               activeDrill === drill.id
                 ? "bg-violet/10 border-violet text-violet"
@@ -99,6 +103,7 @@ export function KeysDrillClient() {
           <button
             key={m.id}
             onClick={() => switchMode(m.id)}
+            aria-pressed={activeMode === m.id}
             className={`py-1 px-2.5 rounded-lg text-[10px] font-semibold font-body transition-all border cursor-pointer whitespace-nowrap ${
               activeMode === m.id
                 ? "border-violet/40 text-violet bg-violet/5"

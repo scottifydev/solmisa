@@ -102,7 +102,7 @@ export async function renderNoteOnStaff(
   color: string,
 ) {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } =
-    await import("vexflow");
+    await import("vexflow/bravura");
 
   container.innerHTML = "";
 

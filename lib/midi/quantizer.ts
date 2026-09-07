@@ -140,29 +140,51 @@ function quantizeBarNotes(
 ): QuantizedNote[] {
   if (notes.length === 0) return [];
 
+  // Snap each onset to the nearest eighth. A note played a hair before the
+  // barline would otherwise round to the downbeat of a bar it is not in, and
+  // used to be discarded outright; clamping keeps it on the last grid slot.
+  const lastSlot = beatsPerBar - MIN_GRID_BEATS;
+  const onsets = [...notes]
+    .sort((a, b) => a.time - b.time)
+    .map((note) => {
+      const beatPosition = (note.time - barStart) / beatDuration;
+      const snapped = Math.round(beatPosition * 2) / 2;
+      return { note, beat: Math.max(0, Math.min(snapped, lastSlot)) };
+    });
+
+  // The melody is a single voice, so two notes cannot occupy one slot. Rolled
+  // chords and legato overlap produce exactly that, and letting both through
+  // pushed the running cursor past the end of the bar. Keep the top note.
+  const byBeat = new Map<number, (typeof onsets)[number]>();
+  for (const entry of onsets) {
+    const existing = byBeat.get(entry.beat);
+    if (!existing || entry.note.midi > existing.note.midi) {
+      byBeat.set(entry.beat, entry);
+    }
+  }
+  const voiced = [...byBeat.values()].sort((a, b) => a.beat - b.beat);
+
   const result: QuantizedNote[] = [];
   // Accidentals carry to the end of the bar, then reset.
   const barAlterations = new Map<string, number>();
 
-  for (const note of notes) {
-    // Quantize onset to nearest 8th note
-    const relativeTime = note.time - barStart;
-    const beatPosition = relativeTime / beatDuration;
-    const quantizedBeat = Math.round(beatPosition * 2) / 2; // snap to 8th
+  for (let i = 0; i < voiced.length; i++) {
+    const { note, beat } = voiced[i]!;
 
-    // Quantize duration
-    const durationBeats = note.duration / beatDuration;
-    const quantizedDuration = snapDuration(durationBeats);
+    // A note may run until the next onset, or until the barline if it is last.
+    // Without the next-onset bound a long note overlapped its successor and
+    // the bar rendered more beats than the time signature allows.
+    const nextBeat = voiced[i + 1]?.beat ?? beatsPerBar;
+    const available = Math.min(nextBeat, beatsPerBar) - beat;
 
-    // Clamp to bar boundary
-    const remainingBeats = beatsPerBar - quantizedBeat;
-    const clampedDuration = Math.min(quantizedDuration, remainingBeats);
-
-    if (clampedDuration <= 0) continue;
+    const natural = snapDuration(note.duration / beatDuration);
+    // Take the longest notatable duration that fits, so the value is always
+    // renderable rather than falling back to an arbitrary quarter.
+    const fitted = decomposeBeats(Math.min(natural, available))[0];
+    if (!fitted) continue;
 
     // Convert MIDI to VexFlow key, spelled for the current key signature
     const { vexKey, accidental } = spellNote(note.midi, key, barAlterations);
-    const vexDuration = beatsToVexDuration(clampedDuration);
 
     // Classify note against active chord
     const category = activeChord
@@ -174,13 +196,13 @@ function quantizeBarNotes(
 
     result.push({
       keys: [vexKey],
-      duration: vexDuration.vex,
+      duration: fitted.vex,
       rest: false,
-      dotted: vexDuration.dotted,
+      dotted: fitted.dotted,
       tied: false,
       accidental,
       bar: barNumber,
-      beat: quantizedBeat + 1,
+      beat: beat + 1,
       degree,
       noteCategory: category,
     });
@@ -202,19 +224,6 @@ function snapDuration(beats: number): number {
     }
   }
   return best;
-}
-
-function beatsToVexDuration(beats: number): {
-  vex: string;
-  dotted: boolean;
-} {
-  for (const d of VEXFLOW_DURATIONS) {
-    if (Math.abs(d.ticks - beats) < 0.15) {
-      return { vex: d.vex.replace("d", ""), dotted: d.dotted };
-    }
-  }
-  // Default to quarter
-  return { vex: "q", dotted: false };
 }
 
 /** Smallest duration the grid can express, in beats. */
@@ -258,18 +267,23 @@ function fillRests(
   barNumber: number,
 ): QuantizedNote[] {
   if (notes.length === 0) {
-    // Whole bar rest
-    return [
-      {
+    // Rest for the length of the bar. This used to be a hardcoded whole rest,
+    // which is four beats and therefore wrong in any meter but 4/4 — one of
+    // the shipped files parses as 3/4 and every empty bar overflowed.
+    let beat = 1;
+    return decomposeBeats(beatsPerBar).map((rest) => {
+      const note: QuantizedNote = {
         keys: ["b/4"],
-        duration: "w",
+        duration: rest.vex,
         rest: true,
-        dotted: false,
+        dotted: rest.dotted,
         tied: false,
         bar: barNumber,
-        beat: 1,
-      },
-    ];
+        beat,
+      };
+      beat += rest.beats;
+      return note;
+    });
   }
 
   // Sort by beat position

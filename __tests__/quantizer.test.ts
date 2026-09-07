@@ -142,36 +142,141 @@ describe("buildNotation bar assignment", () => {
   });
 });
 
+/** Build a one-bar 4/4 score at 60bpm from raw (onset, duration) pairs. */
+function oneBar(
+  spans: { time: number; duration: number; midi?: number }[],
+): ParsedStandard {
+  const base = tempoChangeStandard();
+  return {
+    ...base,
+    totalBars: 1,
+    barStartTimes: [0, 4],
+    tracks: {
+      melody: spans.map((s) => ({
+        ...note(0, s.time, s.midi ?? 60),
+        duration: s.duration,
+      })),
+      harmony: [],
+    },
+  };
+}
+
+function barBeats(measure: { notes: { duration: string; dotted: boolean }[] }) {
+  return measure.notes.reduce((t, n) => t + beatsOf(n.duration, n.dotted), 0);
+}
+
 describe("bar duration invariant", () => {
   it("every measure sums to the time signature", () => {
     const { measures } = buildNotation(tempoChangeStandard(), []);
     for (const measure of measures) {
-      const total = measure.notes.reduce(
-        (t, n) => t + beatsOf(n.duration, n.dotted),
-        0,
-      );
-      expect(total).toBeCloseTo(4, 6);
+      expect(barBeats(measure)).toBeCloseTo(4, 6);
     }
   });
 
-  it("holds when notes start off the beat", () => {
-    const parsed = tempoChangeStandard();
-    const offbeat: ParsedStandard = {
-      ...parsed,
-      totalBars: 1,
-      barStartTimes: [0, 4],
-      tracks: {
-        // Lands mid-bar, leaving an odd gap before and after.
-        melody: [{ ...note(0, 1.5), duration: 0.5 }],
-        harmony: [],
-      },
-    };
-    const { measures } = buildNotation(offbeat, []);
-    const total = measures[0]!.notes.reduce(
-      (t, n) => t + beatsOf(n.duration, n.dotted),
-      0,
+  it("holds when a note starts off the beat", () => {
+    const { measures } = buildNotation(
+      oneBar([{ time: 1.5, duration: 0.5 }]),
+      [],
     );
-    expect(total).toBeCloseTo(4, 6);
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+  });
+
+  it("holds when a long note overlaps the next onset", () => {
+    // The held note wants 2 beats but the next onset is 0.5 beats away.
+    // Without a next-onset clamp the bar rendered more beats than it has.
+    const { measures } = buildNotation(
+      oneBar([
+        { time: 1, duration: 2 },
+        { time: 1.5, duration: 1 },
+      ]),
+      [],
+    );
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+  });
+
+  it("holds when two notes quantize onto the same slot", () => {
+    // A rolled chord spread wider than the parser's onset window puts two
+    // notes in the melody that snap to one beat.
+    const { measures } = buildNotation(
+      oneBar([
+        { time: 1.02, duration: 1, midi: 60 },
+        { time: 1.08, duration: 1, midi: 67 },
+      ]),
+      [],
+    );
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+    const sounding = measures[0]!.notes.filter((n) => !n.rest);
+    expect(sounding).toHaveLength(1);
+    // The melody is the top voice, so the higher note survives.
+    expect(sounding[0]!.keys[0]).toBe("g/4");
+  });
+
+  it("holds across a spread of onsets and lengths", () => {
+    const cases: { time: number; duration: number }[][] = [
+      [{ time: 0, duration: 4 }],
+      [{ time: 0, duration: 0.25 }],
+      [{ time: 3.75, duration: 1 }],
+      [{ time: 0.5, duration: 2.5 }],
+      [
+        { time: 0, duration: 1 },
+        { time: 2.5, duration: 3 },
+      ],
+      [
+        { time: 0.25, duration: 0.3 },
+        { time: 1.1, duration: 0.4 },
+        { time: 3.4, duration: 2 },
+      ],
+    ];
+    for (const spans of cases) {
+      const { measures } = buildNotation(oneBar(spans), []);
+      expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+    }
+  });
+});
+
+describe("notes are never silently dropped", () => {
+  it("keeps a note played just before the barline", () => {
+    // Snapping used to round this onto the barline, where the remaining
+    // space was zero and the note was discarded while still sounding.
+    const { measures } = buildNotation(
+      oneBar([{ time: 3.95, duration: 0.5 }]),
+      [],
+    );
+    const sounding = measures[0]!.notes.filter((n) => !n.rest);
+    expect(sounding).toHaveLength(1);
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+  });
+
+  it("renders every distinct onset in a busy bar", () => {
+    const spans = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].map((time) => ({
+      time,
+      duration: 0.5,
+    }));
+    const { measures } = buildNotation(oneBar(spans), []);
+    const sounding = measures[0]!.notes.filter((n) => !n.rest);
+    expect(sounding).toHaveLength(8);
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+  });
+});
+
+describe("every emitted duration is renderable", () => {
+  it("only uses durations VexFlow understands", () => {
+    const allowed = new Set(["w", "h", "q", "8", "16"]);
+    const cases = [
+      tempoChangeStandard(),
+      oneBar([{ time: 0.5, duration: 2.5 }]),
+      oneBar([
+        { time: 1, duration: 2 },
+        { time: 1.5, duration: 1 },
+      ]),
+    ];
+    for (const parsed of cases) {
+      for (const measure of buildNotation(parsed, []).measures) {
+        for (const n of measure.notes) {
+          expect(allowed.has(n.duration)).toBe(true);
+        }
+      }
+    }
   });
 });
 
