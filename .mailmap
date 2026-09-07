@@ -1,0 +1,9 @@
+# Canonical author identity.
+#
+# Early commits were made before a git identity was configured, so git derived
+# one from the local username and machine hostname. This maps those onto the
+# same identity as the rest of the history for `git log`, `git shortlog` and
+# anything else that honours a mailmap.
+Scott Lee <30377017+scottifydev@users.noreply.github.com> <adminslee@ArnoldMagnetics.com>
+Scott Lee <30377017+scottifydev@users.noreply.github.com> admin slee <adminslee@ArnoldMagnetics.com>
+Scott Lee <30377017+scottifydev@users.noreply.github.com> <scott@scottify.io>
