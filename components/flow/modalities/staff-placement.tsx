@@ -9,7 +9,7 @@ import {
   Voice,
   Formatter,
   Accidental,
-} from "vexflow";
+} from "vexflow/bravura";
 
 const IVORY = "#F5F0EB";
 

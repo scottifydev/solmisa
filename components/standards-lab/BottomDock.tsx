@@ -46,6 +46,7 @@ export function BottomDock({
     isPlaying,
     isPaused,
     isLoading,
+    audioError,
     tempoRatio,
     setTempoRatio,
     melodyMuted,
@@ -253,6 +254,18 @@ export function BottomDock({
             }}
           >
             Loading piano
+          </span>
+        )}
+        {!isLoading && audioError && (
+          <span
+            role="status"
+            style={{
+              fontSize: 10,
+              fontFamily: "'IBM Plex Mono', monospace",
+              color: "#f87171",
+            }}
+          >
+            {audioError}
           </span>
         )}
         <button

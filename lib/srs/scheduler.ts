@@ -16,7 +16,15 @@ import { getNextStage, getIntervalHours, canAdvanceSrs } from "./stages";
  * For perceptual cards: called once per skill group with session-level accuracy
  *   (pass session accuracy via input.session_accuracy, correct = sessionAccuracy >= 0.8).
  */
-export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
+export function computeSchedule(
+  input: SrsSchedulerInput,
+  /**
+   * Milliseconds since the epoch to schedule from. Injected so the function is
+   * genuinely pure and its output can be asserted exactly; callers omit it and
+   * get the current time.
+   */
+  now: number = Date.now(),
+): SchedulerResult {
   const { item, correct, confidence } = input;
 
   // Ease factor adjustment — modulated by confidence
@@ -50,7 +58,7 @@ export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
   const nextReviewAt =
     baseHours === Infinity
       ? new Date("9999-12-31T23:59:59Z").toISOString()
-      : new Date(Date.now() + intervalDays * 24 * 60 * 60 * 1000).toISOString();
+      : new Date(now + intervalDays * 24 * 60 * 60 * 1000).toISOString();
 
   // Difficulty tier promotion/demotion
   const tierResult = computeTierChange(item, correct, newStage);
@@ -61,7 +69,7 @@ export function computeSchedule(input: SrsSchedulerInput): SchedulerResult {
     const promotedIntervalDays =
       (promotedIntervalHours * FSRS_DEFAULTS.defaultEase) / 24;
     const promotedNextReview = new Date(
-      Date.now() + promotedIntervalDays * 24 * 60 * 60 * 1000,
+      now + promotedIntervalDays * 24 * 60 * 60 * 1000,
     ).toISOString();
 
     return {

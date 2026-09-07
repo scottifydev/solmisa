@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { IdentifyKey } from "@/components/practice/drills/identify-key";
 import { WriteKeySig } from "@/components/practice/drills/write-key-sig";
 
@@ -32,7 +33,17 @@ export function KeysDrillClient() {
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
 
+  function advance() {
+    cancel();
+    setRoundKey((k) => k + 1);
+    setAnswered(false);
+    setResolvedMode(resolveMode(activeMode));
+  }
+
+  const { schedule, cancel } = useAutoAdvance(advance);
+
   function switchDrill(id: DrillId) {
+    cancel();
     setActiveDrill(id);
     setRoundKey((k) => k + 1);
     setCorrect(0);
@@ -42,6 +53,7 @@ export function KeysDrillClient() {
   }
 
   function switchMode(id: ModeId) {
+    cancel();
     setActiveMode(id);
     setRoundKey((k) => k + 1);
     setCorrect(0);
@@ -50,17 +62,11 @@ export function KeysDrillClient() {
     setResolvedMode(resolveMode(id));
   }
 
-  function advance() {
-    setRoundKey((k) => k + 1);
-    setAnswered(false);
-    setResolvedMode(resolveMode(activeMode));
-  }
-
   function handleAnswer(isCorrect: boolean) {
     setAnswered(true);
     setTotal((t) => t + 1);
     if (isCorrect) setCorrect((c) => c + 1);
-    setTimeout(advance, isCorrect ? 1000 : 2000);
+    schedule(isCorrect ? 1000 : 2000);
   }
 
   const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;

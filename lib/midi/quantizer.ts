@@ -23,14 +23,13 @@ export function buildNotation(
   sections?: TuneSection[],
 ): StandardNotation {
   const { melody } = parsed.tracks;
-  const { timeSignature, tempoEvents, ppq } = parsed;
-  const bpm = tempoEvents[0]?.bpm ?? 120;
+  const { timeSignature, ppq } = parsed;
 
   const measures = quantizeToMeasures(
     melody,
     chords,
     timeSignature,
-    bpm,
+    parsed.barStartTimes,
     ppq,
     parsed.totalBars,
     buildKeyContext(parsed.keySignature),
@@ -62,27 +61,39 @@ function quantizeToMeasures(
   melody: MidiNoteEvent[],
   chords: AnalyzedChord[],
   timeSig: TimeSignature,
-  bpm: number,
+  barStartTimes: number[],
   ppq: number,
   totalBars: number,
   key: KeyContext,
   sections?: TuneSection[],
 ): QuantizedMeasure[] {
   const beatsPerBar = timeSig.numerator;
-  const beatDuration = 60 / bpm; // seconds per beat
-  const barDuration = beatDuration * beatsPerBar;
+
+  // Group notes by the bar the parser assigned them, which comes from ticks
+  // through the file's tempo map. Deriving bars here from a single BPM put
+  // notes in the wrong measures for every file with a tempo change.
+  const notesByBar = new Map<number, MidiNoteEvent[]>();
+  for (const note of melody) {
+    const existing = notesByBar.get(note.bar);
+    if (existing) existing.push(note);
+    else notesByBar.set(note.bar, [note]);
+  }
 
   // Build measures
   const measures: QuantizedMeasure[] = [];
 
   for (let bar = 0; bar < totalBars; bar++) {
-    const barStart = bar * barDuration;
-    const barEnd = barStart + barDuration;
+    const barStart = barStartTimes[bar] ?? 0;
+    // The last bar has no following downbeat, so fall back to the previous
+    // bar's length, or to the file's own average if there is only one bar.
+    const nextStart = barStartTimes[bar + 1];
+    const barDuration =
+      nextStart !== undefined
+        ? nextStart - barStart
+        : (barStartTimes[bar] ?? 0) - (barStartTimes[bar - 1] ?? 0) || 2;
+    const beatDuration = barDuration / beatsPerBar;
 
-    // Get melody notes in this bar
-    const barNotes = melody.filter(
-      (n) => n.time >= barStart - 0.01 && n.time < barEnd - 0.01,
-    );
+    const barNotes = notesByBar.get(bar) ?? [];
 
     // Get active chord at bar start
     const activeChord = findChordAtTime(chords, barStart);
@@ -206,6 +217,39 @@ function beatsToVexDuration(beats: number): {
   return { vex: "q", dotted: false };
 }
 
+/** Smallest duration the grid can express, in beats. */
+const MIN_GRID_BEATS = 0.25;
+
+/**
+ * Express a span of beats as a sequence of notatable durations, longest first.
+ *
+ * A single lookup cannot do this: a 2.5-beat gap matches no grid entry, and the
+ * old code silently emitted one quarter note for it, so the bar no longer added
+ * up to the time signature and VexFlow drew a short measure.
+ */
+export function decomposeBeats(
+  beats: number,
+): { vex: string; dotted: boolean; beats: number }[] {
+  const out: { vex: string; dotted: boolean; beats: number }[] = [];
+  let remaining = beats;
+
+  // Guard against a non-finite or negative span rather than looping forever.
+  if (!Number.isFinite(remaining) || remaining < MIN_GRID_BEATS) return out;
+
+  while (remaining >= MIN_GRID_BEATS) {
+    const fit = VEXFLOW_DURATIONS.find((d) => d.ticks <= remaining + 1e-6);
+    if (!fit) break;
+    out.push({
+      vex: fit.vex.replace("d", ""),
+      dotted: fit.dotted,
+      beats: fit.ticks,
+    });
+    remaining -= fit.ticks;
+  }
+
+  return out;
+}
+
 // ─── Rest Filling ────────────────────────────────────────────
 
 function fillRests(
@@ -234,19 +278,19 @@ function fillRests(
   let cursor = 1; // current beat position (1-indexed)
 
   for (const note of sorted) {
-    // Insert rest before this note if there's a gap
-    const gap = note.beat - cursor;
-    if (gap >= 0.4) {
-      const restDuration = beatsToVexDuration(gap);
+    // Fill any gap before this note with rests that add up exactly.
+    let restBeat = cursor;
+    for (const rest of decomposeBeats(note.beat - cursor)) {
       result.push({
         keys: ["b/4"],
-        duration: restDuration.vex,
+        duration: rest.vex,
         rest: true,
-        dotted: restDuration.dotted,
+        dotted: rest.dotted,
         tied: false,
         bar: barNumber,
-        beat: cursor,
+        beat: restBeat,
       });
+      restBeat += rest.beats;
     }
 
     result.push(note);
@@ -256,19 +300,19 @@ function fillRests(
     cursor = note.beat + noteDur;
   }
 
-  // Trailing rest if the bar isn't full
-  const trailing = beatsPerBar + 1 - cursor;
-  if (trailing >= 0.4) {
-    const restDuration = beatsToVexDuration(trailing);
+  // Trailing rests if the bar isn't full
+  let trailingBeat = cursor;
+  for (const rest of decomposeBeats(beatsPerBar + 1 - cursor)) {
     result.push({
       keys: ["b/4"],
-      duration: restDuration.vex,
+      duration: rest.vex,
       rest: true,
-      dotted: restDuration.dotted,
+      dotted: rest.dotted,
       tied: false,
       bar: barNumber,
-      beat: cursor,
+      beat: trailingBeat,
     });
+    trailingBeat += rest.beats;
   }
 
   return result;

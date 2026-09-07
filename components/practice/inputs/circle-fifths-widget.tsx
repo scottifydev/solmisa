@@ -694,6 +694,16 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
     e.preventDefault();
     e.stopPropagation();
 
+    // Route every later pointer event to this SVG until release. Without it a
+    // drag that strays outside the element stopped producing move events, and
+    // the onPointerLeave fallback below committed the answer early.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Older engines can refuse capture; the drag still works, it just ends
+      // if the pointer leaves the element.
+    }
+
     if (display.mode === "tap" && !question?.forceSlide) {
       setActivePos(pos);
       setActiveRing(ring);
@@ -1238,8 +1248,10 @@ export function CircleFifthsWidget({ onAnswer }: CircleFifthsWidgetProps) {
         }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={(e) => {
-          if (dragging) handlePointerUp(e);
+        onPointerLeave={() => {
+          // Leaving the SVG must not submit: with pointer capture the drag
+          // continues, and grading here graded whatever happened to be under
+          // the cursor when it crossed the edge.
           setOverCancel(false);
         }}
       >

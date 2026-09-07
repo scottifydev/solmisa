@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import {
   IdentifyNote,
   type ClefType,
@@ -43,7 +44,17 @@ export function NotesDrillClient() {
 
   const currentDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
 
+  function advance() {
+    cancel();
+    setRoundKey((k) => k + 1);
+    setAnswered(false);
+    setResolvedClef(resolveClef(currentDifficulty.clefs));
+  }
+
+  const { schedule, cancel } = useAutoAdvance(advance);
+
   function resetStreak() {
+    cancel();
     setRoundKey((k) => k + 1);
     setCorrect(0);
     setTotal(0);
@@ -63,17 +74,11 @@ export function NotesDrillClient() {
     setResolvedClef(resolveClef(diff.clefs));
   }
 
-  function advance() {
-    setRoundKey((k) => k + 1);
-    setAnswered(false);
-    setResolvedClef(resolveClef(currentDifficulty.clefs));
-  }
-
   function handleAnswer(isCorrect: boolean) {
     setAnswered(true);
     setTotal((t) => t + 1);
     if (isCorrect) setCorrect((c) => c + 1);
-    setTimeout(advance, isCorrect ? 1000 : 2000);
+    schedule(isCorrect ? 1000 : 2000);
   }
 
   const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { BuildScale } from "@/components/practice/drills/build-scale";
 import { BuildMode } from "@/components/practice/drills/build-mode";
 
@@ -64,7 +65,16 @@ export function ScalesDrillClient() {
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
 
+  function advance() {
+    cancel();
+    setRoundKey((k) => k + 1);
+    setAnswered(false);
+  }
+
+  const { schedule, cancel } = useAutoAdvance(advance);
+
   function resetStreak() {
+    cancel();
     setRoundKey((k) => k + 1);
     setCorrect(0);
     setTotal(0);
@@ -76,16 +86,11 @@ export function ScalesDrillClient() {
     resetStreak();
   }
 
-  function advance() {
-    setRoundKey((k) => k + 1);
-    setAnswered(false);
-  }
-
   function handleAnswer(isCorrect: boolean) {
     setAnswered(true);
     setTotal((t) => t + 1);
     if (isCorrect) setCorrect((c) => c + 1);
-    setTimeout(advance, isCorrect ? 1000 : 2000);
+    schedule(isCorrect ? 1000 : 2000);
   }
 
   const currentDrill = DRILLS.find((d) => d.id === activeDrill)!;
