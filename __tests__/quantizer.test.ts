@@ -196,7 +196,7 @@ describe("bar duration invariant", () => {
 
   it("holds when two notes quantize onto the same slot", () => {
     // A rolled chord spread wider than the parser's onset window puts two
-    // notes in the melody that snap to one beat.
+    // notes in the melody that snap to one slot.
     const { measures } = buildNotation(
       oneBar([
         { time: 1.02, duration: 1, midi: 60 },
@@ -207,8 +207,63 @@ describe("bar duration invariant", () => {
     expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
     const sounding = measures[0]!.notes.filter((n) => !n.rest);
     expect(sounding).toHaveLength(1);
-    // The melody is the top voice, so the higher note survives.
-    expect(sounding[0]!.keys[0]).toBe("g/4");
+    // The note that actually starts on the slot wins. Preferring the higher
+    // pitch instead dragged a later note backwards onto an earlier position.
+    expect(sounding[0]!.keys[0]).toBe("c/4");
+  });
+
+  it("keeps both notes of a sixteenth-apart run", () => {
+    // Snapping to eighths merged these into one slot and discarded a note.
+    const { measures } = buildNotation(
+      oneBar([
+        { time: 1, duration: 0.25 },
+        { time: 1.25, duration: 0.25 },
+      ]),
+      [],
+    );
+    const sounding = measures[0]!.notes.filter((n) => !n.rest);
+    expect(sounding).toHaveLength(2);
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
+  });
+
+  it("notates the gap to the next note, not how long the key was held", () => {
+    // A run of eighths played detached, each released after 40% of its slot.
+    // Taking the note-off literally engraved them as sixteenths separated by
+    // rests. Only notes with a following onset are checked: the last note in
+    // a bar genuinely is short, because nothing follows it.
+    const { measures } = buildNotation(
+      oneBar([
+        { time: 0, duration: 0.2 },
+        { time: 0.5, duration: 0.2 },
+        { time: 1, duration: 0.2 },
+        { time: 1.5, duration: 0.2 },
+      ]),
+      [],
+    );
+    const sounding = measures[0]!.notes.filter((n) => !n.rest);
+    expect(sounding).toHaveLength(4);
+    // The three with a successor fill their slot.
+    expect(sounding.slice(0, 3).map((n) => n.duration)).toEqual([
+      "8",
+      "8",
+      "8",
+    ]);
+  });
+
+  it("still notates a genuine rest after a short note", () => {
+    // Held for a quarter, then two beats of silence: the rest is real and
+    // must survive the inter-onset rule.
+    const { measures } = buildNotation(
+      oneBar([
+        { time: 0, duration: 1 },
+        { time: 3, duration: 1 },
+      ]),
+      [],
+    );
+    const first = measures[0]!.notes.filter((n) => !n.rest)[0]!;
+    expect(first.duration).toBe("q");
+    expect(measures[0]!.notes.some((n) => n.rest)).toBe(true);
+    expect(barBeats(measures[0]!)).toBeCloseTo(4, 6);
   });
 
   it("holds across a spread of onsets and lengths", () => {

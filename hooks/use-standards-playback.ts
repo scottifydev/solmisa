@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import { ensureAudio } from "@/lib/audio/solmisa-piano";
+import { barAtTime } from "@/lib/notation/cursor-position";
 import type { ParsedStandard, MidiNoteEvent } from "@/types/standards-lab";
 
 const SALAMANDER_BASE_URL = "https://tonejs.github.io/audio/salamander/";
@@ -279,15 +280,42 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     setIsPaused(true);
   }, []);
 
+  /**
+   * Jump to a point in the tune. The scrubber was drawn as a slider but had
+   * no handler, so it looked interactive and did nothing.
+   *
+   * Notes are scheduled at absolute transport times, so moving the playhead
+   * is enough: events behind it are skipped and events ahead still fire.
+   */
+  const seek = useCallback(
+    (seconds: number) => {
+      if (!parsed) return;
+      const clamped = Math.max(0, Math.min(seconds, parsed.durationSeconds));
+      Tone.getTransport().seconds = clamped;
+      setContinuousTime(clamped);
+      setPosition((prev) => ({
+        ...prev,
+        time: clamped,
+        bar: barAtTime(clamped, parsed.barStartTimes),
+        melodyMidi: null,
+      }));
+    },
+    [parsed],
+  );
+
   const stop = useCallback(() => {
     // Invalidate any load still in flight so it cannot start after this.
     playAttemptRef.current++;
     const transport = Tone.getTransport();
     transport.stop();
     transport.cancel();
+    transport.position = 0;
     setIsLoading(false);
     setIsPlaying(false);
     setIsPaused(false);
+    // Reset the clock too, or the readout, the scrubber and the cursor stay
+    // frozen at the last played bar while the transport sits at zero.
+    setContinuousTime(0);
     setPosition({ time: 0, bar: 1, melodyMidi: null, harmonyMidis: [] });
   }, []);
 
@@ -341,6 +369,7 @@ export function useStandardsPlayback(parsed: ParsedStandard | null) {
     play,
     pause,
     stop,
+    seek,
     isPlaying,
     isPaused,
     isLoading,

@@ -327,11 +327,14 @@ export function PlayThisNote({ onAnswer, clef = "treble" }: PlayThisNoteProps) {
   }, []);
 
   function handleIDontKnow() {
-    if (answered) return;
+    // Same synchronous guard as the keyboard path. Checking `answered` alone
+    // let this and a key press both score the same question.
+    if (answered || submittedRef.current) return;
+    submittedRef.current = true;
     const targetKey = target.name as NoteKey;
     setAnswered(true);
     setKeyStates({ [targetKey]: "hint" });
-    playNote(target.tone);
+    playNote(target.tone).catch(() => setAudioFailed(true));
     if (containerRef.current) {
       renderNoteOnStaff(containerRef.current, clef, target, "#4ade80");
     }
