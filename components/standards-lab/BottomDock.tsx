@@ -47,6 +47,7 @@ export function BottomDock({
     isPaused,
     isLoading,
     audioError,
+    seek,
     tempoRatio,
     setTempoRatio,
     melodyMuted,
@@ -192,6 +193,33 @@ export function BottomDock({
     playNote(midi, "8n", 0.7);
   }, []);
 
+  /**
+   * Seek, and mirror the new position into the store.
+   *
+   * While stopped the readout and the notation cursor read the store rather
+   * than the transport, so moving the transport alone left the display behind.
+   */
+  const seekTo = useCallback(
+    (seconds: number) => {
+      const clamped = Math.max(0, Math.min(seconds, totalDuration));
+      seek(clamped);
+      setPlaybackPosition(clamped);
+      setCurrentBar(barAtTime(clamped, parsed?.barStartTimes ?? []));
+    },
+    [seek, totalDuration, setPlaybackPosition, setCurrentBar, parsed],
+  );
+
+  /** Map a pointer x within the scrubber track to a position in the tune. */
+  const seekToClientX = useCallback(
+    (clientX: number, track: HTMLElement) => {
+      const rect = track.getBoundingClientRect();
+      if (rect.width <= 0 || totalDuration <= 0) return;
+      const ratio = (clientX - rect.left) / rect.width;
+      seekTo(Math.max(0, Math.min(1, ratio)) * totalDuration);
+    },
+    [seekTo, totalDuration],
+  );
+
   return (
     <div
       style={{
@@ -270,7 +298,14 @@ export function BottomDock({
           </span>
         )}
         <button
-          onClick={stop}
+          onClick={() => {
+            stop();
+            // The store keeps its own copies for the notation cursor, so they
+            // have to be rewound too or the cursor stays where it stopped.
+            setCurrentBar(0);
+            setPlaybackPosition(0);
+          }}
+          aria-label="Stop"
           style={{
             width: 26,
             height: 26,
@@ -410,12 +445,45 @@ export function BottomDock({
           style={{ padding: "6px 16px", borderBottom: `1px solid ${BORDER}` }}
         >
           <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Playback position"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(totalDuration)}
+            aria-valuenow={Math.round(scrubberTime)}
+            aria-valuetext={`${formatTime(scrubberTime)} of ${formatTime(totalDuration)}`}
+            onPointerDown={(e) => {
+              // Capture is best-effort: seeking must still work if the engine
+              // refuses it, so it cannot come first.
+              seekToClientX(e.clientX, e.currentTarget);
+              try {
+                e.currentTarget.setPointerCapture(e.pointerId);
+              } catch {
+                // Drag-to-scrub is unavailable; the click still seeks.
+              }
+            }}
+            onPointerMove={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                seekToClientX(e.clientX, e.currentTarget);
+              }
+            }}
+            onKeyDown={(e) => {
+              // Five seconds per press, a bar or so at most tempos.
+              if (e.key === "ArrowLeft") seekTo(scrubberTime - 5);
+              else if (e.key === "ArrowRight") seekTo(scrubberTime + 5);
+              else if (e.key === "Home") seekTo(0);
+              else if (e.key === "End") seekTo(totalDuration);
+              else return;
+              e.preventDefault();
+            }}
             style={{
               height: 8,
               background: "#1a1a24",
               borderRadius: 4,
               position: "relative",
               overflow: "hidden",
+              cursor: "pointer",
+              touchAction: "none",
             }}
           >
             <div

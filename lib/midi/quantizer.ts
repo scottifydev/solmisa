@@ -140,27 +140,28 @@ function quantizeBarNotes(
 ): QuantizedNote[] {
   if (notes.length === 0) return [];
 
-  // Snap each onset to the nearest eighth. A note played a hair before the
-  // barline would otherwise round to the downbeat of a bar it is not in, and
-  // used to be discarded outright; clamping keeps it on the last grid slot.
+  // Snap each onset to the nearest sixteenth, the finest value the duration
+  // vocabulary can express. Snapping to eighths collapsed fast runs — two
+  // notes a sixteenth apart landed on one slot and one of them was lost.
+  // A note played a hair before the barline would round to the downbeat of a
+  // bar it is not in, so the position is also clamped to the last slot.
   const lastSlot = beatsPerBar - MIN_GRID_BEATS;
   const onsets = [...notes]
     .sort((a, b) => a.time - b.time)
     .map((note) => {
       const beatPosition = (note.time - barStart) / beatDuration;
-      const snapped = Math.round(beatPosition * 2) / 2;
+      const snapped =
+        Math.round(beatPosition / MIN_GRID_BEATS) * MIN_GRID_BEATS;
       return { note, beat: Math.max(0, Math.min(snapped, lastSlot)) };
     });
 
-  // The melody is a single voice, so two notes cannot occupy one slot. Rolled
-  // chords and legato overlap produce exactly that, and letting both through
-  // pushed the running cursor past the end of the bar. Keep the top note.
+  // The melody is a single voice, so two notes cannot share a slot. What
+  // remains after sixteenth snapping is a genuine collision, and the note that
+  // actually starts there wins: keeping the higher pitch instead dragged a
+  // later note backwards onto an earlier one's position.
   const byBeat = new Map<number, (typeof onsets)[number]>();
   for (const entry of onsets) {
-    const existing = byBeat.get(entry.beat);
-    if (!existing || entry.note.midi > existing.note.midi) {
-      byBeat.set(entry.beat, entry);
-    }
+    if (!byBeat.has(entry.beat)) byBeat.set(entry.beat, entry);
   }
   const voiced = [...byBeat.values()].sort((a, b) => a.beat - b.beat);
 
@@ -177,10 +178,19 @@ function quantizeBarNotes(
     const nextBeat = voiced[i + 1]?.beat ?? beatsPerBar;
     const available = Math.min(nextBeat, beatsPerBar) - beat;
 
-    const natural = snapDuration(note.duration / beatDuration);
+    // Notate the time until the next note, not how long the key was held.
+    // A performance releases notes early: a swung eighth may sound for 40% of
+    // its slot, and taking the note-off literally engraved a run of eighths as
+    // detached sixteenths separated by rests. Fall back to the held duration
+    // only when the player left a gap wide enough to be a real rest.
+    const held = snapDuration(note.duration / beatDuration);
+    const isDetached =
+      held < available - MIN_GRID_BEATS && held < available * 0.6;
+    const beats = isDetached ? held : available;
+
     // Take the longest notatable duration that fits, so the value is always
     // renderable rather than falling back to an arbitrary quarter.
-    const fitted = decomposeBeats(Math.min(natural, available))[0];
+    const fitted = decomposeBeats(beats)[0];
     if (!fitted) continue;
 
     // Convert MIDI to VexFlow key, spelled for the current key signature

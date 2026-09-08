@@ -121,10 +121,12 @@ describe("engraved notes stay in sync with what plays", () => {
       const played = parsed.tracks.melody.length;
       if (played === 0) return;
 
-      // Notes are only merged when two onsets quantize onto the same eighth,
-      // which is a genuine single-voice collision rather than a dropped note.
-      // Before the barline fix, notes vanished outright.
-      expect(sounding).toBeGreaterThan(played * 0.8);
+      // Notes merge only when two onsets land on the same sixteenth, which is
+      // a genuine single-voice collision. The worst tune in the catalogue
+      // currently keeps 91%, so this threshold is a real bound with room to
+      // spare rather than a snapshot of today's number: an eighth-note grid
+      // scores 81% here and must fail.
+      expect(sounding).toBeGreaterThan(played * 0.88);
       expect(sounding).toBeLessThanOrEqual(played);
     },
   );

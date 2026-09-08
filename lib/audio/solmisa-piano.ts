@@ -106,13 +106,26 @@ export function setReverbWet(wet: number): void {
 
 type NoteArg = string | number;
 
+/**
+ * Accept either a note name or a MIDI number.
+ *
+ * Tone treats a bare number as a frequency in Hertz, so casting a MIDI number
+ * to a string played middle C as 60 Hz — roughly two octaves below the key
+ * that was clicked. Convert explicitly instead.
+ */
+function toNoteName(note: NoteArg): string {
+  return typeof note === "number"
+    ? Tone.Frequency(note, "midi").toNote()
+    : note;
+}
+
 export async function playNote(
   note: NoteArg,
   duration = "8n",
   velocity = 0.8,
 ): Promise<void> {
   const s = await ensureAudio();
-  s.triggerAttackRelease(note as string, duration, Tone.now(), velocity);
+  s.triggerAttackRelease(toNoteName(note), duration, Tone.now(), velocity);
 }
 
 export async function playChord(
@@ -121,16 +134,16 @@ export async function playChord(
   velocity = 0.7,
 ): Promise<void> {
   const s = await ensureAudio();
-  s.triggerAttackRelease(notes as string[], duration, Tone.now(), velocity);
+  s.triggerAttackRelease(notes.map(toNoteName), duration, Tone.now(), velocity);
 }
 
 export async function attackNote(note: NoteArg, velocity = 0.8): Promise<void> {
   const s = await ensureAudio();
-  s.triggerAttack(note as string, Tone.now(), velocity);
+  s.triggerAttack(toNoteName(note), Tone.now(), velocity);
 }
 
 export function releaseNote(note: NoteArg): void {
-  sampler?.triggerRelease(note as string, Tone.now());
+  sampler?.triggerRelease(toNoteName(note), Tone.now());
 }
 
 export function releaseAll(): void {
